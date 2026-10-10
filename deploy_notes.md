@@ -6,6 +6,24 @@ civic-talk-hono 的部署與環境設定參考。日常開發看 [`README.md`](.
 
 ---
 
+## 授權切換候選版的原始碼提供
+
+本節配合 #126 的法律審查分支，**尚未代表正式站已改為 AGPL**。審查與來源許可待辦見 [`docs/licensing-review.md`](./docs/licensing-review.md)，在顧問確認前不要合併或部署候選版。
+
+footer 提供該次建置固定 Git commit 的 source archive 與 LICENSE。兩個 Vite config 都由 `scripts/source-metadata.mjs` 讀取相同 checkout 的 metadata；這是建置時設定，並非 Worker secret 或執行時 `.dev.vars`。
+
+部署前：
+
+1. 提交並 push 所有來源變更到公開 repository。保留必要的建置、安裝、執行腳本、migrations、設定範本及授權 notices；不要公開機密、正式資料或個人資料。
+2. 將 Git `origin` 指向該版本的 GitHub repository。fork 預設使用自己的 origin；若 origin 無法用作公開來源，設定公開的 build 環境變數 `CIVIC_SOURCE_REPOSITORY`，例如 `https://github.com/example/civic-talk-fork`。目前只支援 GitHub repository 的 HTTPS／Git SSH remote 格式；不能設定含 token、帳密或 query 的 URL，也不能把未公開的版本冒充原專案的版本。
+3. `vp run deploy` 先執行 `node scripts/check-published-source.mjs`：檢查 Git checkout 乾淨且 commit 可在指定 repository **不經登入**取得，再執行 build 與 wrangler deploy。未提交／未 push、private repository 或 GitHub 無法確認時停止部署。
+4. 本機 dirty build 仍可供開發及測試，但 footer 會標示該版本原始碼尚未發佈，不連到不同版本。dirty 檢查僅排除 tracked 生成物 `public/styles.css`；實際 CSS source 仍須提交。
+5. 部署後人工確認各相關頁面的 footer 入口顯著可見、中英文字正確，archive 可匿名下載，且 SHA 與實際 Worker／client 建置相符。確認實際 archive 足以建置、安裝與執行對應版本，及應隨部署提供的其他 notices。
+
+直接跑 `wrangler deploy`／`wrangler versions upload`、修改已建置的產物、在檢查與建置間改動來源，或從沒有 Git metadata 的壓縮檔建置，可能繞過以上對應；必須自行提供等效驗證及正確來源入口。這個技術檢查不取代來源授權盤點或法律審查。
+
+---
+
 ## 1. 環境設定（換環境／輪替金鑰時要重做）
 
 ### 1.1 Worker 名稱與正式網域

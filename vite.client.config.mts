@@ -3,10 +3,12 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as vueCompiler from '@vue/compiler-sfc'
+import { sourceDefines } from './scripts/source-metadata.mjs'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  define: sourceDefines(),
   root,
   publicDir: false,
   plugins: [

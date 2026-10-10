@@ -2,8 +2,10 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import vue from '@vitejs/plugin-vue'
 import * as vueCompiler from '@vue/compiler-sfc'
+import { sourceDefines } from './scripts/source-metadata.mjs'
 
 export default defineConfig(({ mode }) => ({
+  define: sourceDefines(),
   server: {
     // 不讓 dev server 代替 Worker 回 CORS，確保本機與正式路由行為一致。
     cors: false,

@@ -2,7 +2,7 @@
   "name": "civic-talk",
   "version": "0.1.0",
   "private": true,
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
     "dev": "vp run build:css && vp dev",
@@ -12,7 +12,7 @@
     "css:watch": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css --watch",
     "build": "vp run build:css && vp build -c vite.client.config.mts && vp build",
     "preview": "vp preview",
-    "deploy": "vp run build && vp exec wrangler deploy",
+    "deploy": "node scripts/check-published-source.mjs && vp run build && vp exec wrangler deploy",
     "typecheck": "vp check --no-fmt --no-lint",
     "test": "vp test",
     "check": "vp check",

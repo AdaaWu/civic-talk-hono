@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from '../l10n'
+import { sourceMetadata } from '../source'
 
 const { t } = useI18n()
 </script>
@@ -16,7 +17,13 @@ const { t } = useI18n()
       </p>
       <div class="mb-3 h-px bg-border" />
       <div class="text-xs text-muted">{{ t('footer_copy') }}</div>
+      <p class="mt-2 text-xs text-muted">{{ t('footer_software') }}</p>
       <div class="mt-3 flex flex-wrap gap-4 text-sm">
+        <template v-if="sourceMetadata.sourceUrl && sourceMetadata.licenseUrl">
+          <a :href="sourceMetadata.sourceUrl" rel="noopener noreferrer">{{ t('footer_source') }}</a>
+          <a :href="sourceMetadata.licenseUrl" target="_blank" rel="noopener noreferrer">{{ t('footer_license') }}</a>
+        </template>
+        <span v-else class="text-muted">{{ t('footer_source_unavailable') }}</span>
         <a href="https://www.vtaiwan.tw" target="_blank" rel="noopener noreferrer">vtaiwan.tw</a>
         <a href="https://make.vtaiwan.tw" target="_blank" rel="noopener noreferrer">make.vtaiwan.tw</a>
         <a href="/about">{{ t('nav_about') }}</a>
