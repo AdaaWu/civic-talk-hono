@@ -21,7 +21,8 @@ candidate version are distributed as a whole under GNU Affero General Public
 License version 3 only (SPDX: AGPL-3.0-only), subject to the separately licensed
 components and unresolved provenance items documented below.
 
-Candidate license-change commit: recorded after creating the candidate commit.
+Candidate license-change commit: c5c8dd955a8b4bf29fe9d3e2ed56f2d9942acd13
+Commit URL: https://github.com/g0v/civic-talk-hono/commit/c5c8dd955a8b4bf29fe9d3e2ed56f2d9942acd13
 Candidate preparation date: 2026-10-11 (Asia/Taipei).
 This is a review-branch proposal. It does not claim that main has merged the
 change, that the production service uses it, or that legal review is complete.
