@@ -14,20 +14,21 @@ The software previously released under MIT at this baseline remains available
 under MIT. LICENSE-MIT reproduces its LICENSE verbatim. The tag and the
 previously published history are not rewritten by this change.
 
-AGPL candidate
---------------
-The software and its build/installation/operation documentation in this
-candidate version are distributed as a whole under GNU Affero General Public
-License version 3 only (SPDX: AGPL-3.0-only), subject to the separately licensed
-components and unresolved provenance items documented below.
+AGPL release boundary
+---------------------
+The software and its build/installation/operation documentation are
+distributed as a whole under GNU Affero General Public License version 3 only
+(SPDX: AGPL-3.0-only), subject to separately licensed components and the
+provenance limitations documented below.
 
-Candidate license-change commit: c5c8dd955a8b4bf29fe9d3e2ed56f2d9942acd13
-Commit URL: https://github.com/g0v/civic-talk-hono/commit/c5c8dd955a8b4bf29fe9d3e2ed56f2d9942acd13
-Candidate preparation date: 2026-10-11 (Asia/Taipei).
-This is a review-branch proposal. It does not claim that main has merged the
-change, that the production service uses it, or that legal review is complete.
-The actual main integration commit/date must be recorded when integration
-occurs; squash/rebase can produce a different commit from the candidate.
+First AGPL release tag: v0.2.0
+After integration, the maintainer creates this tag at the actual merge commit.
+The tag identifies the release boundary without requiring this file to contain
+its own commit SHA. No unpublished tag, integration date, or production
+deployment is claimed here.
+The maintainer, acting as legal reviewer, approved the transition on
+2026-10-11 (Asia/Taipei); the decision and limitations are recorded in
+docs/licensing-review.md.
 
 MIT portions, third-party components, and contributor attribution
 ---------------------------------------------------------------
@@ -51,7 +52,9 @@ This software license change does not relicense civic opinion summaries,
 submitted materials, or other independently licensed content. Opinion
 summaries remain subject to CC-BY-SA 4.0 under the site's existing terms;
 materials follow their respective source terms. No new blanket license is
-asserted here for issues, briefings, data, or external service outputs.
+asserted here for issues, briefings, data, or external service outputs. This
+clarifies the footer against the existing submission terms; it does not revoke
+any previously valid CC license.
 
 This transition grants no additional trademark rights. Brand artwork may also
 have copyright requirements independent of trademark rights. No new license

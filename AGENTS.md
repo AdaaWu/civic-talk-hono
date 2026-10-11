@@ -51,7 +51,8 @@
     - 🚫 **不在本 repo 建立 `migrations/auth/`，不對 auth 資料表下任何 DDL**——schema（包含 `nameChangedAt` 與改名冷卻 triggers）的唯一來源是 `../vTaiwan-hono/migrations/auth/`。
     - 🚫 **不寫 `user.role`**——升降權、成員列表、變更日誌仍全部留在 vTaiwan-hono。
     - 🚫 **不以原始 SQL 寫入 DB_AUTH**——允許為授權、同名與冷卻判斷執行參數化 `SELECT`；auth 資料的 `INSERT`／`UPDATE`／`DELETE` 一律交給 Better Auth API／handler。
-12. **每次發布修訂版，footer 原始碼必須對應實際建置版本。** 版本標記由建置時的 Git commit 自動產生，不手填 SHA、不沿用舊產物，也不連到會移動的 `main`／分支網址。發布前後的必要查核見「每次修訂的原始碼版本對應」。本規範配合 #126 的候選機制，正式站仍須待法務確認後才切換。
+12. **每次發布修訂版，footer 原始碼必須對應實際建置版本。** 版本標記由建置時的 Git commit 自動產生，不手填 SHA、不沿用舊產物，也不連到會移動的 `main`／分支網址。發布前後的必要查核見「每次修訂的原始碼版本對應」。#126 的 AGPL-3.0-only 切換已由維護者兼法務核准；核准不代表已合併、建立 tag 或部署。
+13. **授權與 notices 不得被改寫或遺漏。** 新的本站軟體貢獻採 **AGPL-3.0-only**，不改成 or-later；第三方元件保留各自授權，保留 `LICENSE-MIT`、`NOTICE` 與歷史 attribution。來源不明不得補造許可。只透過 `vp run deploy` 發布，讓實際產物及公開來源查核先通過；`wrangler deploy --dry-run` 僅供預檢，禁止直接上傳繞過查核。正式版以合併後指向 merge commit 的 `v0.2.0` tag 界定，MIT baseline tag／SHA 不移動。
 
 ## 現況（今天 repo 裡真的有什麼）
 
@@ -298,7 +299,7 @@ vp test                             # Vitest（src/tests/**/*.test.ts）
 vp check                            # fmt + lint + typecheck 全開
 vp fmt                              # oxfmt 格式化
 vp exec wrangler types              # 產生 Cloudflare 綁定型別
-vp run deploy                       # 公開原始碼檢查 + build + wrangler deploy（需使用者授權）
+vp run deploy                       # build + 產物／公開原始碼檢查 + wrangler deploy（需使用者授權）
 ```
 
 **CSS**：`vp run css`（Tailwind CLI：`src/styles/app.css` → `public/styles.css`）。`vp run dev` 在啟動伺服器前先跑一次 CSS 建置，**不**自動 watch；需要邊改 CSS 邊看效果時，另開終端機跑 `vp run css:watch`。`vp run build` 依序產出 CSS、client bundle，再建 server，避免 server build 收到舊的 `public/js/civic.js`。
@@ -400,9 +401,10 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 
 - **每次修訂都沿用自動版本機制**：`scripts/source-metadata.mjs` 從 Git `HEAD` 與 `origin` 取得版本，兩個 Vite config 注入相同 metadata；footer 的原始碼 archive 與 LICENSE 連到該固定 commit。不必逐筆手動改 footer、另打 tag 或調整 `package.json` 版本。
 - **發布順序**：完成檢查 → 在取得授權後 commit／push 所有來源變更到公開 repository → 從乾淨 checkout 重新 build → 在取得部署授權後部署。commit、merge、squash 或 rebase 改變 `HEAD` 後，先前建置的產物必須重建；包含文件修訂的版本也適用。
-- **部署前**：執行 `node scripts/check-published-source.mjs`，確認本次 commit 可匿名取得；`vp run deploy` 已內含此檢查。fork／不同來源使用自己的公開 repository，必要時設定 build 環境變數 `CIVIC_SOURCE_REPOSITORY`。完整設定見 [`deploy_notes.md`](./deploy_notes.md)。檢查通過不代表已獲部署授權或法務核准。
-- **開發中的未提交版本**：dirty build 的 footer 顯示原始碼尚未發佈，不得把它當作可發布版本，也不能強行填入舊 SHA。dirty 檢查僅排除 tracked 生成物 `public/styles.css`；實際 CSS source 仍須提交。
-- **部署後**：確認 footer 可匿名下載該版本原始碼、LICENSE 指向相同 SHA，且 Worker 與 client 的建置版本一致。不要修改已建置的產物；採其他發布方式時仍須完成等效查核。
+- **部署前**：只使用 `vp run deploy`，先 build，再由 `node scripts/check-published-source.mjs` 核對 Wrangler redirected config 指向的實際 Worker／client／部署資產 metadata 與 hashes，匿名查核 commit 是否在指定公開 repository 的發布分支歷史上，通過才上傳。fork 使用自己的公開 origin，必要時設定 `CIVIC_SOURCE_REPOSITORY`；發布分支預設 `main`，其他分支設定 `CIVIC_SOURCE_BRANCH`。GitHub fork-network 的 commit 可讀並非充分證據；限流或無法查核時停止，不用 token 繞過。完整設定見 [`deploy_notes.md`](./deploy_notes.md)。查核通過不代表取得部署授權。
+  - **發布分支不能用任意 ref 代替**：`CIVIC_SOURCE_BRANCH` 是目標 repository 的分支名稱；先匿名解析確切 `refs/heads/<branch>` 的 commit SHA，再以固定 SHA 比較，核對 `base_commit.sha` 與 `identical`／`ahead`。compare 沒有 `head_commit`；head 由請求 URL 鎖定，不從有分頁限制的 `commits` 推斷。不接受 SHA（含 7–40 位純十六進位名稱）、他人 fork 的 `owner:ref`、tag 或完整 `refs/...`，防止 fork-only commit 以 `SHA...SHA` 的 `identical` 繞過。
+- **開發中的未提交版本**：dirty／無 Git build 的 footer 顯示原始碼尚未發佈，仍提供授權條款，不得當作發布版本或強行填入舊 SHA。來源判斷排除建置輸出的 `public/styles.css`、`public/licenses/{client,worker}.txt`、`public/civic-source-manifest.json`；實際 CSS source、補充授權全文與其他來源仍須提交。生成物不得手改。Worker notices 必須在 Cloudflare 所有 environments 建完後才加入實際 ASSETS，否則 client fallback 會清掉或覆蓋副本。
+- **部署後**：確認 footer 可匿名下載該版本原始碼、LICENSE 指向相同 SHA，Worker 與 client 的版本一致，且 `/licenses/client.txt`、`/licenses/worker.txt` 可匿名取得。公開來源長期保留仍需維護發布分支歷史及 release tags；不要修改已建置的產物。
 
 ## 移植基本原則
 
