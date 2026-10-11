@@ -814,6 +814,11 @@
   justify-content: center;
 }
 
+html.dark .issue-carousel {
+  --vc-nav-color: var(--color-vt-white);
+  --vc-nav-color-hover: var(--color-vt-white);
+}
+
 html.dark .status-collecting {
   background: color-mix(in srgb, var(--color-amber) 20%, #1c1c1f);
 }
@@ -830,6 +835,57 @@ html.dark .alert-info {
 html.dark .alert-warn {
   background: color-mix(in srgb, var(--color-amber) 15%, #1c1c1f);
   border-color: color-mix(in srgb, var(--color-amber) 35%, #1c1c1f);
+}
+
+@layer components {
+  .issue-briefing-tabs {
+    display: none;
+  }
+
+  @media (min-width: 601px) {
+    .issue-briefing-tabs {
+      display: flex;
+      gap: var(--spacing-vt-2);
+      margin-bottom: var(--spacing-vt-4);
+      border-bottom: 1px solid var(--color-vt-border);
+    }
+
+    .issue-briefing-tab {
+      border-bottom: var(--spacing-vt-0_5) solid transparent;
+      padding: var(--spacing-vt-3) var(--spacing-vt-4);
+      color: var(--color-vt-fg-2);
+      font-size: var(--text-vt-base);
+      cursor: pointer;
+    }
+
+    .issue-briefing-tab:hover,
+    .issue-briefing-tab[aria-current='page'] {
+      border-color: var(--color-vt-democratic-red);
+      color: var(--color-vt-democratic-red);
+    }
+
+    .issue-briefing-tab:focus-visible {
+      outline: var(--spacing-vt-0_5) solid var(--color-vt-democratic-red);
+      outline-offset: var(--spacing-vt-0_5);
+    }
+  }
+}
+
+/* 輪播套件與既有覆寫未分層；桌機覆寫也須保持未分層。 */
+@media (min-width: 601px) {
+  .issue-carousel .carousel__prev,
+  .issue-carousel .carousel__next {
+    inset-block-start: 30%;
+  }
+
+  .issue-carousel .carousel__pagination {
+    gap: var(--spacing-vt-3);
+  }
+
+  .issue-carousel .carousel__pagination-button {
+    width: var(--spacing-vt-4);
+    height: var(--spacing-vt-4);
+  }
 }
 
 @media (max-width: 600px) {

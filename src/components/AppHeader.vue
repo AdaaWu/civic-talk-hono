@@ -16,6 +16,7 @@ const props = withDefaults(
     showNewIssue?: boolean
     backHref?: string
     backLabel?: string
+    callbackUrl?: string
   }>(),
   {
     current: 'home',
@@ -39,8 +40,8 @@ const showMenu = ref(false)
 
 const displayName = computed(() => session.value?.user.name || session.value?.user.email || '')
 const hasAdminAccess = computed(() => isAdminSession(session.value))
-/** 登入後導回當前頁面。SSR 期間不會用到（未登入的 UI 只在瀏覽器端出現），仍加守衛 */
-const loginCallbackUrl = computed(() => (typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search))
+/** 可由互動頁傳入目前導覽網址，避免登入面板快取切換前的 query。 */
+const loginCallbackUrl = computed(() => props.callbackUrl ?? (typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search))
 
 onMounted(() => {
   // hydration 後才讀 localStorage，避免 SSR mismatch

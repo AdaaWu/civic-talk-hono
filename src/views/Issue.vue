@@ -18,8 +18,10 @@ import type { Briefing, Issue, Material, Opinion } from '../db/queries'
 import { formatDate, useI18n } from '../l10n'
 import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 import {
+  parseIssueBriefingSlide,
   parseIssueCommentAction,
   parseIssueStep,
+  writeIssueBriefingSlide,
   writeIssueCommentAction,
   writeIssueCommentSearch,
   writeIssueStep,
@@ -36,6 +38,7 @@ const props = defineProps<{
     opinions: Opinion[]
   } | null
   initialStep?: IssueStep | null
+  initialBriefingSlide?: number
   initialCommentAction?: IssueCommentAction
   initialCommentSearch?: string
 }>()
@@ -54,8 +57,11 @@ const loading = ref(!props.initialDetail)
 const activeStep = ref<IssueStep | null>(props.initialStep ?? null)
 const commentAction = ref<IssueCommentAction>(props.initialCommentAction ?? 'start')
 const commentSearch = ref(props.initialCommentSearch ?? '')
-const carouselIndex = ref(0)
 const lastBriefingSlideIndex = 3
+// SSR 固定公民角色；志願者的第五張在 hydration 後才還原。
+const carouselIndex = ref(Math.min(props.initialBriefingSlide ?? 0, lastBriefingSlideIndex))
+const briefingTabKeys = ['issue_tab_overview', 'issue_tab_consensus', 'issue_tab_disputes', 'issue_tab_positions'] as const
+const currentNavigationUrl = ref<string | null>(null)
 const carouselI18n = computed(() => ({
   ariaGallery: t('issue_carousel_aria'),
   ariaNextSlide: t('issue_carousel_next'),
@@ -260,6 +266,12 @@ function listenForCarouselDragEnd() {
   document.addEventListener('touchend', finishCarouselDrag, { passive: true })
 }
 
+function updateNavigationUrl(url: string, replace = false) {
+  if (typeof window === 'undefined') return
+  window.history[replace ? 'replaceState' : 'pushState']({}, '', url)
+  currentNavigationUrl.value = `${window.location.pathname}${window.location.search}${window.location.hash}`
+}
+
 function setIssueStep(step: IssueStep | null, replace = false) {
   const enteringComments = step === 'comments' && activeStep.value !== 'comments'
   activeStep.value = step
@@ -274,25 +286,31 @@ function setIssueStep(step: IssueStep | null, replace = false) {
     nextUrl = writeIssueCommentAction(nextUrl, 'start')
     nextUrl = writeIssueCommentSearch(nextUrl, '')
   }
-  window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl)
+  if (!step) nextUrl = writeIssueBriefingSlide(nextUrl, carouselIndex.value)
+  updateNavigationUrl(nextUrl, replace)
+}
+
+function selectBriefingSlide(index: number) {
+  carouselIndex.value = index
+  setIssueStep(null)
 }
 
 function setIssueCommentAction(action: IssueCommentAction, replace = false) {
   commentAction.value = action
   if (typeof window === 'undefined') return
   const nextUrl = writeIssueCommentAction(window.location.href, action)
-  window.history[replace ? 'replaceState' : 'pushState']({}, '', nextUrl)
+  updateNavigationUrl(nextUrl, replace)
 }
 
 function syncCommentSearch() {
   if (typeof window === 'undefined') return
   const nextUrl = writeIssueCommentSearch(window.location.href, commentSearch.value)
-  window.history.replaceState({}, '', nextUrl)
+  updateNavigationUrl(nextUrl, true)
 }
 
 const loginCallbackUrl = computed(() => {
-  if (typeof window !== 'undefined') return `${window.location.pathname}${window.location.search}`
-  let callback = `/issues/${props.issueId}`
+  if (currentNavigationUrl.value) return currentNavigationUrl.value
+  let callback = writeIssueBriefingSlide(`/issues/${props.issueId}`, props.initialBriefingSlide ?? 0)
   if (props.initialStep) callback = writeIssueStep(callback, props.initialStep)
   if (props.initialStep === 'comments') {
     callback = writeIssueCommentAction(callback, props.initialCommentAction ?? 'start')
@@ -317,11 +335,13 @@ function handleCarouselDrag({ deltaX, deltaY }: { deltaX: number; deltaY: number
 
 function handlePopState() {
   const search = window.location.search
+  currentNavigationUrl.value = `${window.location.pathname}${window.location.search}${window.location.hash}`
   const nextStep = parseIssueStep(search)
   activeStep.value = nextStep
   commentAction.value = parseIssueCommentAction(search)
   commentSearch.value = new URLSearchParams(search).get('search') ?? ''
   if (!nextStep) dragThresholdReached.value = false
+  carouselIndex.value = Math.min(parseIssueBriefingSlide(search), viewerRole.value === 'volunteer' ? 4 : lastBriefingSlideIndex)
 }
 
 function stanceLabel(s: string) {
@@ -387,6 +407,7 @@ async function refreshViewerOpinions() {
 }
 
 onMounted(() => {
+  void nextTick(handlePopState)
   if (!props.initialDetail) void loadIssue()
   window.addEventListener('popstate', handlePopState)
   void refreshViewerOpinions()
@@ -414,10 +435,24 @@ watch(commentAction, () => {
   if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 })
 
+watch(carouselIndex, index => {
+  if (typeof window === 'undefined' || activeStep.value) return
+  const current = parseIssueBriefingSlide(window.location.search)
+  if (current === index || (current === 4 && viewerRole.value === 'citizen' && index === lastBriefingSlideIndex)) return
+  updateNavigationUrl(writeIssueBriefingSlide(window.location.href, index))
+})
+
 watch(viewerRole, role => {
   dragThresholdReached.value = false
   if (role === 'citizen' && carouselIndex.value > lastBriefingSlideIndex) {
     carouselIndex.value = lastBriefingSlideIndex
+  }
+  if (role === 'volunteer') {
+    void nextTick(() => {
+      if (typeof window !== 'undefined' && viewerRole.value === 'volunteer' && !activeStep.value && parseIssueBriefingSlide(window.location.search) === 4) {
+        carouselIndex.value = 4
+      }
+    })
   }
 })
 
@@ -699,7 +734,7 @@ async function submitOpinion() {
 
 <template>
   <div :class="{ 'issue-carousel-page': !activeStep }">
-    <AppHeader current="issue" />
+    <AppHeader current="issue" :callback-url="loginCallbackUrl" />
 
     <main class="py-2" :class="{ 'issue-main-carousel': !activeStep }">
       <div class="container" :class="{ 'issue-container-carousel': !activeStep }">
@@ -724,6 +759,27 @@ async function submitOpinion() {
             </p>
             <button type="button" class="btn btn-secondary btn-sm mt-3 inline-flex" @click="copyRssUrl">{{ t('issue_rss_subscribe') }}</button>
           </div>
+
+          <nav class="issue-briefing-tabs" :aria-label="t('issue_tabs_aria')">
+            <button
+              v-for="(key, index) in briefingTabKeys"
+              :key="key"
+              type="button"
+              class="issue-briefing-tab"
+              :aria-current="!activeStep && carouselIndex === index ? 'page' : undefined"
+              @click="selectBriefingSlide(index)"
+            >
+              {{ t(key) }}
+            </button>
+            <button
+              type="button"
+              class="issue-briefing-tab"
+              :aria-current="(viewerRole === 'volunteer' ? !activeStep && carouselIndex === 4 : activeStep === 'comments') ? 'page' : undefined"
+              @click="viewerRole === 'volunteer' ? selectBriefingSlide(4) : setIssueStep('comments')"
+            >
+              {{ t(viewerRole === 'citizen' ? 'issue_tab_opinions' : 'issue_tab_actions') }}
+            </button>
+          </nav>
 
           <section v-if="!activeStep" class="issue-carousel-section">
             <Carousel

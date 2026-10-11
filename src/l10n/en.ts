@@ -97,6 +97,13 @@ export const messages = {
   issue_carousel_goto: 'Go to briefing slide {slideNumber}',
   issue_carousel_position: 'Slide {currentSlide} of {slidesCount}',
   issue_carousel_next_comments: 'Go to public opinions',
+  issue_tabs_aria: 'Issue section navigation',
+  issue_tab_overview: 'Overview',
+  issue_tab_consensus: 'Consensus',
+  issue_tab_disputes: 'Disputes',
+  issue_tab_positions: 'Position Map',
+  issue_tab_opinions: 'Opinions',
+  issue_tab_actions: 'Actions',
   mat_title: 'Materials',
   mat_submit_btn: '+ Submit Material',
   mat_alert:

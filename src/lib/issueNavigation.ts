@@ -5,6 +5,22 @@ export type IssueCommentAction = 'start' | 'commit' | 'celebrate' | 'ai_help' | 
 
 const ISSUE_COMMENT_ACTIONS: readonly IssueCommentAction[] = ['start', 'commit', 'celebrate', 'ai_help', 'browse']
 
+const ISSUE_BRIEFING_TABS = ['overview', 'consensus', 'disputes', 'positions', 'actions'] as const
+
+export function parseIssueBriefingSlide(search: string): number {
+  const tab = new URLSearchParams(search).get('tab')
+  const index = ISSUE_BRIEFING_TABS.findIndex(value => value === tab)
+  return index < 0 ? 0 : index
+}
+
+export function writeIssueBriefingSlide(url: string, index: number): string {
+  const next = new URL(url, 'https://civic-talk.invalid')
+  const tab = ISSUE_BRIEFING_TABS[index]
+  if (!tab || index === 0) next.searchParams.delete('tab')
+  else next.searchParams.set('tab', tab)
+  return `${next.pathname}${next.search}${next.hash}`
+}
+
 export function parseIssueCommentAction(search: string): IssueCommentAction {
   const value = new URLSearchParams(search).get('action')
   return ISSUE_COMMENT_ACTIONS.includes(value as IssueCommentAction) ? (value as IssueCommentAction) : 'start'
