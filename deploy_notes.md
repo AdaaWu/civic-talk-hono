@@ -6,6 +6,28 @@ civic-talk-hono 的部署與環境設定參考。日常開發看 [`README.md`](.
 
 ---
 
+## 原始碼與授權 notices 的提供
+
+本專案整體軟體採 AGPL-3.0-only。維護者兼法務已核准切換；首個正式版以合併後建立的 `v0.2.0` tag 界定。來源限制與決策見 [`docs/licensing-review.md`](./docs/licensing-review.md)。本文件不聲稱新版本已合併、建立 tag 或部署。
+
+footer 提供該次建置固定 Git commit 的 source archive 與 LICENSE；沒有可靠版本資訊時仍提供 GNU AGPL v3 條款，不提供可能錯誤的原始碼連結。client 與 Worker 的第三方 notices 位於 `/licenses/client.txt` 與 `/licenses/worker.txt`。來源 metadata 是建置時設定，不是 Worker secret 或執行時 `.dev.vars`。
+
+`vp run dev`／`vp run dev:remote` 啟動前先完整 build，將兩份 notices 放到 dev 使用的 `public/licenses/`；它們是啟動前 production bundle 的快照，更動套件或 imports 後須重啟開發伺服器。`public/_headers` 指定部署／preview 的 `text/plain; charset=utf-8`，Vite dev 不套用 `_headers`，由 notices plugin 的 dev middleware 指定相同編碼。Build 在加入 Worker notices 後重新封存 public／部署副本的 client manifest，保持 hashes 一致。
+
+部署前：
+
+1. 提交並 push 所有來源變更到公開 repository。保留必要的建置、安裝、執行腳本、migrations、設定範本及授權 notices；不要公開機密、正式資料或個人資料。
+2. 將 Git `origin` 指向該版本的公開 GitHub repository。fork 預設使用自己的 origin；必要時以公開 build 環境變數 `CIVIC_SOURCE_REPOSITORY` 指定，例如 `https://github.com/example/civic-talk-fork`。使用 `git remote get-url origin` 展開 `insteadOf`；無法辨識的 SSH host alias 請明確設定此 override，不能猜測為 GitHub。只接受不含 token、帳密或 query 的 GitHub HTTPS／Git SSH URL。發布分支預設 `main`；自架採其他發布分支時，在建置及部署一致設定 `CIVIC_SOURCE_BRANCH`。
+   - `CIVIC_SOURCE_BRANCH` 必須是該 repository 的分支名稱（如 `main`、`release/v0.2.0`），不能填完整／縮短 SHA、其他 fork 的 `owner:ref`、tag 或完整 `refs/...` 路徑。7–40 位純十六進位名稱視為 SHA，不接受作為發布分支。
+3. `vp run deploy` 先 build，再執行 `node scripts/check-published-source.mjs`：核對 Wrangler redirected config 指向的實際產物，並匿名解析目標 repository 的確切 `refs/heads/<branch>`，確認 ref 指向 commit，最後比較建置 SHA 與該 ref 的固定 SHA。compare 的 `base_commit.sha` 必須符合建置 SHA，且狀態為 `identical`／`ahead`；head 由請求 URL 的固定 SHA 鎖定，不讀取不存在的 `head_commit` 或以可能分頁的 `commits` 清單推斷。不存在的 heads ref、只存在於其他 fork、未 push、private repository、dirty 來源、建置中來源改動或無法查核時皆停止；不讓 compare 直接解讀使用者輸入的任意 ref。
+   - 遇到 API 限流（403／429）時，腳本顯示重置時間或等待建議並停止部署；這不代表 commit 未公開，不需重做 commit／push。依提示等待後重跑查核，不用登入 token 繞過匿名查核。其他 403、404 與服務故障會分別提示拒絕查核、找不到版本或稍後重試。
+4. 本機 dirty／無 Git build 仍可供開發及測試，但 footer 標示該版本原始碼尚未發佈，不連到不同版本。來源判斷排除建置輸出的 `public/styles.css`、`public/licenses/{client,worker}.txt`、`public/civic-source-manifest.json`；實際 CSS source、補充授權全文與其他來源仍須提交。runner 在 Cloudflare 所有 environments 完成後，才把 Worker notices 放入實際 ASSETS，再計算最終 hashes，避免 client fallback 清掉或覆蓋副本。
+5. 部署後人工確認各相關頁面的 footer 入口顯著可見、中英文正確，archive 可匿名下載，且 SHA 與實際 Worker／client 建置相符；兩份 bundle notices 均可公開取得。確認 archive 足以建置、安裝與執行對應版本；此技術查核不取代來源許可判斷。
+
+只透過 `vp run deploy` 部署，不直接使用 `wrangler deploy`／`wrangler versions upload` 繞過查核。重新 commit、merge 或切換發布環境後都要重建；不要手改產物。公開來源長期保存仍需維護者維持發布分支歷史與 release tags，本次未修改遠端保護規則。
+
+---
+
 ## 1. 環境設定（換環境／輪替金鑰時要重做）
 
 ### 1.1 Worker 名稱與正式網域
@@ -106,7 +128,7 @@ auth schema 的唯一來源是 `../vTaiwan-hono/migrations/auth/`；要改 schem
 ## 3. 部署指令與實際上傳的內容
 
 ```bash
-vp run deploy    # = vp run build + wrangler deploy
+vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler deploy（需授權）
 ```
 
 實際部署的東西：
@@ -119,7 +141,7 @@ vp run deploy    # = vp run build + wrangler deploy
 
 幾個容易誤解的點：
 
-- **`public/styles.css`（與 build 產生的 client bundle）是建置產物**。改了 `.vue` 或樣式後若沒重跑 build，deploy 上去的會是舊的前端程式碼。`vp run deploy` 內含 build，所以走這條指令不會出錯；但**不要**手動 `wrangler deploy` 而跳過 build。
+- **`public/styles.css`、client bundle 與 bundle notices 都是建置產物**。改 source 後由 `vp run deploy` 重新 build，再查核版本、hashes 與公開發布分支；不要手改或直接上傳舊產物。
 - **`wrangler.jsonc` 裡 D1 綁定的 `"remote": true` 只影響本機開發**（`vp run dev` 用本機模擬、`vp run dev:remote` 連遠端）。正式環境本來就是真的資料庫，這個欄位不改變部署行為。
 - **正式網域不在設定檔裡**（見 1.1）——`vp run deploy` 不會重建網域綁定，也不會因為設定檔沒寫就把它拆掉。
 - **`compatibility_flags: ["nodejs_compat"]` 不能拿掉**。better-auth 直接 import `node:crypto` 與 `node:async_hooks`，少了這個 flag 連本機 dev 都起不來。
@@ -278,15 +300,19 @@ npx wrangler d1 migrations apply <你的業務庫名稱> --remote --config wrang
 ### 6.4 建置、預檢、部署
 
 ```bash
+# 先提交並 push 來源到自己的公開 repository／發布分支
 # 用個人設定建置
 CLOUDFLARE_VITE_WRANGLER_CONFIG_PATH=./wrangler.personal.jsonc vp run build
 
-# 預檢：確認讀到的是個人設定，不是正式環境
+# 建置後來源／產物查核（非 main 分支需一致設定 CIVIC_SOURCE_BRANCH）
+node scripts/check-published-source.mjs
+
+# 預檢：確認讀到的是個人設定，不是正式環境；不會上傳
 npx wrangler deploy --dry-run
 #   → Configuration being used: "dist/<你的 worker 名>/wrangler.json"
 
-# 確認無誤後部署
-npx wrangler deploy
+# 確認無誤並取得部署授權後，重新建置、查核再上傳
+CLOUDFLARE_VITE_WRANGLER_CONFIG_PATH=./wrangler.personal.jsonc vp run deploy
 ```
 
 > 首次在帳號內建立 `*.workers.dev` 子網域時，**TLS 憑證要幾分鐘才簽發**。這段期間連線會失敗並顯示 `SSL/TLS_ALERT_HANDSHAKE_FAILURE`，那**不是部署失敗**——`wrangler deploy` 已回報成功即代表 Worker 上線，等憑證就緒即可連上。

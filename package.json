@@ -2,17 +2,17 @@
   "name": "civic-talk",
   "version": "0.1.0",
   "private": true,
-  "license": "MIT",
+  "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "dev": "vp run build:css && vp dev",
-    "dev:remote": "vp run build:css && vp dev --mode remote",
+    "dev": "vp run build && vp dev",
+    "dev:remote": "vp run build && vp dev --mode remote",
     "build:css": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css",
     "css": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css",
     "css:watch": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css --watch",
-    "build": "vp run build:css && vp build -c vite.client.config.mts && vp build",
+    "build": "node scripts/build.mjs",
     "preview": "vp preview",
-    "deploy": "vp run build && vp exec wrangler deploy",
+    "deploy": "vp run build && node scripts/check-published-source.mjs && vp exec wrangler deploy",
     "typecheck": "vp check --no-fmt --no-lint",
     "test": "vp test",
     "check": "vp check",
@@ -20,11 +20,11 @@
     "cf-typegen": "vp exec wrangler types"
   },
   "dependencies": {
-    "@vue/server-renderer": "^3.5.32",
+    "@vue/server-renderer": "^3.5.42",
     "better-auth": "^1.6.25",
     "hono": "^4.12.14",
     "markdown-it": "^15.0.0",
-    "vue": "^3.5.32",
+    "vue": "^3.5.42",
     "vue3-carousel": "^0.17.0"
   },
   "devDependencies": {
@@ -33,7 +33,7 @@
     "@tailwindcss/cli": "^4.3.3",
     "@types/node": "^22.10.0",
     "@vitejs/plugin-vue": "^6.0.6",
-    "@vue/compiler-sfc": "^3.5.32",
+    "@vue/compiler-sfc": "^3.5.42",
     "oxfmt": "^0.59.0",
     "tailwindcss": "^4.3.3",
     "typescript": "^5.6.0",
@@ -42,7 +42,23 @@
     "wrangler": "^4.83.0"
   },
   "overrides": {
-    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.4"
+    "@tailwindcss/cli": {
+      "@parcel/watcher": "2.5.6"
+    },
+    "tinypool": "2.1.2",
+    "vite": "npm:@voidzero-dev/vite-plus-core@0.2.4",
+    "vite-plus": {
+      "vitest": "4.1.11",
+      "@vitest/browser": "4.1.11",
+      "@vitest/browser-preview": "4.1.11",
+      "@vitest/expect": "4.1.11",
+      "@vitest/mocker": "4.1.11",
+      "@vitest/pretty-format": "4.1.11",
+      "@vitest/runner": "4.1.11",
+      "@vitest/snapshot": "4.1.11",
+      "@vitest/spy": "4.1.11",
+      "@vitest/utils": "4.1.11"
+    }
   },
   "devEngines": {
     "packageManager": {

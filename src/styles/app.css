@@ -629,6 +629,17 @@
     overflow-wrap: anywhere;
     line-height: 1.65;
   }
+  .mobile-readable {
+    font-size: var(--text-vt-base);
+    line-height: var(--text-vt-base--line-height);
+  }
+
+  @variant sm {
+    .mobile-readable {
+      font-size: var(--text-vt-sm);
+      line-height: var(--text-vt-sm--line-height);
+    }
+  }
 
   .markdown-content > :first-child {
     margin-top: 0;

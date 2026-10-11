@@ -1,0 +1,70 @@
+Civic Talk — software licensing notice
+Prepared on 2026-10-11 (Asia/Taipei) for issue #126:
+https://github.com/g0v/civic-talk-hono/issues/126
+
+MIT baseline
+------------
+Tag: v0.1.0-mit-final
+Commit: 0cb5f309fa373e69ff60563bdc3fb0201332ceba
+Tag published: 2026-10-11 (Asia/Taipei)
+Source: https://github.com/g0v/civic-talk-hono/tree/v0.1.0-mit-final
+Original notice: Copyright (c) 2026 Bestian Tang
+
+The software previously released under MIT at this baseline remains available
+under MIT. LICENSE-MIT reproduces its LICENSE verbatim. The tag and the
+previously published history are not rewritten by this change.
+
+AGPL release boundary
+---------------------
+The software and its build/installation/operation documentation are
+distributed as a whole under GNU Affero General Public License version 3 only
+(SPDX: AGPL-3.0-only), subject to separately licensed components and the
+provenance limitations documented below.
+
+First AGPL release tag: v0.2.0
+After integration, the maintainer creates this tag at the actual merge commit.
+The tag identifies the release boundary without requiring this file to contain
+its own commit SHA. No unpublished tag, integration date, or production
+deployment is claimed here.
+The maintainer, acting as legal reviewer, approved the transition on
+2026-10-11 (Asia/Taipei); the decision and limitations are recorded in
+docs/licensing-review.md.
+
+MIT portions, third-party components, and contributor attribution
+---------------------------------------------------------------
+The MIT portions retain their original MIT permissions and required notices.
+This is not an offer to use later AGPL contributions under MIT. It does not
+replace other copyright holders' license notices or transfer copyright.
+For source locations, import commits, retained notices, and limitations, see:
+
+  LICENSE-MIT
+  THIRD-PARTY-NOTICES.md
+  docs/licensing-review.md
+  docs/licensing-dependencies.tsv
+
+Git author and co-author records are preserved in the original history.
+Explicit contributor responses are linked in docs/licensing-review.md;
+absence of a response is not treated as agreement.
+
+Content and branding
+--------------------
+This software license change does not relicense civic opinion summaries,
+submitted materials, or other independently licensed content. Opinion
+summaries remain subject to CC-BY-SA 4.0 under the site's existing terms;
+materials follow their respective source terms. No new blanket license is
+asserted here for issues, briefings, data, or external service outputs. This
+clarifies the footer against the existing submission terms; it does not revoke
+any previously valid CC license.
+
+This transition grants no additional trademark rights. Brand artwork may also
+have copyright requirements independent of trademark rights. No new license
+is asserted here for artwork or design-source material whose provenance or
+permissions remain unresolved in docs/licensing-review.md.
+
+License text
+------------
+LICENSE contains the unmodified GNU AGPL v3 text downloaded from:
+https://www.gnu.org/licenses/agpl-3.0.txt
+Any "or later" wording in that text's instructional example is not a grant
+of a later-version option for Civic Talk. This project's grant is version 3
+only, as stated here and in package.json and README.md.

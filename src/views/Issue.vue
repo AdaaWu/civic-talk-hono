@@ -480,6 +480,16 @@ async function copyPrompt(type: string) {
   }
 }
 
+async function copyRssUrl() {
+  const url = `${window.location.origin}/issues/${props.issueId}/rss.xml`
+  try {
+    await navigator.clipboard.writeText(url)
+    toast.value?.show(t('rss_copy_ok'))
+  } catch {
+    toast.value?.show(t('rss_copy_fail', { url }))
+  }
+}
+
 async function submitSummarize() {
   const body = {
     consensus: consensus.value.trim(),
@@ -712,7 +722,7 @@ async function submitOpinion() {
                 issue.author_name || t('author_system')
               }}<template v-if="issue.author_email"> <AuthorEmailLink :email="issue.author_email" :name="issue.author_name" /></template>
             </p>
-            <a :href="`/issues/${issueId}/rss.xml`" class="btn btn-secondary btn-sm mt-3 inline-flex">{{ t('issue_rss_subscribe') }}</a>
+            <button type="button" class="btn btn-secondary btn-sm mt-3 inline-flex" @click="copyRssUrl">{{ t('issue_rss_subscribe') }}</button>
           </div>
 
           <section v-if="!activeStep" class="issue-carousel-section">
@@ -743,7 +753,7 @@ async function submitOpinion() {
                   </template>
                   <template v-else>
                     <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('brief_overview') }}</h2>
-                    <div class="markdown-content leading-relaxed" v-html="renderedBriefing?.narrative ?? ''" />
+                    <div class="markdown-content mobile-readable" v-html="renderedBriefing?.narrative ?? ''" />
                     <div id="polis-section" class="my-8" style="display: none" />
                   </template>
                 </article>
@@ -751,21 +761,21 @@ async function submitOpinion() {
               <Slide :index="1">
                 <article class="issue-briefing-card card w-full">
                   <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('brief_consensus') }}</h2>
-                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content leading-relaxed" v-html="renderedBriefing?.consensus ?? ''" />
+                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content mobile-readable" v-html="renderedBriefing?.consensus ?? ''" />
                   <div v-else class="empty">{{ t('brief_no_briefing_alert') }}</div>
                 </article>
               </Slide>
               <Slide :index="2">
                 <article class="issue-briefing-card card w-full">
                   <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('brief_disputes') }}</h2>
-                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content leading-relaxed" v-html="renderedBriefing?.disputes ?? ''" />
+                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content mobile-readable" v-html="renderedBriefing?.disputes ?? ''" />
                   <div v-else class="empty">{{ t('brief_no_briefing_alert') }}</div>
                 </article>
               </Slide>
               <Slide :index="3">
                 <article class="issue-briefing-card card w-full">
                   <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('brief_positions') }}</h2>
-                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content leading-relaxed" v-html="renderedBriefing?.positions ?? ''" />
+                  <div v-if="briefing && briefing.abuse_flagged !== 2" class="markdown-content mobile-readable" v-html="renderedBriefing?.positions ?? ''" />
                   <div v-else class="empty">{{ t('brief_no_briefing_alert') }}</div>
                   <template v-if="briefing && briefing.abuse_flagged !== 2">
                     <p class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
@@ -863,7 +873,7 @@ async function submitOpinion() {
                   <span class="text-sm" :class="stanceClass(m.stance)">{{ stanceLabel(m.stance) }}</span>
                   <a v-if="m.source_url" :href="m.source_url" target="_blank" rel="noopener noreferrer" class="text-sm">{{ t('mat_link') }}</a>
                 </div>
-                <LongTextContent :text="m.content" :content-id="`material-content-${m.id}`" content-class="markdown-content text-base sm:text-sm" render-markdown />
+                <LongTextContent :text="m.content" :content-id="`material-content-${m.id}`" content-class="markdown-content mobile-readable" render-markdown />
               </template>
               <!-- metadata（已確認或 AI 審查違規時不顯示） -->
               <p v-if="m.abuse_flagged !== 2 && m.abuse_flagged !== 3" class="mt-2 mb-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
@@ -1169,7 +1179,7 @@ async function submitOpinion() {
                     <button
                       v-if="isLongOpinion(o.summary) && !expandedOpinions.has(o.id)"
                       type="button"
-                      class="markdown-content w-full cursor-pointer text-left text-base text-muted hover:text-teal sm:text-sm"
+                      class="markdown-content mobile-readable w-full cursor-pointer text-left text-muted hover:text-teal"
                       aria-expanded="false"
                       @click="toggleOpinion(o.id)"
                     >
@@ -1177,7 +1187,7 @@ async function submitOpinion() {
                     </button>
                     <div
                       v-else-if="isLongOpinion(o.summary)"
-                      class="markdown-content text-base sm:text-sm cursor-pointer"
+                      class="markdown-content mobile-readable cursor-pointer"
                       v-html="renderedOpinions.get(o.id) ?? ''"
                       aria-expanded="true"
                       role="button"
@@ -1185,7 +1195,7 @@ async function submitOpinion() {
                       @click="toggleOpinion(o.id)"
                       @keydown.enter.prevent="toggleOpinion(o.id)"
                     />
-                    <div v-else class="markdown-content text-base sm:text-sm" v-html="renderedOpinions.get(o.id) ?? ''" />
+                    <div v-else class="markdown-content mobile-readable" v-html="renderedOpinions.get(o.id) ?? ''" />
                     <OpinionVote
                       v-if="!isLongOpinion(o.summary) || expandedOpinions.has(o.id)"
                       :opinion="o"
