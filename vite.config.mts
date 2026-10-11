@@ -2,7 +2,8 @@ import { defineConfig, lazyPlugins } from 'vite-plus'
 import { cloudflare } from '@cloudflare/vite-plugin'
 import vue from '@vitejs/plugin-vue'
 import * as vueCompiler from '@vue/compiler-sfc'
-import { sourceDefines } from './scripts/source-metadata.mjs'
+import { sourceDefines, projectRoot } from './scripts/source-metadata.mjs'
+import { bundleNotices } from './scripts/bundle-notices.mjs'
 
 export default defineConfig(({ mode }) => ({
   define: sourceDefines(),
@@ -40,5 +41,6 @@ export default defineConfig(({ mode }) => ({
       compiler: vueCompiler,
       template: { transformAssetUrls: false },
     }),
+    bundleNotices({ target: 'worker', root: projectRoot }),
   ]),
 }))
