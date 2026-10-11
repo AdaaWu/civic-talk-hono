@@ -61,9 +61,9 @@ SOFTWARE.
 
 下列 license 原文從已安裝的對應版本複製，已核對 installed package version 與 lockfile。保留各套件的原 notices，不把它們覆蓋成 AGPL。全部依賴 metadata 見 [`docs/licensing-dependencies.tsv`](./docs/licensing-dependencies.tsv)；以 `node scripts/licensing-dependencies.mjs` 重產，`--check` 檢查與 lockfile 一致。實際 bundle 另外在建置時產生 `/licenses/client.txt` 與 `/licenses/worker.txt`，由 footer 提供公開入口；清單依實際納入的 module 取得已安裝套件的許可及 NOTICE 原文，不能以 metadata 盤點代替。
 
-### @vue/server-renderer 3.5.33
+### @vue/server-renderer 3.5.43
 
-來源：安裝套件 `@vue/server-renderer@3.5.33` 的 `LICENSE`；npm package [`@vue/server-renderer`](https://www.npmjs.com/package/@vue/server-renderer/v/3.5.33)。
+來源：安裝套件 `@vue/server-renderer@3.5.43` 的 `LICENSE`；npm package [`@vue/server-renderer`](https://www.npmjs.com/package/@vue/server-renderer/v/3.5.43)。
 
 ```text
 The MIT License (MIT)
@@ -116,9 +116,9 @@ ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 DEALINGS IN THE SOFTWARE.
 ```
 
-### hono 4.13.2
+### hono 4.13.13
 
-來源：安裝套件 `hono@4.13.2` 的 `LICENSE`；npm package [`hono`](https://www.npmjs.com/package/hono/v/4.13.2)。
+來源：安裝套件 `hono@4.13.13` 的 `LICENSE`；npm package [`hono`](https://www.npmjs.com/package/hono/v/4.13.13)。
 
 ```text
 MIT License
@@ -144,9 +144,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### markdown-it 15.0.0
+### markdown-it 15.0.2
 
-來源：安裝套件 `markdown-it@15.0.0` 的 `LICENSE`；npm package [`markdown-it`](https://www.npmjs.com/package/markdown-it/v/15.0.0)。
+來源：安裝套件 `markdown-it@15.0.2` 的 `LICENSE`；npm package [`markdown-it`](https://www.npmjs.com/package/markdown-it/v/15.0.2)。
 
 ```text
 Copyright (c) 2014 Vitaly Puzrin, Alex Kocharin.
@@ -173,9 +173,9 @@ FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 OTHER DEALINGS IN THE SOFTWARE.
 ```
 
-### vue 3.5.33
+### vue 3.5.43
 
-來源：安裝套件 `vue@3.5.33` 的 `LICENSE`；npm package [`vue`](https://www.npmjs.com/package/vue/v/3.5.33)。
+來源：安裝套件 `vue@3.5.43` 的 `LICENSE`；npm package [`vue`](https://www.npmjs.com/package/vue/v/3.5.43)。
 
 ```text
 The MIT License (MIT)

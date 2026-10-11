@@ -180,7 +180,8 @@ describe('公開 GET CORS 邊界', () => {
     expect(response.headers.get('Access-Control-Allow-Credentials')).toBeNull()
   })
 
-  it('寫入端點的 preflight 不含 CORS 放行標頭', async () => {
+  it('寫入端點的 preflight 回 404、不含 CORS 放行標頭且不呼叫核心 Worker', async () => {
+    const fetch = vi.fn()
     const response = await app.request(
       'https://civic.vtaiwan.tw/api/fact-check',
       {
@@ -191,12 +192,13 @@ describe('公開 GET CORS 邊界', () => {
           'Access-Control-Request-Headers': 'content-type',
         },
       },
-      testEnv()
+      testEnv(fetch)
     )
 
-    expect(response.status).toBe(403)
-    await expect(response.json()).resolves.toEqual({ error: 'Forbidden: cross-site request blocked' })
+    expect(response.status).toBe(404)
+    await expect(response.json()).resolves.toEqual({ error: 'Not found' })
     expect(response.headers.get('Access-Control-Allow-Origin')).toBeNull()
     expect(response.headers.get('Access-Control-Allow-Methods')).toBeNull()
+    expect(fetch).not.toHaveBeenCalled()
   })
 })

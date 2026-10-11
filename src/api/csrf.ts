@@ -12,11 +12,12 @@ const guard = csrf()
  * SameSite=Lax 的 session cookie 抵達伺服器，副作用已經發生。因此授權模型的第一道閘是這支
  * 中介層，不是 CORS 標頭。
  *
- * hono/csrf 擋非 GET/HEAD 且 content-type 屬於 form 可送出類型（或沒帶 content-type）的請求，
+ * hono/csrf 擋非 GET/HEAD/OPTIONS 且 content-type 屬於 form 可送出類型（或沒帶 content-type）的請求，
  * 除非 Sec-Fetch-Site 是 same-origin 或 Origin 與本站相符。跨來源的 JSON 請求由「不回 CORS
  * 標頭」讓 preflight 失敗擋掉，兩者互補。
  *
- * 這裡包一層只為了把它的純文字 403 轉成本站統一的 { error: string } 形狀。
+ * OPTIONS 由路由處理；未註冊的 preflight 回 JSON 404 且不回 CORS 放行標頭。
+ * 這裡包一層只為了把 guard 的純文字 403 轉成本站統一的 { error: string } 形狀。
  */
 export const apiCsrf: MiddlewareHandler = async (c, next) => {
   let entered = false
