@@ -235,6 +235,53 @@
     padding-inline: 20px;
   }
 
+  /* 回報欄寬由表頭分配；th/td 的 max-width 本身擋不住 auto table 的長字串。 */
+  .admin-report-table {
+    table-layout: fixed;
+    max-inline-size: min(100%, calc(var(--container-xs) * 4));
+  }
+
+  .admin-report-table th,
+  .admin-report-table td {
+    max-inline-size: var(--container-xs);
+    padding-inline: var(--spacing-vt-2);
+    vertical-align: top;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .admin-report-table .btn {
+    max-inline-size: 100%;
+    padding-inline: var(--spacing-vt-2);
+    white-space: normal;
+  }
+
+  /* 手機不將八欄擠成逐字換行；沿用同一張表與雙語欄位名稱。 */
+  @media (max-width: 600px) {
+    .admin-report-table {
+      max-inline-size: min(100%, var(--container-xs));
+    }
+
+    .admin-report-table,
+    .admin-report-table tbody,
+    .admin-report-table tr,
+    .admin-report-table td {
+      display: block;
+      inline-size: 100%;
+    }
+
+    .admin-report-table thead {
+      display: none;
+    }
+
+    .admin-report-table td[data-label]::before {
+      content: attr(data-label);
+      display: block;
+      color: var(--color-vt-fg-3);
+      font-size: var(--text-vt-xs);
+    }
+  }
+
   .btn {
     display: inline-flex;
     align-items: center;

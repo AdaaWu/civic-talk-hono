@@ -952,7 +952,7 @@ export function registerApiRoutes(app: App): void {
     const id = parseId(c.req.param('id'))
     if (!id) return error(c, 'Invalid ID', 400)
 
-    let body: { action?: unknown }
+    let body: { action?: unknown; banUser?: unknown }
     try {
       body = await c.req.json()
     } catch {
@@ -961,14 +961,17 @@ export function registerApiRoutes(app: App): void {
     if (body.action !== 'false_report' && body.action !== 'confirmed_abuse' && body.action !== 'confirmed_broken') {
       return error(c, 'action must be "false_report", "confirmed_abuse", or "confirmed_broken"')
     }
+    if (body.banUser !== undefined && typeof body.banUser !== 'boolean') {
+      return error(c, 'banUser must be a boolean')
+    }
 
     const report = await db.getAbuseReport(c.env.DB, id)
     if (!report) return error(c, 'Report not found', 404)
     if (report.review_status !== 'pending') return error(c, 'Report already resolved', 409)
 
     // AI 回報的 reporter_id 是投稿者本人；確認誤報時絕不因同一個人被誤判而停權。
-    // ban 先做，且只有 confirmed_abuse 或一般使用者誤報需要 ban。
-    const shouldBan = body.action === 'confirmed_abuse' || (body.action === 'false_report' && report.source !== 'ai' && report.reason !== 'broken_link')
+    // banUser=false 只省略停權，不解除既有停權；省略選項時保留原流程。
+    const shouldBan = body.banUser !== false && (body.action === 'confirmed_abuse' || (body.action === 'false_report' && report.source !== 'ai' && report.reason !== 'broken_link'))
 
     if (shouldBan) {
       const targetUserId = body.action === 'false_report' ? report.reporter_id : report.target_author_id

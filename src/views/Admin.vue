@@ -146,20 +146,22 @@ function liveUser(userId: string): LiveUserEntry | null {
   return v && typeof v === 'object' ? v : null
 }
 
-async function resolveReport(id: number, action: 'false_report' | 'confirmed_abuse' | 'confirmed_broken', reason?: string) {
+async function resolveReport(id: number, action: 'false_report' | 'confirmed_abuse' | 'confirmed_broken', banUser = true) {
   const confirmKey =
-    action === 'false_report' && reason === 'broken_link'
-      ? 'adm_rpt_confirm_false_no_ban'
-      : action === 'false_report'
+    action === 'false_report'
+      ? banUser
         ? 'adm_rpt_confirm_false'
-        : action === 'confirmed_abuse'
+        : 'adm_rpt_confirm_false_no_ban'
+      : action === 'confirmed_abuse'
+        ? banUser
           ? 'adm_rpt_confirm_abuse'
-          : 'adm_rpt_confirm_broken'
+          : 'adm_rpt_confirm_abuse_no_ban'
+        : 'adm_rpt_confirm_broken'
   if (!confirm(t(confirmKey))) return
   const res = await fetch(`/api/admin/abuse-reports/${id}/resolve`, {
     method: 'PATCH',
     headers: authHeaders(),
-    body: JSON.stringify({ action }),
+    body: JSON.stringify({ action, banUser }),
   })
   if (res.ok) {
     toast.value?.show(t('adm_rpt_toast_resolved'))
@@ -745,23 +747,23 @@ function snapshotSummary(snapshotJSON: string): string {
               {{ t('adm_rpt_empty') }}
             </div>
             <div v-else class="overflow-x-auto rounded-lg border border-border">
-              <table class="w-full border-collapse text-sm">
+              <table class="admin-report-table w-full border-collapse text-sm">
                 <thead class="bg-gray-100 dark:bg-gray-800">
                   <tr>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_id') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_reporter') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_target') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_reason') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_desc') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_status') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_rpt_th_created') }}</th>
-                    <th class="px-3 py-2 text-left">{{ t('adm_th_actions') }}</th>
+                    <th class="w-1/12 px-3 py-2 text-left">{{ t('adm_rpt_th_id') }}</th>
+                    <th class="w-1/6 px-3 py-2 text-left">{{ t('adm_rpt_th_reporter') }}</th>
+                    <th class="w-1/12 px-3 py-2 text-left">{{ t('adm_rpt_th_target') }}</th>
+                    <th class="w-1/12 px-3 py-2 text-left">{{ t('adm_rpt_th_reason') }}</th>
+                    <th class="w-1/4 px-3 py-2 text-left">{{ t('adm_rpt_th_desc') }}</th>
+                    <th class="w-1/12 px-3 py-2 text-left">{{ t('adm_rpt_th_status') }}</th>
+                    <th class="w-1/12 px-3 py-2 text-left">{{ t('adm_rpt_th_created') }}</th>
+                    <th class="w-1/6 px-3 py-2 text-left">{{ t('adm_th_actions') }}</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr v-for="r in filteredReports" :key="r.id" class="border-t border-border">
-                    <td class="px-3 py-2">{{ r.id }}</td>
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2" :data-label="t('adm_rpt_th_id')">{{ r.id }}</td>
+                    <td class="px-3 py-2" :data-label="t('adm_rpt_th_reporter')">
                       <div>{{ r.reporter_name || t('adm_author_unknown') }}</div>
                       <div class="text-xs text-muted">{{ r.reporter_email }}</div>
                       <!-- 現值查詢（snapshot 之外） -->
@@ -778,7 +780,7 @@ function snapshotSummary(snapshotJSON: string): string {
                         </div>
                       </div>
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2" :data-label="t('adm_rpt_th_target')">
                       <template v-if="r.target_issue_id">
                         <a v-if="r.material_id" :href="`/issues/${r.target_issue_id}/source/${r.material_id}`" class="underline" target="_blank" rel="noopener"
                           >{{ t('adm_rpt_target_material') }}{{ r.material_id }}</a
@@ -805,11 +807,11 @@ function snapshotSummary(snapshotJSON: string): string {
                         </div>
                       </div>
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2" :data-label="t('adm_rpt_th_reason')">
                       <div>{{ t(ABUSE_REASON_LABELS[r.reason] ?? 'report_reason_other') }}</div>
                       <div v-if="r.source === 'ai'" class="mt-1 text-xs text-red">{{ t('adm_rpt_source_ai') }} · {{ t(MODERATION_POLICY_LABELS[r.policy_code ?? ''] ?? 'report_reason_other') }}</div>
                     </td>
-                    <td class="px-3 py-2 max-w-xs">
+                    <td class="px-3 py-2 max-w-xs" :data-label="t('adm_rpt_th_desc')">
                       <span v-if="r.description" class="whitespace-pre-wrap text-xs">{{ r.description }}</span>
                       <span v-else class="text-muted">—</span>
                       <div v-if="r.source === 'ai' && r.content_snapshot" class="mt-2">
@@ -817,7 +819,7 @@ function snapshotSummary(snapshotJSON: string): string {
                         <pre class="mt-1 max-h-48 overflow-auto whitespace-pre-wrap rounded bg-gray-50 p-2 text-xs">{{ snapshotSummary(r.content_snapshot) }}</pre>
                       </div>
                     </td>
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2" :data-label="t('adm_rpt_th_status')">
                       <span
                         :class="
                           r.review_status === 'pending' ? 'text-amber' : r.review_status === 'resolved_abuse' ? 'text-red' : r.review_status === 'resolved_broken' ? 'text-amber-600' : 'text-muted'
@@ -826,13 +828,13 @@ function snapshotSummary(snapshotJSON: string): string {
                         {{ t(REVIEW_STATUS_LABELS[r.review_status] ?? 'adm_rpt_status_pending') }}
                       </span>
                     </td>
-                    <td class="px-3 py-2 text-xs text-muted">{{ formatDate(r.created_at, locale) }}</td>
-                    <td class="px-3 py-2">
+                    <td class="px-3 py-2 text-xs text-muted" :data-label="t('adm_rpt_th_created')">{{ formatDate(r.created_at, locale) }}</td>
+                    <td class="px-3 py-2" :data-label="t('adm_th_actions')">
                       <template v-if="r.review_status === 'pending'">
                         <div class="flex flex-col gap-1">
                           <!-- 誤報（broken_link 不 ban，其餘停權回報者 → super-admin only） -->
                           <button
-                            @click="resolveReport(r.id, 'false_report', r.reason)"
+                            @click="resolveReport(r.id, 'false_report', r.source !== 'ai' && r.reason !== 'broken_link')"
                             class="btn btn-ghost btn-sm text-amber-700"
                             :disabled="(r.source !== 'ai' && r.reason !== 'broken_link' && session?.role !== 'super-admin') || (r.source !== 'ai' && r.reporter_id === session?.user?.id)"
                             :title="
@@ -859,6 +861,23 @@ function snapshotSummary(snapshotJSON: string): string {
                             @click="resolveReport(r.id, 'confirmed_abuse')"
                           >
                             {{ t('adm_rpt_btn_abuse') }}
+                          </button>
+                          <!-- 不停權裁判只更新內容與回報，所有 admin 皆可使用。 -->
+                          <button
+                            v-if="r.source !== 'ai' && r.reason !== 'broken_link'"
+                            type="button"
+                            class="btn btn-ghost btn-sm text-amber-700"
+                            @click="resolveReport(r.id, 'false_report', false)"
+                          >
+                            {{ t('adm_rpt_btn_false_no_ban') }}
+                          </button>
+                          <button
+                            v-if="r.reason !== 'broken_link'"
+                            type="button"
+                            class="btn btn-ghost btn-sm text-red"
+                            @click="resolveReport(r.id, 'confirmed_abuse', false)"
+                          >
+                            {{ t('adm_rpt_btn_abuse_no_ban') }}
                           </button>
                           <span v-if="!r.target_author_id && r.review_status === 'pending' && r.reason !== 'broken_link'" class="text-xs text-muted">{{ t('adm_rpt_no_author') }}</span>
                         </div>
