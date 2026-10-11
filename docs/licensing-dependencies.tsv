@@ -307,6 +307,7 @@ node_modules/vite-plus/node_modules/@oxfmt/binding-win32-x64-msvc	0.57.0	MIT	tru
 node_modules/vite-plus/node_modules/oxfmt	0.57.0	MIT	true	false	false	https://registry.npmjs.org/oxfmt/-/oxfmt-0.57.0.tgz
 node_modules/vitest	4.1.11	MIT	false	true	false	https://registry.npmjs.org/vitest/-/vitest-4.1.11.tgz
 node_modules/vue	3.5.43	MIT	false	false	false	https://registry.npmjs.org/vue/-/vue-3.5.43.tgz
+node_modules/vue3-carousel	0.17.0	MIT	false	false	false	https://registry.npmjs.org/vue3-carousel/-/vue3-carousel-0.17.0.tgz
 node_modules/why-is-node-running	2.3.0	MIT	false	true	false	https://registry.npmjs.org/why-is-node-running/-/why-is-node-running-2.3.0.tgz
 node_modules/workerd	1.20261006.1	Apache-2.0	true	false	false	https://registry.npmjs.org/workerd/-/workerd-1.20261006.1.tgz
 node_modules/wrangler	4.149.0	MIT OR Apache-2.0	true	false	false	https://registry.npmjs.org/wrangler/-/wrangler-4.149.0.tgz
