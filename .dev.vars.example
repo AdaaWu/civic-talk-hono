@@ -18,3 +18,8 @@ GITHUB_CLIENT_SECRET=
 
 # Open Router API 應用程式憑證
 OPEN_ROUTER_API_KEY=
+
+# 原始碼來源只在 Vite 建置時讀取 shell 環境變數，不是 Worker binding／secret。
+# 未設定時由 Git origin 決定。若需覆蓋，請在 shell 或 CI build 環境設定：
+# CIVIC_SOURCE_REPOSITORY=https://github.com/example/civic-talk-fork
+# 寫成 .dev.vars 的值不會設定這個 build 變數。

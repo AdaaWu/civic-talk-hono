@@ -3,10 +3,13 @@ import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import * as vueCompiler from '@vue/compiler-sfc'
+import { sourceDefines } from './scripts/source-metadata.mjs'
+import { bundleNotices } from './scripts/bundle-notices.mjs'
 
 const root = path.dirname(fileURLToPath(import.meta.url))
 
 export default defineConfig({
+  define: sourceDefines(),
   root,
   publicDir: false,
   plugins: [
@@ -18,6 +21,7 @@ export default defineConfig({
       // 執行整個 module，導致 hydration 完全失效。
       template: { transformAssetUrls: false },
     }),
+    bundleNotices({ target: 'client', root }),
   ],
   build: {
     outDir: 'public',

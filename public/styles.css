@@ -1231,10 +1231,6 @@
     .sm\:px-2 {
       padding-inline: calc(var(--spacing) * 2);
     }
-    .sm\:text-sm {
-      font-size: var(--text-sm);
-      line-height: var(--tw-leading, var(--text-sm--line-height));
-    }
     .sm\:text-xs {
       font-size: var(--text-xs);
       line-height: var(--tw-leading, var(--text-xs--line-height));
@@ -1742,6 +1738,16 @@
   .markdown-content {
     overflow-wrap: anywhere;
     line-height: 1.65;
+  }
+  .mobile-readable {
+    font-size: var(--text-vt-base);
+    line-height: var(--text-vt-base--line-height);
+  }
+  @media (width >= 40rem) {
+    .mobile-readable {
+      font-size: var(--text-vt-sm);
+      line-height: var(--text-vt-sm--line-height);
+    }
   }
   .markdown-content > :first-child {
     margin-top: 0;

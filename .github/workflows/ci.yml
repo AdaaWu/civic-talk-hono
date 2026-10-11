@@ -38,6 +38,9 @@ jobs:
       - name: Check types
         run: vp check --no-fmt --no-lint
 
+      - name: Check dependency license inventory
+        run: node scripts/licensing-dependencies.mjs --check
+
       - name: Test（l10n key 同步）
         run: vp test
 
