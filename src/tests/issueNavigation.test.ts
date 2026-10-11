@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { parseIssueBriefingSlide, parseIssueCommentAction, parseIssueStep, writeIssueBriefingSlide, writeIssueCommentAction, writeIssueCommentSearch, writeIssueStep } from '../lib/issueNavigation'
+import { parseIssueBriefingSlide, parseIssueCommentAction, parseIssueOpinionAnchor, parseIssueStep, writeIssueBriefingSlide, writeIssueCommentAction, writeIssueCommentSearch, writeIssueOpinionAnchor, writeIssueStep } from '../lib/issueNavigation'
 
 describe('issue step URL navigation', () => {
   it('parses only supported direct steps', () => {
@@ -29,6 +29,19 @@ describe('issue step URL navigation', () => {
     expect(url).toBe('/issues/7?step=comments&sort=recent&tab=disputes#briefing')
     expect(parseIssueBriefingSlide(new URL(url, 'https://civic-talk.invalid').search)).toBe(2)
     expect(writeIssueBriefingSlide(url, 0)).toBe('/issues/7?step=comments&sort=recent#briefing')
+  })
+
+  it('recognizes only positive safe opinion ids in the return anchor', () => {
+    expect(parseIssueOpinionAnchor('#opinion-42')).toBe(42)
+    for (const hash of ['', '#opinions', '#opinion-0', '#opinion--1', '#opinion-1.5', '#opinion-42-extra', '#opinion-9007199254740992']) {
+      expect(parseIssueOpinionAnchor(hash)).toBeNull()
+    }
+  })
+
+  it('preserves the browse context when returning to a specific opinion', () => {
+    const url = writeIssueOpinionAnchor('/issues/7?tab=positions&step=comments&action=browse&search=energy#old', 42)
+    expect(url).toBe('/issues/7?tab=positions&step=comments&action=browse&search=energy#opinion-42')
+    expect(parseIssueOpinionAnchor(new URL(url, 'https://civic-talk.invalid').hash)).toBe(42)
   })
 
   it('parses supported comment actions and defaults invalid values to start', () => {

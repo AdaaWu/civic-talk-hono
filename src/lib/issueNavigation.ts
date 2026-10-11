@@ -21,6 +21,18 @@ export function writeIssueBriefingSlide(url: string, index: number): string {
   return `${next.pathname}${next.search}${next.hash}`
 }
 
+export function parseIssueOpinionAnchor(hash: string): number | null {
+  const match = /^#opinion-([1-9]\d*)$/.exec(hash)
+  const id = match ? Number(match[1]) : NaN
+  return Number.isSafeInteger(id) ? id : null
+}
+
+export function writeIssueOpinionAnchor(url: string, opinionId: number): string {
+  const next = new URL(url, 'https://civic-talk.invalid')
+  next.hash = `opinion-${opinionId}`
+  return `${next.pathname}${next.search}${next.hash}`
+}
+
 export function parseIssueCommentAction(search: string): IssueCommentAction {
   const value = new URLSearchParams(search).get('action')
   return ISSUE_COMMENT_ACTIONS.includes(value as IssueCommentAction) ? (value as IssueCommentAction) : 'start'

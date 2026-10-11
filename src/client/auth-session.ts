@@ -54,7 +54,11 @@ export function isAdminSession(session: AuthSession | null | undefined): boolean
 }
 
 export async function signInWith(provider: 'google' | 'github', callbackURL: string): Promise<void> {
-  await getAuthClient().signIn.social({ provider, callbackURL })
+  // Better Auth 的相對 URL 驗證不接受 hash；完整同源網址可保留意見定位。
+  const resolvedCallbackURL = new URL(callbackURL, window.location.origin).href
+  const { error } = await getAuthClient().signIn.social({ provider, callbackURL: resolvedCallbackURL })
+  // Better Auth 預設以 { error } 回傳 HTTP 錯誤，需轉成例外讓登入介面顯示失敗。
+  if (error) throw new Error(error.message ?? `Sign-in failed: ${error.status}`)
 }
 
 export async function signOut(): Promise<void> {

@@ -20,10 +20,12 @@ import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 import {
   parseIssueBriefingSlide,
   parseIssueCommentAction,
+  parseIssueOpinionAnchor,
   parseIssueStep,
   writeIssueBriefingSlide,
   writeIssueCommentAction,
   writeIssueCommentSearch,
+  writeIssueOpinionAnchor,
   writeIssueStep,
   type IssueCommentAction,
   type IssueStep,
@@ -166,6 +168,7 @@ const reportDesc = ref<string>('')
 // 已展開的「折疊中」項目：key = `${type}-${id}`
 const expandedFlagged = ref<Set<string>>(new Set())
 const expandedOpinions = ref<Set<number>>(new Set())
+const pendingOpinionId = ref<number | null>(null)
 
 function toggleOpinion(id: number) {
   const next = new Set(expandedOpinions.value)
@@ -308,6 +311,30 @@ function syncCommentSearch() {
   updateNavigationUrl(nextUrl, true)
 }
 
+function rememberOpinionPosition(id: number) {
+  if (typeof window === 'undefined') return
+  updateNavigationUrl(writeIssueOpinionAnchor(window.location.href, id), true)
+}
+
+async function restoreOpinionPosition() {
+  const id = pendingOpinionId.value
+  if (id === null || loading.value || opinionsLoading.value || authState.value === 'loading' || activeStep.value !== 'comments' || commentAction.value !== 'browse') return
+  const opinion = opinions.value.find(row => row.id === id)
+  if (!opinion) {
+    pendingOpinionId.value = null
+    return
+  }
+  if (opinion.abuse_flagged !== 2 && opinion.abuse_flagged !== 3) {
+    expandedOpinions.value.add(id)
+    if (opinion.abuse_flagged === 1) expandedFlagged.value.add(`opinion-${id}`)
+  }
+  await nextTick()
+  if (typeof window === 'undefined' || pendingOpinionId.value !== id || opinionsLoading.value || activeStep.value !== 'comments' || commentAction.value !== 'browse') return
+  const target = document.getElementById(`opinion-vote-${id}`) ?? document.getElementById(`opinion-${id}`)
+  target?.scrollIntoView({ block: 'center', behavior: 'auto' })
+  pendingOpinionId.value = null
+}
+
 const loginCallbackUrl = computed(() => {
   if (currentNavigationUrl.value) return currentNavigationUrl.value
   let callback = writeIssueBriefingSlide(`/issues/${props.issueId}`, props.initialBriefingSlide ?? 0)
@@ -340,6 +367,7 @@ function handlePopState() {
   activeStep.value = nextStep
   commentAction.value = parseIssueCommentAction(search)
   commentSearch.value = new URLSearchParams(search).get('search') ?? ''
+  pendingOpinionId.value = nextStep === 'comments' && commentAction.value === 'browse' ? parseIssueOpinionAnchor(window.location.hash) : null
   if (!nextStep) dragThresholdReached.value = false
   carouselIndex.value = Math.min(parseIssueBriefingSlide(search), viewerRole.value === 'volunteer' ? 4 : lastBriefingSlideIndex)
 }
@@ -434,6 +462,12 @@ watch(activeStep, () => {
 watch(commentAction, () => {
   if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
 })
+
+watch(
+  () => [pendingOpinionId.value, opinions.value, loading.value, opinionsLoading.value, authState.value, activeStep.value, commentAction.value] as const,
+  () => void restoreOpinionPosition(),
+  { flush: 'post' }
+)
 
 watch(carouselIndex, index => {
   if (typeof window === 'undefined' || activeStep.value) return
@@ -1197,7 +1231,7 @@ async function submitOpinion() {
               </div>
               <template v-else>
                 <h3 class="mb-4 font-medium">{{ t('op_count_prefix') }}{{ filteredOpinions.length }}{{ t('op_count_suffix') }}</h3>
-                <div v-for="o in filteredOpinions" :key="o.id" class="card mb-4">
+                <div v-for="o in filteredOpinions" :id="`opinion-${o.id}`" :key="o.id" class="card mb-4">
                   <!-- 已確認違規（2）：完全隱藏，無展開選項 -->
                   <p v-if="o.abuse_flagged === 2" class="m-0 py-1 text-sm text-red">{{ t('flagged_confirmed') }}</p>
                   <!-- AI 審查違規（3）：只顯示不可展開的佔位，不洩漏內容 -->
@@ -1259,8 +1293,9 @@ async function submitOpinion() {
                         (o.abuse_flagged !== 1 || expandedFlagged.has(`opinion-${o.id}`)) &&
                         (expandedOpinions.has(o.id) || !isLongOpinion(o.summary))
                       "
-                      :callback-url="loginCallbackUrl"
+                      :callback-url="writeIssueOpinionAnchor(loginCallbackUrl, o.id)"
                       @update="updateOpinionVote(o.id, $event)"
+                      @sign-in-required="rememberOpinionPosition(o.id)"
                     />
                   </template>
                 </div>

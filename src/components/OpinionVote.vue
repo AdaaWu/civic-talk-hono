@@ -30,6 +30,7 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   update: [state: OpinionVoteState]
+  'sign-in-required': []
 }>()
 
 const { t } = useI18n()
@@ -64,6 +65,7 @@ async function choose(value: OpinionVoteValue) {
   if (authState.value === 'loading' || pending.value || !eligible.value) return
   if (authState.value !== 'signed-in') {
     signInVisible.value = true
+    emit('sign-in-required')
     return
   }
   if (!canVote.value) return
@@ -81,6 +83,7 @@ async function choose(value: OpinionVoteValue) {
           })
     if (res.status === 401) {
       signInVisible.value = true
+      emit('sign-in-required')
       error.value = t('vote_session_expired')
       return
     }
@@ -100,7 +103,7 @@ async function choose(value: OpinionVoteValue) {
 </script>
 
 <template>
-  <div v-if="eligible" class="mt-4 border-t border-border pt-3">
+  <div v-if="eligible" :id="`opinion-vote-${opinion.id}`" class="mt-4 border-t border-border pt-3">
     <div v-if="authState === 'loading'" class="flex flex-wrap items-center gap-2 text-sm text-muted" aria-hidden="true">
       <span class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />
       <span class="h-8 w-20 animate-pulse rounded bg-gray-200 dark:bg-gray-700" />

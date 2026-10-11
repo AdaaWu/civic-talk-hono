@@ -191,6 +191,8 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
 
 登入失敗時的判讀：
 
+- `/api/auth/sign-in/social` 回 **403** → 先看 Network 的 JSON `code`，不能只憑狀態碼判定第三方 OAuth callback 設錯。`INVALID_ORIGIN` 要核對瀏覽器 origin 與 `BETTER_AUTH_URL`（`localhost` 與 `127.0.0.1` 不同）；`INVALID_CALLBACK_URL` 要核對登入後的回跳網址。共用 `signInWith()` 會把回跳路徑轉成完整同源 URL，保留 query 與 `#opinion-<id>`；Better Auth 不接受帶 hash 的相對回跳網址，但仍會驗證完整 URL 的 origin。不要關閉 origin／CSRF 檢查來繞過錯誤。
+- 登入 API 的 HTTP 錯誤不得無聲失敗：Better Auth client 預設回傳 `{ error }` 而不是 throw，`signInWith()` 會將錯誤轉為例外，讓共用登入按鈕顯示雙語「登入失敗，請再試一次」提示；403 仍維持拒絕，不會繞過安全檢查。
 - `redirect_uri_mismatch` → 1.2 的 callback 網址沒設好（正式站要有 `https://civic.vtaiwan.tw/api/auth/callback/{google,github}`）。
 - `/api/me` 回 **500**（而不是 401）→ `DB_AUTH` 綁定或 auth 表有問題，看 Worker log。
 - 停在「沒有管理權限」→ 該帳號在 `vtaiwan-auth` 的 `role` 不是 `admin`／`super-admin`。**要調角色請到 vTaiwan-hono 的後台**，本站依不變量 11 不寫 `user.role`。
