@@ -51,6 +51,7 @@
     - 🚫 **不在本 repo 建立 `migrations/auth/`，不對 auth 資料表下任何 DDL**——schema（包含 `nameChangedAt` 與改名冷卻 triggers）的唯一來源是 `../vTaiwan-hono/migrations/auth/`。
     - 🚫 **不寫 `user.role`**——升降權、成員列表、變更日誌仍全部留在 vTaiwan-hono。
     - 🚫 **不以原始 SQL 寫入 DB_AUTH**——允許為授權、同名與冷卻判斷執行參數化 `SELECT`；auth 資料的 `INSERT`／`UPDATE`／`DELETE` 一律交給 Better Auth API／handler。
+12. **每次發布修訂版，footer 原始碼必須對應實際建置版本。** 版本標記由建置時的 Git commit 自動產生，不手填 SHA、不沿用舊產物，也不連到會移動的 `main`／分支網址。發布前後的必要查核見「每次修訂的原始碼版本對應」。本規範配合 #126 的候選機制，正式站仍須待法務確認後才切換。
 
 ## 現況（今天 repo 裡真的有什麼）
 
@@ -297,7 +298,7 @@ vp test                             # Vitest（src/tests/**/*.test.ts）
 vp check                            # fmt + lint + typecheck 全開
 vp fmt                              # oxfmt 格式化
 vp exec wrangler types              # 產生 Cloudflare 綁定型別
-vp run deploy                       # build + wrangler deploy（除非使用者要求，否則不要執行）
+vp run deploy                       # 公開原始碼檢查 + build + wrangler deploy（需使用者授權）
 ```
 
 **CSS**：`vp run css`（Tailwind CLI：`src/styles/app.css` → `public/styles.css`）。`vp run dev` 在啟動伺服器前先跑一次 CSS 建置，**不**自動 watch；需要邊改 CSS 邊看效果時，另開終端機跑 `vp run css:watch`。`vp run build` 依序產出 CSS、client bundle，再建 server，避免 server build 收到舊的 `public/js/civic.js`。
@@ -394,6 +395,14 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 - 常見前綴：`feat`、`fix`、`chore`、`refactor`、`style`、`docs`。
 - 除非使用者明確要求，否則**不要自行 commit / push / deploy**。
 - **長程（無人看管）任務例外**：使用者明確授權跑長程任務時，允許在 **feature branch** 上以 Conventional Commits 做 **checkpoint commit**——每完成一個驗證通過（`typecheck` + `build`）的子步驟一筆，方便回溯。仍然 🚫 **禁止 push、禁止直接 commit 到 main、禁止 deploy**。
+
+### 每次修訂的原始碼版本對應
+
+- **每次修訂都沿用自動版本機制**：`scripts/source-metadata.mjs` 從 Git `HEAD` 與 `origin` 取得版本，兩個 Vite config 注入相同 metadata；footer 的原始碼 archive 與 LICENSE 連到該固定 commit。不必逐筆手動改 footer、另打 tag 或調整 `package.json` 版本。
+- **發布順序**：完成檢查 → 在取得授權後 commit／push 所有來源變更到公開 repository → 從乾淨 checkout 重新 build → 在取得部署授權後部署。commit、merge、squash 或 rebase 改變 `HEAD` 後，先前建置的產物必須重建；包含文件修訂的版本也適用。
+- **部署前**：執行 `node scripts/check-published-source.mjs`，確認本次 commit 可匿名取得；`vp run deploy` 已內含此檢查。fork／不同來源使用自己的公開 repository，必要時設定 build 環境變數 `CIVIC_SOURCE_REPOSITORY`。完整設定見 [`deploy_notes.md`](./deploy_notes.md)。檢查通過不代表已獲部署授權或法務核准。
+- **開發中的未提交版本**：dirty build 的 footer 顯示原始碼尚未發佈，不得把它當作可發布版本，也不能強行填入舊 SHA。dirty 檢查僅排除 tracked 生成物 `public/styles.css`；實際 CSS source 仍須提交。
+- **部署後**：確認 footer 可匿名下載該版本原始碼、LICENSE 指向相同 SHA，且 Worker 與 client 的建置版本一致。不要修改已建置的產物；採其他發布方式時仍須完成等效查核。
 
 ## 移植基本原則
 
