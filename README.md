@@ -66,6 +66,8 @@ vp run dev
 
 樣式 token 以 `vtaiwan-design-system/project/colors_and_type.css` 為穩定來源，透過 Tailwind v4 的 `vt-*` utilities 使用，例如 `text-vt-democratic-red`、`bg-vt-bg-2`、`font-vt-serif`。
 
+議題頁意見入口的「瀏覽意見」使用 `.btn-wheat-yellow`（麥穗黃底、白字，懸停時加深），與紅色「繼續」及透明底「返回議題」區隔；樣式定義於 `src/styles/app.css`，沿用 `--color-vt-wheat-yellow` token。
+
 ## 路由
 
 | 路徑                             | 說明                                                            |

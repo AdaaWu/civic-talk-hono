@@ -1026,7 +1026,7 @@ async function submitOpinion() {
                 <p class="mb-6 text-muted">{{ t('op_start_desc') }}</p>
                 <div class="flex flex-col gap-3 sm:flex-row">
                   <button type="button" class="btn btn-primary" @click="setIssueCommentAction('commit')">{{ t('op_start_continue') }}</button>
-                  <button type="button" class="btn btn-secondary" @click="setIssueCommentAction('browse')">{{ t('op_start_browse') }}</button>
+                  <button type="button" class="btn btn-wheat-yellow" @click="setIssueCommentAction('browse')">{{ t('op_start_browse') }}</button>
                   <button type="button" class="btn btn-ghost" @click="setIssueStep(null)">{{ t('op_back_to_issue') }}</button>
                 </div>
               </div>

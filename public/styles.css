@@ -1683,6 +1683,16 @@
   .btn-primary:hover:not(:disabled) {
     background: #b80000;
   }
+  .btn-wheat-yellow {
+    background: var(--color-vt-wheat-yellow);
+    color: var(--color-vt-white);
+  }
+  .btn-wheat-yellow:hover:not(:disabled) {
+    background: color-mix(in srgb, #db7700, #000000 10%);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--color-vt-wheat-yellow), var(--color-vt-black) 10%);
+    }
+  }
   .btn-secondary {
     background: var(--color-vt-bg-1);
     color: var(--color-ink);
