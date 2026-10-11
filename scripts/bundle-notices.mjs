@@ -199,9 +199,27 @@ export function bundleNotices({ target, root = projectRoot } = {}) {
   const project = path.resolve(root)
   return {
     name: `civic-talk-${target}-bundle-notices`,
-    apply: 'build',
     // Cloudflare 另建 client fallback environment；它不能覆蓋 Worker notices。
     applyToEnvironment: environment => target === 'client' || environment.name !== 'client',
+    configureServer(server) {
+      // Vite dev 不套用 _headers；直接送出 notices bytes 並明確指定 UTF-8。
+      server.middlewares.use(async (request, response, next) => {
+        const pathname = request.url?.split('?', 1)[0]
+        if ((request.method !== 'GET' && request.method !== 'HEAD') || !/^\/licenses\/(?:client|worker)\.txt$/.test(pathname ?? '')) {
+          next()
+          return
+        }
+        try {
+          const bytes = await readFile(path.join(project, 'public', pathname.slice(1)))
+          response.statusCode = 200
+          response.setHeader('Content-Type', 'text/plain; charset=utf-8')
+          response.setHeader('Content-Length', bytes.length)
+          response.end(request.method === 'HEAD' ? undefined : bytes)
+        } catch (error) {
+          next(error.code === 'ENOENT' ? undefined : error)
+        }
+      })
+    },
     generateBundle: {
       order: 'pre',
       handler: async function (_outputOptions, bundle) {

@@ -12,6 +12,8 @@ civic-talk-hono 的部署與環境設定參考。日常開發看 [`README.md`](.
 
 footer 提供該次建置固定 Git commit 的 source archive 與 LICENSE；沒有可靠版本資訊時仍提供 GNU AGPL v3 條款，不提供可能錯誤的原始碼連結。client 與 Worker 的第三方 notices 位於 `/licenses/client.txt` 與 `/licenses/worker.txt`。來源 metadata 是建置時設定，不是 Worker secret 或執行時 `.dev.vars`。
 
+`vp run dev`／`vp run dev:remote` 啟動前先完整 build，將兩份 notices 放到 dev 使用的 `public/licenses/`；它們是啟動前 production bundle 的快照，更動套件或 imports 後須重啟開發伺服器。`public/_headers` 指定部署／preview 的 `text/plain; charset=utf-8`，Vite dev 不套用 `_headers`，由 notices plugin 的 dev middleware 指定相同編碼。Build 在加入 Worker notices 後重新封存 public／部署副本的 client manifest，保持 hashes 一致。
+
 部署前：
 
 1. 提交並 push 所有來源變更到公開 repository。保留必要的建置、安裝、執行腳本、migrations、設定範本及授權 notices；不要公開機密、正式資料或個人資料。

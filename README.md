@@ -51,14 +51,16 @@ vp run dev
 
 | 指令                          | 說明                                              |
 | ----------------------------- | ------------------------------------------------- |
-| `vp run dev`                  | 先建置 CSS 再啟動本機 Worker + HMR（D1 本機模擬） |
-| `vp run dev:remote`           | 先建置 CSS 再連遠端 D1；實測登入用這個            |
+| `vp run dev`                  | 先完整 build（含 CSS 與 notices），再啟動本機 Worker + HMR |
+| `vp run dev:remote`           | 先完整 build（含 notices），再連遠端 D1；實測登入用這個 |
 | `vp run css`                  | 由 `src/styles/app.css` 建置 `public/styles.css`  |
 | `vp run css:watch`            | 監看並自動重建 Tailwind CSS                       |
 | `vp run build`                | 依序建置 CSS、client bundle、server bundle        |
 | `vp check --no-fmt --no-lint` | tsc 型別檢查                                      |
 | `vp test`                     | 執行自動化測試（Vitest，`src/tests/`）            |
 | `vp exec wrangler types`      | 產生 Cloudflare 綁定型別                          |
+
+開發伺服器的 `/licenses/client.txt` 與 `/licenses/worker.txt` 使用啟動前 production build 產生的 notices 快照，兩份檔案都以 UTF-8 提供；更動套件或 imports 後請重啟 `dev`／`dev:remote` 更新。頁面仍由 Vite 原始碼提供 HMR，不會切成 production bundle 執行。
 
 樣式 token 以 `vtaiwan-design-system/project/colors_and_type.css` 為穩定來源，透過 Tailwind v4 的 `vt-*` utilities 使用，例如 `text-vt-democratic-red`、`bg-vt-bg-2`、`font-vt-serif`。
 

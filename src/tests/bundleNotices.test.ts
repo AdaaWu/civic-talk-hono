@@ -2,6 +2,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, dirname } from 'node:path'
 import { afterEach, describe, expect, it } from 'vite-plus/test'
+import { createServer } from 'vite'
 import { bundleNotices } from '../../scripts/bundle-notices.mjs'
 import { licensingDependenciesMatchLockfile, renderLicensingDependencies } from '../../scripts/licensing-dependencies.mjs'
 
@@ -37,6 +38,41 @@ function pluginHook(plugin: unknown, name: 'generateBundle' | 'writeBundle') {
 }
 
 describe('bundle 第三方授權聲明', () => {
+  it('dev notices 的 GET／HEAD 明示 UTF-8，且不改其他資產的 MIME', async () => {
+    const root = makeRoot()
+    mkdirSync(join(root, 'public/licenses'), { recursive: true })
+    writeFileSync(join(root, 'public/licenses/client.txt'), '第三方套件授權聲明（client bundle）\n')
+    writeFileSync(join(root, 'public/licenses/worker.txt'), '第三方套件授權聲明（worker bundle）\n')
+    writeFileSync(join(root, 'public/example.json'), '{}\n')
+    const server = await createServer({
+      root,
+      configFile: false,
+      logLevel: 'silent',
+      plugins: [bundleNotices({ target: 'worker', root })],
+      server: { host: '127.0.0.1', port: 0 },
+    })
+    try {
+      await server.listen()
+      const address = server.httpServer?.address()
+      if (!address || typeof address === 'string') throw new Error('Vite dev server 沒有 TCP 位址。')
+      const origin = `http://127.0.0.1:${address.port}`
+      for (const target of ['client', 'worker']) {
+        const response = await fetch(`${origin}/licenses/${target}.txt?view=1`)
+        expect(response.status).toBe(200)
+        expect(response.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
+        const head = await fetch(`${origin}/licenses/${target}.txt`, { method: 'HEAD' })
+        expect(head.headers.get('Content-Type')).toBe('text/plain; charset=utf-8')
+        expect(await head.text()).toBe('')
+      }
+      const json = await fetch(`${origin}/example.json`)
+      expect(json.headers.get('Content-Type')).toContain('application/json')
+      const missing = await fetch(`${origin}/licenses/missing.txt`)
+      expect(missing.status).toBe(404)
+    } finally {
+      await server.close()
+    }
+  })
+
   it('依 scoped 與巢狀 node_modules 的實際 chunk module IDs 收集原始 notices', async () => {
     const root = makeRoot()
     const main = writePackage(root, 'node_modules/@fixture/main', { name: '@fixture/main', version: '1.2.3', license: 'MIT' }, {

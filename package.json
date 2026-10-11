@@ -5,8 +5,8 @@
   "license": "AGPL-3.0-only",
   "type": "module",
   "scripts": {
-    "dev": "vp run build:css && vp dev",
-    "dev:remote": "vp run build:css && vp dev --mode remote",
+    "dev": "vp run build && vp dev",
+    "dev:remote": "vp run build && vp dev --mode remote",
     "build:css": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css",
     "css": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css",
     "css:watch": "vp exec tailwindcss -i ./src/styles/app.css -o ./public/styles.css --watch",

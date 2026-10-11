@@ -47,6 +47,12 @@ if (!existsSync(workerNotice)) throw new Error('Worker bundle 未輸出必要套
 // 必須等 Cloudflare 所有 environments 建完，否則 client fallback 會清掉副本。
 mkdirSync(path.dirname(deployedWorkerNotice), { recursive: true })
 copyFileSync(workerNotice, deployedWorkerNotice)
+// dev 使用 public 而非部署 ASSETS；兩份 notices 都必須在 public 可取得。
+copyFileSync(workerNotice, path.join(publicDir, 'licenses/worker.txt'))
+clientManifest.artifactSha256 = artifactSha256(publicDir)
+const finalClientManifest = writeSourceManifest(publicDir, clientManifest)
+copyFileSync(finalClientManifest, path.join(target.assetsDirectory, sourceManifestName))
+verifyClientAssetCopies(publicDir, target.assetsDirectory)
 
 const workerManifest = {
   schema: 1,

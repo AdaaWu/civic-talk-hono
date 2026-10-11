@@ -289,8 +289,8 @@ Better Auth 的端點位於 `/api/auth/*`（見「API 契約」），這段路�
 
 ```bash
 npm install                         # 安裝依賴（套件管理仍走 npm）
-vp run dev                          # 先建置 CSS 再啟動開發伺服器，D1 用本機模擬
-vp run dev:remote                   # 先建置 CSS 再連遠端綁定；本機開發若要實測登入使用此模式
+vp run dev                          # 先完整 build（含 CSS／notices），再啟動 HMR；D1 本機模擬
+vp run dev:remote                   # 先完整 build（含 notices），再連遠端綁定；實測登入使用此模式
 vp run css:watch                    # 只監看 Tailwind CSS（dev 期間需另開終端機）
 vp run build                        # CSS + client bundle + server bundle
 vp preview                          # 預覽建置結果
@@ -302,7 +302,9 @@ vp exec wrangler types              # 產生 Cloudflare 綁定型別
 vp run deploy                       # build + 產物／公開原始碼檢查 + wrangler deploy（需使用者授權）
 ```
 
-**CSS**：`vp run css`（Tailwind CLI：`src/styles/app.css` → `public/styles.css`）。`vp run dev` 在啟動伺服器前先跑一次 CSS 建置，**不**自動 watch；需要邊改 CSS 邊看效果時，另開終端機跑 `vp run css:watch`。`vp run build` 依序產出 CSS、client bundle，再建 server，避免 server build 收到舊的 `public/js/civic.js`。
+**CSS**：`vp run css`（Tailwind CLI：`src/styles/app.css` → `public/styles.css`）。`vp run dev`／`dev:remote` 在啟動伺服器前先跑完整 build（含 CSS 與兩份 bundle notices），CSS **不**自動 watch；需要邊改 CSS 邊看效果時，另開終端機跑 `vp run css:watch`。`vp run build` 依序產出 CSS、client bundle，再建 server，避免 server build 收到舊的 `public/js/civic.js`。
+
+**開發 notices**：兩份檔案都由啟動前 production build 產生並存入 `public/licenses/`，更動套件或 imports 後重啟開發伺服器更新快照；不在每次 HMR 重算。部署／preview 以 `public/_headers` 指定 UTF-8，Vite dev 由 notices plugin middleware 指定。加入 Worker notices 後須重新封存 public 與部署副本的 client manifest，不得讓生成物與 hashes 不一致。
 
 **測試**：`vp test` 跑 `src/tests/**/*.test.ts`，涵蓋 i18n、SSR、API 安全邊界、作者隱私、moderation、投稿併發、首頁排序與意見投票等。新測試放進 `src/tests/`，從 `vite-plus/test` import `describe`／`it`／`expect`；`.github/workflows/ci.yml` 會在 push 到 `main` 與 pull request 執行完整測試。
 
