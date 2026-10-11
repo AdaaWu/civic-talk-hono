@@ -97,11 +97,58 @@ describe('deployment publication check', () => {
     expect(init?.signal).toBeInstanceOf(AbortSignal)
   })
 
-  it('rejects unpublished/private commits and unavailable GitHub responses', async () => {
-    for (const status of [404, 500]) {
-      const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status }))
-      await expect(verifyPublishedSource(clean, fetcher)).rejects.toThrow(`HTTP ${status}`)
-    }
+  it.each([
+    [404, '找不到原始碼 commit'],
+    [500, '請稍後再試'],
+    [403, '拒絕本次匿名查核'],
+  ])('stops publication checks for HTTP %s with the appropriate reason', async (status, reason) => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status }))
+    const error = await verifyPublishedSource(clean, fetcher).catch(error => error as Error)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain(`HTTP ${status}`)
+    expect((error as Error).message).toContain(reason)
+    if (status !== 404) expect((error as Error).message).not.toContain('push')
+  })
+
+  it('reports an exhausted anonymous API quota and Taiwan reset time without asking for another push', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, {
+        status: 403,
+        headers: { 'x-ratelimit-remaining': '0', 'x-ratelimit-reset': '1791681676' },
+      })
+    )
+    const error = await verifyPublishedSource(clean, fetcher).catch(error => error as Error)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain('匿名 API 請求額度已用完')
+    expect((error as Error).message).toContain('2026/10/11')
+    expect((error as Error).message).toContain('09:21:16（台灣時間）')
+    expect((error as Error).message).not.toContain('push')
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(new Headers(fetcher.mock.calls[0][1]?.headers).has('Authorization')).toBe(false)
+  })
+
+  it.each(['', 'invalid', '9999999999999999999'])('handles an absent or invalid quota reset timestamp: %s', async reset => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(null, {
+        status: 403,
+        headers: { 'x-ratelimit-remaining': '0', ...(reset ? { 'x-ratelimit-reset': reset } : {}) },
+      })
+    )
+    await expect(verifyPublishedSource(clean, fetcher)).rejects.toThrow('請等 GitHub API 額度重置後再試')
+  })
+
+  it.each([
+    { status: 429, headers: new Headers({ 'retry-after': '120' }), body: null, reason: '請等待 120 秒後再試' },
+    { status: 403, headers: new Headers(), body: JSON.stringify({ message: 'You have exceeded a secondary rate limit.' }), reason: '至少等待一分鐘' },
+    { status: 429, headers: new Headers(), body: null, reason: '至少等待一分鐘' },
+  ])('reports temporary API throttling for HTTP $status and preserves the deployment stop', async ({ status, headers, body, reason }) => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(new Response(body, { status, headers }))
+    const error = await verifyPublishedSource(clean, fetcher).catch(error => error as Error)
+    expect(error).toBeInstanceOf(Error)
+    expect((error as Error).message).toContain('API 請求暫受限制')
+    expect((error as Error).message).toContain(reason)
+    expect((error as Error).message).not.toContain('push')
+    expect(fetcher).toHaveBeenCalledTimes(1)
   })
 
   it('rejects a different returned revision', async () => {

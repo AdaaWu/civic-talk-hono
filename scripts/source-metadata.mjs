@@ -45,7 +45,29 @@ export async function verifyPublishedSource(metadata, fetcher = fetch) {
     headers: { Accept: 'application/vnd.github+json', 'User-Agent': 'civic-talk-source-check' },
     signal: AbortSignal.timeout(15000),
   })
-  if (!response.ok) throw new Error(`原始碼 commit 尚未公開或 GitHub 無法確認（HTTP ${response.status}）；請先 push 到公開 repository。`)
+  if (!response.ok) {
+    if ([403, 429].includes(response.status)) {
+      if (response.headers.get('x-ratelimit-remaining') === '0') {
+        const reset = response.headers.get('x-ratelimit-reset')
+        const resetDate = reset && /^\d+$/.test(reset) ? new Date(Number(reset) * 1000) : null
+        const retry =
+          resetDate && Number.isFinite(resetDate.getTime())
+            ? `請於 ${new Intl.DateTimeFormat('zh-TW', { timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(resetDate)}（台灣時間）之後再試。`
+            : '請等 GitHub API 額度重置後再試。'
+        throw new Error(`GitHub 匿名 API 請求額度已用完（HTTP ${response.status}）；${retry}目前無法確認原始碼公開狀態。`)
+      }
+      const retryAfter = response.headers.get('retry-after')
+      const details = await response.json().catch(() => null)
+      const rateLimited = response.status === 429 || (retryAfter && /^\d+$/.test(retryAfter)) || (typeof details?.message === 'string' && /rate limit/i.test(details.message))
+      if (rateLimited) {
+        const retry = retryAfter && /^\d+$/.test(retryAfter) ? `請等待 ${retryAfter} 秒後再試。` : '請至少等待一分鐘後再試；若持續受限，請延長等待時間。'
+        throw new Error(`GitHub API 請求暫受限制（HTTP ${response.status}）；${retry}目前無法確認原始碼公開狀態。`)
+      }
+      throw new Error(`GitHub 拒絕本次匿名查核（HTTP ${response.status}）；請檢查 GitHub 回應與網路狀態，目前無法確認原始碼是否公開。`)
+    }
+    if (response.status === 404) throw new Error('在指定公開 repository 找不到原始碼 commit（HTTP 404）；請確認 repository 設定及版本已 push 並公開。')
+    throw new Error(`GitHub 無法完成原始碼公開查核（HTTP ${response.status}）；請稍後再試。`)
+  }
   const result = await response.json()
   if (result.sha !== metadata.commit) throw new Error('公開原始碼版本與本次建置 commit 不一致。')
   return metadata.sourceUrl

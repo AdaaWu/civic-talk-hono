@@ -17,6 +17,7 @@ footer 提供該次建置固定 Git commit 的 source archive 與 LICENSE。兩�
 1. 提交並 push 所有來源變更到公開 repository。保留必要的建置、安裝、執行腳本、migrations、設定範本及授權 notices；不要公開機密、正式資料或個人資料。
 2. 將 Git `origin` 指向該版本的 GitHub repository。fork 預設使用自己的 origin；若 origin 無法用作公開來源，設定公開的 build 環境變數 `CIVIC_SOURCE_REPOSITORY`，例如 `https://github.com/example/civic-talk-fork`。目前只支援 GitHub repository 的 HTTPS／Git SSH remote 格式；不能設定含 token、帳密或 query 的 URL，也不能把未公開的版本冒充原專案的版本。
 3. `vp run deploy` 先執行 `node scripts/check-published-source.mjs`：檢查 Git checkout 乾淨且 commit 可在指定 repository **不經登入**取得，再執行 build 與 wrangler deploy。未提交／未 push、private repository 或 GitHub 無法確認時停止部署。
+   - 遇到 API 限流（403／429）時，腳本顯示重置時間或等待建議並停止部署；這不代表 commit 未公開，不需重做 commit／push。依提示等待後重跑查核，不用登入 token 繞過匿名查核。其他 403、404 與服務故障會分別提示拒絕查核、找不到版本或稍後重試。
 4. 本機 dirty build 仍可供開發及測試，但 footer 會標示該版本原始碼尚未發佈，不連到不同版本。dirty 檢查僅排除 tracked 生成物 `public/styles.css`；實際 CSS source 仍須提交。
 5. 部署後人工確認各相關頁面的 footer 入口顯著可見、中英文字正確，archive 可匿名下載，且 SHA 與實際 Worker／client 建置相符。確認實際 archive 足以建置、安裝與執行對應版本，及應隨部署提供的其他 notices。
 
