@@ -376,15 +376,17 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 
 每完成一個邏輯完整的子步驟就跑對應檢查——不要等功能全部完成才驗證，累積改動後出錯難以定位。
 
+**每次修改 UI 都必須檢查淺色與深色模式（#142）。** 不論是元件、版面、樣式、圖示或介面文字，都要在真實瀏覽器中切換淺色（光亮）與深色（暗黑）模式，於桌機與手機寬度檢查受影響畫面及共用元件。確認文字、連結、按鈕、表單、圖示、背景與邊框沒有明顯的對比不足、看不見、顏色不協調或擠版問題；有變更的 hover／focus／disabled 狀態也要檢查。發現問題須修正後重查，不能只看 CSS 或以 typecheck／測試／build 通過代替視覺驗收。交付時列出實際檢查的模式、寬度與結果；若瀏覽器無法使用，須明確註明未完成視覺驗證，不得宣稱已驗收。
+
 | 改動類型             | 必跑檢查                                                                                                                                                                                                                                                                                                              |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 文件（`.md`）        | 核對文中引用的指令／檔案／設定與現實一致                                                                                                                                                                                                                                                                              |
-| 元件／頁面（`.vue`） | `vp check --no-fmt --no-lint` + `vp run build`；互動 session 加 `vp run dev` 目視                                                                                                                                                                                                                                     |
+| 元件／頁面（`.vue`） | `vp check --no-fmt --no-lint` + `vp run build`；UI 改動必須在真實瀏覽器目視淺色／深色模式及桌機／手機寬度 |
 | 新增／修改路由       | `vp check --no-fmt --no-lint` + `vp run build`（靜態 import 驗證）+ 手動打一次新舊網址                                                                                                                                                                                                                                |
 | API / `src/db/`      | `vp check --no-fmt --no-lint` + 對本機 D1 逐一 smoke test（CRUD、狀態轉換、admin 驗證、404/400/401）                                                                                                                                                                                                                  |
 | 登入／權限（auth）   | `vp check --no-fmt --no-lint` + `vp run build`；互動 session 實測：Google 登入、GitHub 登入、**同 email 兩種 provider 登入後是同一個 `user.id`**、登出、`GET /api/me`、非 admin 打管理端點得 `403`、未登入得 `401`、`/admin` 導向登入。**改完後查 `vtaiwan-auth` 的 `sqlite_master` 確認沒有多出任何表**（不變量 11） |
 | migration            | 先 `--local` 套用，查 `sqlite_master` 確認只新增 `ct_` 表；`--remote` 需授權                                                                                                                                                                                                                                          |
-| 樣式／token          | `vp run css` + `vp run build`；互動 session 目視桌機／手機兩種寬度                                                                                                                                                                                                                                                    |
+| 樣式／token          | `vp run css` + `vp run build`；UI 改動必須在真實瀏覽器目視淺色／深色模式及桌機／手機寬度 |
 | i18n 檔              | `vp test`（l10n.test.ts 自動驗 key 同步）+ 人工核對值翻譯正確                                                                                                                                                                                                                                                         |
 | 依賴／`package.json` | `npm install` + `vp check --no-fmt --no-lint` + `vp run build`                                                                                                                                                                                                                                                        |
 | Vite／wrangler 設定  | `vp check --no-fmt --no-lint` + `vp run build`                                                                                                                                                                                                                                                                        |
@@ -394,9 +396,10 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 1. `vp check --no-fmt --no-lint` — 零錯誤。
 2. `vp test` — 全部通過。
 3. `vp run build` — server + client 都能成功建置。
-4. 本機 `vp run dev` 目視（**僅互動 session**）：
+4. 本機 `vp run dev` 目視（UI 改動必做；其他改動僅互動 session）：
    - hydration **無 mismatch 警告**（開 devtools console 檢查）
    - 中英日切換、桌機／手機排版、Polis 條件載入、`OPINION.md` 下載
+   - UI 改動必須檢查淺色／深色模式，兩種模式都要確認桌機／手機版面沒有明顯視覺問題（不限互動 session）
    - 舊網址導向確實生效
 
 > **仍未自動涵蓋**：正式站 OAuth／遠端 D1／Service Binding 煙霧測試、連結完整性與真實瀏覽器 hydration 一致性。CI 已執行 typecheck、Vitest（含 SSR smoke）與 build，但不能取代部署後人工驗收。
