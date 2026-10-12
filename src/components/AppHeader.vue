@@ -76,7 +76,7 @@ function handleNewIssue() {
     <!-- ── 主列：logo ＋ 桌面 nav ＋ 手機漢堡按鈕 ── -->
     <div
       class="mx-auto flex h-16 items-center justify-between rounded-xl border border-vt-border/75 bg-vt-bg-1/88 px-4 pl-6 shadow-md backdrop-blur-[20px]"
-      :class="isJapanese ? 'max-w-6xl max-sm:pl-4 max-sm:pr-2' : 'max-w-[980px]'"
+      :class="isJapanese ? 'max-w-6xl max-sm:pl-4 max-sm:pr-2' : 'max-w-[980px] xl:max-w-6xl'"
     >
       <!-- Logo -->
       <a href="/" class="flex shrink-0 items-center no-underline" aria-label="vTaiwan Civic Talk">
@@ -84,13 +84,13 @@ function handleNewIssue() {
         <img src="/vtaiwan-logo-dark.svg" alt="vTaiwan" class="hidden w-auto dark:block" :class="isJapanese ? 'h-6 sm:h-7' : 'h-7'" />
       </a>
 
-      <!-- 日語長字詞在平板先沿用手機選單，避免導覽列換行。 -->
+      <!-- 三語在寬桌機才展開導覽，避免平板與登入後的工具列擠版。 -->
       <nav
-        class="hidden items-center gap-0.5"
+        class="hidden items-center gap-0.5 xl:flex"
         :class="
           isJapanese
-            ? 'xl:flex [&_a]:text-xs [&_a>span]:text-xs [&_button]:text-xs [&_select]:text-xs [&>a]:whitespace-nowrap [&>a]:px-2 [&_button]:px-2 [&_select]:px-2'
-            : 'md:flex'
+            ? '[&_a]:text-xs [&_a>span]:text-xs [&_button]:text-xs [&_select]:text-xs [&>a]:whitespace-nowrap [&>a]:px-2 [&_button]:px-2 [&_select]:px-2'
+            : ''
         "
       >
         <a v-if="backHref" :href="backHref" class="rounded-pill px-3 py-1.5 text-[15px] text-vt-fg-2 no-underline hover:bg-black/5 dark:hover:bg-white/10">
@@ -194,7 +194,7 @@ function handleNewIssue() {
       </nav>
 
       <!-- ── 手機右側：avatar（已登入時）＋ 漢堡按鈕 ── -->
-      <div class="flex items-center gap-1.5" :class="isJapanese ? 'xl:hidden max-sm:[&_[role=group]_button]:px-1' : 'md:hidden'">
+      <div class="flex items-center gap-1.5 xl:hidden" :class="isJapanese ? 'max-sm:[&_[role=group]_button]:px-1' : ''">
         <!-- 角色會影響所有頁面的內容排序，手機版也固定顯示，不收進漢堡選單。 -->
         <ViewerRoleSwitch compact />
 
@@ -256,8 +256,8 @@ function handleNewIssue() {
     <!-- ── 手機下拉選單 ── -->
     <div
       v-if="showMenu"
-      class="mx-auto mt-2 rounded-xl border border-vt-border/75 bg-vt-bg-1/95 px-5 py-4 shadow-md backdrop-blur-[20px]"
-      :class="isJapanese ? 'max-w-6xl xl:hidden' : 'max-w-[980px] md:hidden'"
+      class="mx-auto mt-2 rounded-xl border border-vt-border/75 bg-vt-bg-1/95 px-5 py-4 shadow-md backdrop-blur-[20px] xl:hidden"
+      :class="isJapanese ? 'max-w-6xl' : 'max-w-[980px]'"
     >
       <!-- 導航連結 -->
       <nav class="mb-4 flex flex-col gap-1">
@@ -365,11 +365,10 @@ function handleNewIssue() {
       </template>
     </div>
 
-    <!-- 桌面登入面板沿用該語言的導覽斷點。 -->
+    <!-- 桌面登入面板沿用導覽斷點與容器寬度。 -->
     <div
       v-if="authState === 'anonymous' && showLoginPanel"
-      class="mx-auto mt-2 hidden rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px]"
-      :class="isJapanese ? 'max-w-6xl xl:block' : 'max-w-[980px] md:block'"
+      class="mx-auto mt-2 hidden max-w-6xl rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px] xl:block"
     >
       <p class="mt-0 mb-3 text-sm text-muted">{{ t('login_panel_desc') }}</p>
       <SignInButtons :callback-url="loginCallbackUrl" />

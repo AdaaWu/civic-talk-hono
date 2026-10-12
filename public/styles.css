@@ -1342,15 +1342,6 @@
     .md\:mx-0 {
       margin-inline: 0px;
     }
-    .md\:block {
-      display: block;
-    }
-    .md\:flex {
-      display: flex;
-    }
-    .md\:hidden {
-      display: none;
-    }
     .md\:w-52 {
       width: calc(var(--spacing) * 52);
     }
@@ -1373,6 +1364,9 @@
     }
     .xl\:hidden {
       display: none;
+    }
+    .xl\:max-w-6xl {
+      max-width: var(--container-6xl);
     }
   }
   .dark\:block:where(.dark, .dark *) {
