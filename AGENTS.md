@@ -77,7 +77,7 @@ Civic Talk 已以 **每頁 `renderPage` + 單一 client bundle hydration** 跑�
 - `src/components/MarkdownEditor.vue` — 投稿欄位共用編輯／預覽與 code point 計數器。議題簡介使用純文字預覽、保留換行，100 字只作軟提示，不設 `maxlength` 或 API 長度驗證；素材、意見及志願者彙整／綜整直接使用 `renderSafeMarkdown()`，素材與意見詳情頁也沿用同一 renderer。不得另開 Markdown parser、開啟原始 HTML 或輸出圖片。SSR 固定編輯分頁；計數器立即更新，但 `aria-live="polite"` 等輸入停止 800ms 才播報。素材事實查核期間與查核完成後維持 `readonly`；編輯器的 `focus()` 會切回編輯分頁並聚焦 textarea。
   - textarea 透過 writable computed 使用原生 `v-model`，不得改成單純的 `:value`／`@input`，避免破壞中文 IME 組字保護。組字回歸依序送出 `compositionstart`、組字中的 `input`、`compositionend`：組字期間保留 textarea 的暫存文字，但不得更新投稿 model、字數或預覽；確認組字後才同步最終文字，並確認一般輸入與預覽切換仍正常。
   - Markdown 預覽先對字串套用與素材、意見、彙整／綜整送出流程相同的 `trim()`，再呼叫 `renderSafeMarkdown()`，避免首行四個空白在預覽中變成 code block、送出後卻成為段落。只正規化預覽，不改寫草稿或字數計數；內文縮排仍保留。純文字模式維持原字串，不套用 `trim()`。回歸需確認首行縮排的預覽與送出文字渲染一致，以及純文字的首尾空白與換行未被刪除。
-- `src/l10n/` — 自製 i18n composable（`zh-TW`／`en` 雙檔 key 同步）；SSR 固定 `zh-TW`，`localStorage.civic_lang` 只在 hydration 後讀寫。
+- `src/l10n/` — 自製 i18n composable（`zh-TW`／`en`／`ja` 三檔 key 與插值欄位同步）；桌機標頭與手機選單共用 `LanguageSwitcher.vue`，以原生 select 直接選擇語言。SSR 固定 `zh-TW`，`localStorage.civic_lang` 只在 hydration 後讀寫；保留舊版 `zh`，日語使用與 vTaiwan 主站相同的 `ja`。日期及 `OPINION.md` 跟隨介面語言，投稿內容不自動翻譯。
 - `src/styles/app.css` — Tailwind v4 `@theme static`（vTaiwan 色彩、字型、字級、間距、圓角、陰影與動效 token）；`vp run css` 產出 `public/styles.css`（**生成物，勿手改**）。
 - `wrangler.jsonc` — `ASSETS` + D1 `DB` → `vtaiwan-civic-talks` + D1 `DB_AUTH` → `vtaiwan-auth` + Service Binding `FACT_CHECK_CORE` → `fact-check-core`（這些 binding 的 `remote: true` 只影響本機開發模式）；`compatibility_flags: ["nodejs_compat"]`。**不寫 `account_id`**（與 `../vTaiwan-hono` 一致，由 wrangler 登入的帳號決定）——不要為了「比較保險」把它加回來。
 - `src/auth/` — `createAuth.ts`（Better Auth 實例：Google／GitHub provider、同 email accountLinking、啟用 admin plugin 供 server 端 moderation ban/unban，並以 `additionalFields` 唯讀取角色與停權欄位）與 `authorization.ts`（`AppRole`／`resolveRole`／`isAdminRole`／`getAuthContext`／`tryGetAuthContext`）。
@@ -187,12 +187,13 @@ Better Auth 的端點位於 `/api/auth/*`（見「API 契約」），這段路�
 - View 的 SFC 樣式原則上用 `<style scoped>`，避免跨頁污染；真正全站共用的樣式才放進 CSS source。
   - ⚠️ **現況限制（#83 實測）**：HTML 殼（`src/ssr/render.ts`）目前只載入 `/styles.css`，client build 從 SFC 抽出的 CSS（`public/assets/style-*.css`）沒有任何地方引用，所以 `<style scoped>` 在正式環境**不會生效**、只在 `vp run dev` 看得到。在把抽出的 CSS 接進 HTML 殼之前，元件樣式一律用 Tailwind utilities 或放進 `src/styles/app.css` 的 `@layer components`；repo 內目前沒有任何 SFC 帶 `<style>` 區塊，請維持這個狀態。要接上 SFC CSS 是結構性改動，先問使用者。
 
-### i18n：zh-TW / en 雙檔同步
+### i18n：zh-TW / en / ja 三檔同步
 
 - 介面文字**一律走翻譯 key**，模板與程式不寫死字串。
-- **雙檔同步（硬性規定）**：`zh-TW` 與 `en` 的 key 集合必須完全一致，值各自翻譯。key 用點號分層（如 `header.home`、`issue.tabs.materials`）。舊站 `contribute` 頁缺的英文要補齊。
+- **三檔同步（硬性規定）**：`zh-TW`、`en` 與 `ja` 的 key 集合與插值欄位必須完全一致，值各自翻譯。新增介面文字須同步三檔，不以中英文 fallback 代替日語翻譯。
 - **語言偵測／持久化只在瀏覽器端**：`localStorage.civic_lang` 只能在 hydration 後讀寫；SSR 一律用預設 `zh-TW`。別把偵測邏輯拉進 SSR 路徑（違反不變量 3）。
-- Better Auth 相關介面文字（Google／GitHub 登入、登出、目前使用者、權限不足提示、Admin 登入入口等）已納入雙語 key；後續新增或修改仍必須同步 `zh-TW`／`en`，不得讓 `abt_tech_auth` 等說明退回已淘汰的 Admin token 敘述。
+- Better Auth 相關介面文字（Google／GitHub 登入、登出、目前使用者、權限不足提示、Admin 登入入口等）已納入三語 key；後續新增或修改仍必須同步 `zh-TW`／`en`／`ja`，不得讓 `abt_tech_auth` 等說明退回已淘汰的 Admin token 敘述。
+- **日語排版只修已實測的擠版處**：`AppHeader.vue` 的 `isJapanese` 使用 `text-xs`、`max-w-6xl` 與 `xl` 桌面斷點；窄手機另縮小 logo 與水平間距。`Home.vue` 的排序鈕、`Issue.vue` 志願者表單標籤只在日語且小於 `sm` 時縮字。中英版維持原樣，footer 沿用自然換行；新增條件樣式前先做真實瀏覽器桌機／手機驗收。
 
 ## API 契約（移植自舊站）
 
@@ -369,7 +370,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 4. 需要互動時：`src/client/xxx-entry.ts` + `vite.client.config.mts` 加 input，並在 `renderPage` 傳入 `hydrate` 選項。
 5. 驗證：`vp check --no-fmt --no-lint` + `vp test` + `vp run build`，`vp run dev` 目視。
 
-**切換到 vue-router 之後：** 步驟 3、4 換成「在路由表加一筆（**靜態 import**）」，並同步 i18n 兩個語言檔的 key。
+**切換到 vue-router 之後：** 步驟 3、4 換成「在路由表加一筆（**靜態 import**）」，並同步 i18n 三個語言檔的 key。
 
 ## 驗證流程（改完必做）
 
@@ -395,7 +396,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 3. `vp run build` — server + client 都能成功建置。
 4. 本機 `vp run dev` 目視（**僅互動 session**）：
    - hydration **無 mismatch 警告**（開 devtools console 檢查）
-   - 中英切換、桌機／手機排版、Polis 條件載入、`OPINION.md` 下載
+   - 中英日切換、桌機／手機排版、Polis 條件載入、`OPINION.md` 下載
    - 舊網址導向確實生效
 
 > **仍未自動涵蓋**：正式站 OAuth／遠端 D1／Service Binding 煙霧測試、連結完整性與真實瀏覽器 hydration 一致性。CI 已執行 typecheck、Vitest（含 SSR smoke）與 build，但不能取代部署後人工驗收。
