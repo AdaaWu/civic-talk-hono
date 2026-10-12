@@ -67,8 +67,7 @@ const workerManifest = {
   assetsArtifactSha256: artifactSha256(target.assetsDirectory),
 }
 const final = readSourceIdentity(projectRoot)
-const identityChanged =
-  (initial.identity === null) !== (final.identity === null) || (initial.identity !== null && final.identity !== initial.identity)
+const identityChanged = (initial.identity === null) !== (final.identity === null) || (initial.identity !== null && final.identity !== initial.identity)
 if (identityChanged || JSON.stringify(final.metadata) !== JSON.stringify(initial.metadata)) {
   throw new Error('原始碼 identity 或 dirty 狀態在 build 期間改變；本次建置不得用於部署，請重跑 build。')
 }

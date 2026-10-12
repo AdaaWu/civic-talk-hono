@@ -863,20 +863,10 @@ function snapshotSummary(snapshotJSON: string): string {
                             {{ t('adm_rpt_btn_abuse') }}
                           </button>
                           <!-- 不停權裁判只更新內容與回報，所有 admin 皆可使用。 -->
-                          <button
-                            v-if="r.source !== 'ai' && r.reason !== 'broken_link'"
-                            type="button"
-                            class="btn btn-ghost btn-sm text-amber-700"
-                            @click="resolveReport(r.id, 'false_report', false)"
-                          >
+                          <button v-if="r.source !== 'ai' && r.reason !== 'broken_link'" type="button" class="btn btn-ghost btn-sm text-amber-700" @click="resolveReport(r.id, 'false_report', false)">
                             {{ t('adm_rpt_btn_false_no_ban') }}
                           </button>
-                          <button
-                            v-if="r.reason !== 'broken_link'"
-                            type="button"
-                            class="btn btn-ghost btn-sm text-red"
-                            @click="resolveReport(r.id, 'confirmed_abuse', false)"
-                          >
+                          <button v-if="r.reason !== 'broken_link'" type="button" class="btn btn-ghost btn-sm text-red" @click="resolveReport(r.id, 'confirmed_abuse', false)">
                             {{ t('adm_rpt_btn_abuse_no_ban') }}
                           </button>
                           <span v-if="!r.target_author_id && r.review_status === 'pending' && r.reason !== 'broken_link'" class="text-xs text-muted">{{ t('adm_rpt_no_author') }}</span>

@@ -178,7 +178,6 @@ function toggleOpinion(id: number) {
   expandedOpinions.value = next
 }
 
-
 function toggleFlagged(type: string, id: number) {
   const key = `${type}-${id}`
   const next = new Set(expandedFlagged.value)
@@ -256,8 +255,7 @@ function finishCarouselDrag() {
   // 避免 carousel 過早卸載，讓攔截器殘留並吃掉 comments 的第一個按鈕 click。
   carouselDragEndFrame = window.requestAnimationFrame(() => {
     carouselDragEndFrame = null
-    const shouldEnterComments =
-      dragThresholdReached.value && viewerRole.value === 'citizen' && !activeStep.value && carouselIndex.value === lastBriefingSlideIndex
+    const shouldEnterComments = dragThresholdReached.value && viewerRole.value === 'citizen' && !activeStep.value && carouselIndex.value === lastBriefingSlideIndex
     dragThresholdReached.value = false
     if (shouldEnterComments) setIssueStep('comments')
   })
@@ -833,7 +831,10 @@ async function submitOpinion() {
                 <article class="issue-briefing-card card w-full">
                   <template v-if="!briefing">
                     <div class="alert alert-warn mb-4">{{ t('brief_no_briefing_alert') }}</div>
-                    <div class="empty"><div class="empty-icon">📝</div>{{ t('brief_go_volunteer') }}</div>
+                    <div class="empty">
+                      <div class="empty-icon">📝</div>
+                      {{ t('brief_go_volunteer') }}
+                    </div>
                     <div class="mt-4 flex gap-2">
                       <a :href="`/contribute/${issueId}`" class="btn btn-primary">{{ t('brief_submit_material') }}</a>
                       <button type="button" class="btn btn-secondary" @click="setIssueStep('volunteer')">{{ t('tab_volunteer') }}</button>
@@ -870,7 +871,11 @@ async function submitOpinion() {
                   <div v-else class="empty">{{ t('brief_no_briefing_alert') }}</div>
                   <template v-if="briefing && briefing.abuse_flagged !== 2">
                     <p class="mt-6 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">
-                      <span>{{ t('brief_version_prefix') }}{{ briefing.version }}，{{ t('brief_updated') }} {{ formatDate(briefing.created_at, locale) }} · {{ t('brief_author_label') }}：{{ briefing.author_name || t('author_system') }}</span>
+                      <span
+                        >{{ t('brief_version_prefix') }}{{ briefing.version }}，{{ t('brief_updated') }} {{ formatDate(briefing.created_at, locale) }} · {{ t('brief_author_label') }}：{{
+                          briefing.author_name || t('author_system')
+                        }}</span
+                      >
                       <AuthorEmailLink v-if="briefing.author_email" :email="briefing.author_email" :name="briefing.author_name" />
                       <button v-if="authState === 'signed-in' && !briefing.abuse_flagged" type="button" class="text-xs text-muted hover:text-red" @click="openReport('briefing', briefing.id)">
                         {{ t('report_btn') }}
@@ -1156,7 +1161,13 @@ async function submitOpinion() {
                       <span v-if="commentAction === 'ai_help'">{{ t('op_label_summary') }}</span>
                       <span class="label-hint">{{ t('op_hint_summary') }}</span>
                     </label>
-                    <MarkdownEditor id="opinion-content" v-model="opinionInput" :rows="5" :placeholder="commentAction === 'ai_help' ? t('op_ph_summary') : t('op_ph_summary_direct')" :label="commentAction === 'ai_help' ? t('op_label_summary') : t('op_commit_title')" />
+                    <MarkdownEditor
+                      id="opinion-content"
+                      v-model="opinionInput"
+                      :rows="5"
+                      :placeholder="commentAction === 'ai_help' ? t('op_ph_summary') : t('op_ph_summary_direct')"
+                      :label="commentAction === 'ai_help' ? t('op_label_summary') : t('op_commit_title')"
+                    />
                   </div>
                   <div class="form-group">
                     <label class="flex items-start gap-2 font-normal">
@@ -1290,10 +1301,7 @@ async function submitOpinion() {
                     <OpinionVote
                       v-if="!isLongOpinion(o.summary) || expandedOpinions.has(o.id)"
                       :opinion="o"
-                      :expanded="
-                        (o.abuse_flagged !== 1 || expandedFlagged.has(`opinion-${o.id}`)) &&
-                        (expandedOpinions.has(o.id) || !isLongOpinion(o.summary))
-                      "
+                      :expanded="(o.abuse_flagged !== 1 || expandedFlagged.has(`opinion-${o.id}`)) && (expandedOpinions.has(o.id) || !isLongOpinion(o.summary))"
                       :callback-url="writeIssueOpinionAnchor(loginCallbackUrl, o.id)"
                       @update="updateOpinionVote(o.id, $event)"
                       @sign-in-required="rememberOpinionPosition(o.id)"

@@ -371,7 +371,7 @@
   }
 
   .form-group {
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
 
   .form-group label {
@@ -815,7 +815,6 @@
   .markdown-content tbody tr:nth-child(even) {
     background: color-mix(in srgb, var(--color-vt-bg-2) 55%, transparent);
   }
-
 }
 .issue-carousel .carousel__slide {
   align-items: flex-start;

@@ -163,11 +163,6 @@ export async function handleRss(db: D1Database, request: Request, executionCtx: 
   return handleFeed(request, executionCtx, origin => generateRssFeed(db, origin))
 }
 
-export async function handleIssueRss(
-  db: D1Database,
-  request: Request,
-  executionCtx: { waitUntil(promise: Promise<unknown>): void },
-  issue: Pick<Issue, 'id' | 'title'>
-): Promise<Response> {
+export async function handleIssueRss(db: D1Database, request: Request, executionCtx: { waitUntil(promise: Promise<unknown>): void }, issue: Pick<Issue, 'id' | 'title'>): Promise<Response> {
   return handleFeed(request, executionCtx, origin => generateIssueRssFeed(db, issue, origin))
 }

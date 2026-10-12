@@ -59,15 +59,15 @@ https://civic.vtaiwan.tw/api/auth/callback/github
 
 `.dev.vars` **只有本機吃得到**，不會隨 deploy 上傳。下列設定必須另外設進 Worker（正式站已設好，這裡是輪替金鑰或建新環境時的清單）：
 
-| 名稱                   | 說明                                                                                                            | 建議設法              |
-| ---------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------- |
-| `BETTER_AUTH_SECRET`   | 簽章密鑰，**與 vTaiwan-hono 用同一個值**                                                                        | `wrangler secret put` |
-| `GOOGLE_CLIENT_ID`     | 與 vTaiwan-hono 共用                                                                                            | `wrangler secret put` |
-| `GOOGLE_CLIENT_SECRET` | 與 vTaiwan-hono 共用                                                                                            | `wrangler secret put` |
-| `GITHUB_CLIENT_ID`     | 與 vTaiwan-hono 共用                                                                                            | `wrangler secret put` |
-| `GITHUB_CLIENT_SECRET` | 與 vTaiwan-hono 共用                                                                                            | `wrangler secret put` |
-| `BETTER_AUTH_URL`      | **本站自己的 origin**（正式站是 `https://civic.vtaiwan.tw`），不要從 vTaiwan-hono 複製                          | 見下方說明            |
-| `OPEN_ROUTER_API_KEY`  | 四個投稿入口的安全審查；缺值時會 fail-open，雖不阻擋投稿，但正式環境應設定                                      | `wrangler secret put` |
+| 名稱                   | 說明                                                                                   | 建議設法              |
+| ---------------------- | -------------------------------------------------------------------------------------- | --------------------- |
+| `BETTER_AUTH_SECRET`   | 簽章密鑰，**與 vTaiwan-hono 用同一個值**                                               | `wrangler secret put` |
+| `GOOGLE_CLIENT_ID`     | 與 vTaiwan-hono 共用                                                                   | `wrangler secret put` |
+| `GOOGLE_CLIENT_SECRET` | 與 vTaiwan-hono 共用                                                                   | `wrangler secret put` |
+| `GITHUB_CLIENT_ID`     | 與 vTaiwan-hono 共用                                                                   | `wrangler secret put` |
+| `GITHUB_CLIENT_SECRET` | 與 vTaiwan-hono 共用                                                                   | `wrangler secret put` |
+| `BETTER_AUTH_URL`      | **本站自己的 origin**（正式站是 `https://civic.vtaiwan.tw`），不要從 vTaiwan-hono 複製 | 見下方說明            |
+| `OPEN_ROUTER_API_KEY`  | 四個投稿入口的安全審查；缺值時會 fail-open，雖不阻擋投稿，但正式環境應設定             | `wrangler secret put` |
 
 ```bash
 npx wrangler secret put BETTER_AUTH_SECRET     # 逐一設定，值用貼的、不要放進指令歷史
@@ -162,30 +162,30 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
 
 正式站 origin 是 `https://civic.vtaiwan.tw`。「已驗」欄記的是最近一次確認的日期；每次 deploy 後至少重跑前段那幾條。
 
-| 檢查                             | 預期                                                                            | 已驗       |
-| -------------------------------- | ------------------------------------------------------------------------------- | ---------- |
-| `GET /`                          | 200，議題列表正常渲染                                                           | 2026-08-11 |
-| `GET /api/issues`                | 200                                                                             | 2026-08-11 |
-| `GET /api/me`（未登入）          | 401                                                                             | 2026-08-11 |
-| `GET /api/auth/get-session`      | 200                                                                             | 2026-08-11 |
-| `GET /api/auth/admin/list-users` | **404**（本站刻意不開成員管理端點）                                             | 2026-08-11 |
-| `GET /api/admin/stats`（未登入） | 401                                                                             | 2026-08-11 |
-| `GET /index.html`                | 301 → `/`                                                                       | 2026-08-11 |
-| `GET /privacy`、`GET /terms`     | 200                                                                             | 2026-08-11 |
-| `POST /api/fact-check`（未登入） | 401，且不呼叫 `fact-check-core`                                                 | —          |
-| 登入後執行素材事實查核           | 200；回應保留 `X-Request-Id`、`X-Fact-Check-Cache` 與 `Cache-Control: no-store` | —          |
-| `GET /issue.html?id=1`           | 302 → `/issues/1`                                                               | —          |
-| 瀏覽器開 `/admin`                | 顯示 Google／GitHub 登入卡片                                                    | 2026-08-11 |
-| 用 Google 登入                   | 導回 `/admin`；角色是 `admin`／`super-admin` 就進後台，否則顯示「沒有管理權限」 | 2026-08-11 |
-| 用 GitHub 登入                   | 同樣能登入並導回原頁                                                            | 2026-08-11 |
-| 用同一個 email 換 provider 登入  | 同一個帳號、同樣權限，**不會變成新帳號**                                        | —          |
-| 登入後投稿素材／意見／議題       | 寫入成功，且該筆內容顯示投稿者名稱（email 只在勾選公開時才出現）                | 2026-08-11 |
-| 登入後送出說明頁                 | 寫入成功且記錄 `author_id`；管理端看得到完整作者快照                            | —          |
-| 登出後 `GET /api/me`             | 401                                                                             | —          |
-| `POST`／`DELETE /api/opinions/:id/vote`（未登入） | 401                                                                                                   | —          |
-| 登入後投票、改票、收回                           | 成功；投票後可見分布，收回後再次遮蔽；作者及 `abuse_flagged = 2/3` 不可投                              | —          |
-| `GET /api/issues/:id/opinions?sort=responses`     | 200；按回應數排序，未投票者仍看不到分布                                                               | —          |
-| `GET /api/issues/:id/opinions/comments.csv`       | 未登入 401；登入後回 pol.is 相容 CSV，且不含 Better Auth id、email 或 voter identity                   | —          |
+| 檢查                                              | 預期                                                                                 | 已驗       |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------ | ---------- |
+| `GET /`                                           | 200，議題列表正常渲染                                                                | 2026-08-11 |
+| `GET /api/issues`                                 | 200                                                                                  | 2026-08-11 |
+| `GET /api/me`（未登入）                           | 401                                                                                  | 2026-08-11 |
+| `GET /api/auth/get-session`                       | 200                                                                                  | 2026-08-11 |
+| `GET /api/auth/admin/list-users`                  | **404**（本站刻意不開成員管理端點）                                                  | 2026-08-11 |
+| `GET /api/admin/stats`（未登入）                  | 401                                                                                  | 2026-08-11 |
+| `GET /index.html`                                 | 301 → `/`                                                                            | 2026-08-11 |
+| `GET /privacy`、`GET /terms`                      | 200                                                                                  | 2026-08-11 |
+| `POST /api/fact-check`（未登入）                  | 401，且不呼叫 `fact-check-core`                                                      | —          |
+| 登入後執行素材事實查核                            | 200；回應保留 `X-Request-Id`、`X-Fact-Check-Cache` 與 `Cache-Control: no-store`      | —          |
+| `GET /issue.html?id=1`                            | 302 → `/issues/1`                                                                    | —          |
+| 瀏覽器開 `/admin`                                 | 顯示 Google／GitHub 登入卡片                                                         | 2026-08-11 |
+| 用 Google 登入                                    | 導回 `/admin`；角色是 `admin`／`super-admin` 就進後台，否則顯示「沒有管理權限」      | 2026-08-11 |
+| 用 GitHub 登入                                    | 同樣能登入並導回原頁                                                                 | 2026-08-11 |
+| 用同一個 email 換 provider 登入                   | 同一個帳號、同樣權限，**不會變成新帳號**                                             | —          |
+| 登入後投稿素材／意見／議題                        | 寫入成功，且該筆內容顯示投稿者名稱（email 只在勾選公開時才出現）                     | 2026-08-11 |
+| 登入後送出說明頁                                  | 寫入成功且記錄 `author_id`；管理端看得到完整作者快照                                 | —          |
+| 登出後 `GET /api/me`                              | 401                                                                                  | —          |
+| `POST`／`DELETE /api/opinions/:id/vote`（未登入） | 401                                                                                  | —          |
+| 登入後投票、改票、收回                            | 成功；投票後可見分布，收回後再次遮蔽；作者及 `abuse_flagged = 2/3` 不可投            | —          |
+| `GET /api/issues/:id/opinions?sort=responses`     | 200；按回應數排序，未投票者仍看不到分布                                              | —          |
+| `GET /api/issues/:id/opinions/comments.csv`       | 未登入 401；登入後回 pol.is 相容 CSV，且不含 Better Auth id、email 或 voter identity | —          |
 
 > ⚠️ **`/api/auth/get-session` 回 200 不代表登入設定正確**——沒有 cookie 時它跟 callback 網址設錯或 `BETTER_AUTH_URL` 設錯的情況長得一樣。登入相關的列只能靠人工在瀏覽器實測；改網域或換金鑰後要重跑。
 
@@ -356,11 +356,11 @@ npx wrangler tail --config wrangler.personal.jsonc
 
 ### 6.7 自架環境必須自備的外部相依
 
-| 項目                  | 說明                                                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------------------------------ |
-| 認證資料庫            | `vtaiwan-auth` 在 vTaiwan 帳號，D1 綁定只能綁同帳號資源，必須自備（schema 來源見 6.3）                       |
-| Google／GitHub OAuth  | 正式環境的 OAuth 應用程式與 vTaiwan 共用，callback 白名單只有該主控台管理者能加；自架環境要**自行申請一組**  |
-| `BETTER_AUTH_URL`     | 設成自己 Worker 的 origin（例如 `https://<worker>.<subdomain>.workers.dev`），**不要**複製正式環境的值       |
-| `BETTER_AUTH_SECRET`  | 自行產生（`openssl rand -base64 32`），不要沿用正式環境的值                                                  |
+| 項目                  | 說明                                                                                                                                                                   |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 認證資料庫            | `vtaiwan-auth` 在 vTaiwan 帳號，D1 綁定只能綁同帳號資源，必須自備（schema 來源見 6.3）                                                                                 |
+| Google／GitHub OAuth  | 正式環境的 OAuth 應用程式與 vTaiwan 共用，callback 白名單只有該主控台管理者能加；自架環境要**自行申請一組**                                                            |
+| `BETTER_AUTH_URL`     | 設成自己 Worker 的 origin（例如 `https://<worker>.<subdomain>.workers.dev`），**不要**複製正式環境的值                                                                 |
+| `BETTER_AUTH_SECRET`  | 自行產生（`openssl rand -base64 32`），不要沿用正式環境的值                                                                                                            |
 | `FACT_CHECK_CORE`     | `fact-check-core` Worker 不存在於其他帳號；移除綁定後不只 `POST /api/fact-check` 失效，`Contribute.vue` 也拿不到「查核成功且允許」的結果，因此整條素材投稿流程無法完成 |
-| `OPEN_ROUTER_API_KEY` | 未設定時投稿安全審查採 fail-open（放行並記錄錯誤）；正式或要驗證 moderation 的自架環境應設定，不能把 fail-open 當成審查已通過                            |
+| `OPEN_ROUTER_API_KEY` | 未設定時投稿安全審查採 fail-open（放行並記錄錯誤）；正式或要驗證 moderation 的自架環境應設定，不能把 fail-open 當成審查已通過                                          |

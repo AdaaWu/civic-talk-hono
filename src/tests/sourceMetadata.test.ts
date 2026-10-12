@@ -4,15 +4,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it, vi } from 'vite-plus/test'
 import { artifactSha256, verifyBuildArtifacts, writeSourceManifest } from '../../scripts/build-artifacts.mjs'
-import {
-  readSourceIdentity,
-  readSourceMetadata,
-  resolveSourceMetadata,
-  sourceDefines,
-  sourceSnapshotEnv,
-  sourceSnapshotRunEnv,
-  verifyPublishedSource,
-} from '../../scripts/source-metadata.mjs'
+import { readSourceIdentity, readSourceMetadata, resolveSourceMetadata, sourceDefines, sourceSnapshotEnv, sourceSnapshotRunEnv, verifyPublishedSource } from '../../scripts/source-metadata.mjs'
 
 const revision = 'a'.repeat(40)
 const branchRevision = 'b'.repeat(40)
@@ -56,15 +48,17 @@ function branchResponse(branch = 'main', sha = branchRevision) {
 function compareResponse(status: string, baseCommit = revision) {
   const ahead = status === 'ahead' || status === 'diverged'
   const behind = status === 'behind' || status === 'diverged'
-  return new Response(JSON.stringify({
-    status,
-    base_commit: { sha: baseCommit },
-    merge_base_commit: { sha: status === 'behind' ? branchRevision : status === 'diverged' ? 'c'.repeat(40) : baseCommit },
-    ahead_by: ahead ? 1 : 0,
-    behind_by: behind ? 1 : 0,
-    total_commits: ahead ? 1 : 0,
-    commits: ahead ? [{ sha: branchRevision }] : [],
-  }))
+  return new Response(
+    JSON.stringify({
+      status,
+      base_commit: { sha: baseCommit },
+      merge_base_commit: { sha: status === 'behind' ? branchRevision : status === 'diverged' ? 'c'.repeat(40) : baseCommit },
+      ahead_by: ahead ? 1 : 0,
+      behind_by: behind ? 1 : 0,
+      total_commits: ahead ? 1 : 0,
+      commits: ahead ? [{ sha: branchRevision }] : [],
+    })
+  )
 }
 
 function requestUrl(input: Parameters<typeof fetch>[0]) {
@@ -231,7 +225,10 @@ describe('公開 release branch 查核', () => {
   })
 
   it('要求 compare 的 base_commit 符合建置 SHA', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(branchResponse()).mockResolvedValueOnce(compareResponse('ahead', 'c'.repeat(40)))
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(branchResponse())
+      .mockResolvedValueOnce(compareResponse('ahead', 'c'.repeat(40)))
     await expect(verifyPublishedSource(clean, fetcher)).rejects.toThrow('比較基準')
   })
 
@@ -245,12 +242,16 @@ describe('公開 release branch 查核', () => {
       total_commits: 301,
       commits: [{ sha: 'c'.repeat(40) }],
     }
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(branchResponse()).mockResolvedValueOnce(new Response(JSON.stringify(comparison)))
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(branchResponse())
+      .mockResolvedValueOnce(new Response(JSON.stringify(comparison)))
     expect(await verifyPublishedSource(clean, fetcher)).toBe(clean.sourceUrl)
   })
 
   it.each(['release branch', revision, revision.slice(0, 7), 'someone:main', 'someone:'.concat(revision), 'refs/pull/131/head', 'refs/tags/v0.2.0'])(
-    '不讓 SHA、他人 fork 或非分支 ref 冒充發布分支：%s', async branch => {
+    '不讓 SHA、他人 fork 或非分支 ref 冒充發布分支：%s',
+    async branch => {
       const fetcher = vi.fn<typeof fetch>().mockResolvedValue(compareResponse('identical'))
       vi.stubEnv('CIVIC_SOURCE_BRANCH', branch)
       await expect(verifyPublishedSource(clean, fetcher)).rejects.toThrow('CIVIC_SOURCE_BRANCH')
@@ -260,11 +261,7 @@ describe('公開 release branch 查核', () => {
   )
 
   it('不把 repository 的 tag 或 fork-network commit 可讀當成存在 heads 分支', async () => {
-    const fetcher = vi.fn<typeof fetch>().mockImplementation(async input =>
-      requestUrl(input).includes('/git/ref/heads/')
-        ? new Response(null, { status: 404 })
-        : compareResponse('identical')
-    )
+    const fetcher = vi.fn<typeof fetch>().mockImplementation(async input => (requestUrl(input).includes('/git/ref/heads/') ? new Response(null, { status: 404 }) : compareResponse('identical')))
     await expect(verifyPublishedSource(clean, fetcher, 'fork-only-release')).rejects.toThrow('HTTP 404')
     expect(fetcher.mock.calls.some(([url]) => requestUrl(url).includes('/compare/'))).toBe(false)
   })
@@ -276,7 +273,10 @@ describe('公開 release branch 查核', () => {
     { ref: 'refs/heads/main', object: { type: 'commit', sha: 'short' } },
     [{ ref: 'refs/heads/main', object: { type: 'commit', sha: branchRevision } }],
   ])('拒絕不精確或無效的 GitHub ref 回應：%j', async ref => {
-    const fetcher = vi.fn<typeof fetch>().mockResolvedValueOnce(new Response(JSON.stringify(ref))).mockResolvedValue(compareResponse('identical'))
+    const fetcher = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(JSON.stringify(ref)))
+      .mockResolvedValue(compareResponse('identical'))
     await expect(verifyPublishedSource(clean, fetcher)).rejects.toThrow('確切 heads branch ref')
     expect(fetcher.mock.calls.some(([url]) => requestUrl(url).includes('/compare/'))).toBe(false)
   })
@@ -310,7 +310,6 @@ describe('公開 release branch 查核', () => {
 })
 
 describe('部署產物 manifest 與檔案副本', () => {
-
   it('拒絕 manifest 後被修改的 Worker 部署 assets', () => {
     const fixture = artifactFixture()
     writeFileSync(path.join(fixture.assetsDirectory, 'js/civic.js'), 'tampered client')
@@ -325,6 +324,8 @@ describe('部署產物 manifest 與檔案副本', () => {
 
   it('沒有本次 build manifests 時拒絕舊產物', () => {
     const cwd = temporaryDirectory('civic-stale-build-')
-    expect(() => verifyBuildArtifacts({ root: cwd, metadata: clean, redirectPath: path.join(cwd, '.wrangler/deploy/config.json'), publicDir: path.join(cwd, 'public') })).toThrow('缺少或無法讀取Wrangler deploy redirect 設定')
+    expect(() => verifyBuildArtifacts({ root: cwd, metadata: clean, redirectPath: path.join(cwd, '.wrangler/deploy/config.json'), publicDir: path.join(cwd, 'public') })).toThrow(
+      '缺少或無法讀取Wrangler deploy redirect 設定'
+    )
   })
 })

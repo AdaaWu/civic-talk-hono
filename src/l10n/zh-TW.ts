@@ -183,7 +183,8 @@ export const messages = {
   op_ai_help_title: 'AI 幫幫忙',
   op_celebrate_title: '謝謝你的參與！',
   op_celebrate_browse: '看看別人怎麼說',
-  op_ai_help_desc: '複製 OPINION.md 到剪貼簿（或直接下載），貼到你熟悉的 AI 工具（如 Claude、ChatGPT、Gemini、Ollama 等對話式 AI 皆可），讓 AI 引導你梳理想法；對話結束後，把 AI 整理的意見摘要貼回下方欄位再送出。',
+  op_ai_help_desc:
+    '複製 OPINION.md 到剪貼簿（或直接下載），貼到你熟悉的 AI 工具（如 Claude、ChatGPT、Gemini、Ollama 等對話式 AI 皆可），讓 AI 引導你梳理想法；對話結束後，把 AI 整理的意見摘要貼回下方欄位再送出。',
   op_browse_title: '已收集的意見',
   op_search_placeholder: '關鍵字查詢',
   op_download_btn: '⬇️ 下載 OPINION.md',

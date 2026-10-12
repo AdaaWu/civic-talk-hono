@@ -47,21 +47,20 @@ function countCodePoints(value: string): number {
 const charCount = computed(() => countCodePoints(props.modelValue))
 const isOverLimit = computed(() => props.maxChars !== undefined && charCount.value > props.maxChars)
 const isNearLimit = computed(() => props.maxChars !== undefined && props.maxChars > 0 && !isOverLimit.value && charCount.value >= props.maxChars * 0.9)
-const renderedPreview = computed(() => activeTab.value === 'preview' && props.mode === 'markdown' ? renderSafeMarkdown(props.modelValue.trim()) : '')
+const renderedPreview = computed(() => (activeTab.value === 'preview' && props.mode === 'markdown' ? renderSafeMarkdown(props.modelValue.trim()) : ''))
 const isPreviewEmpty = computed(() => !props.modelValue.trim())
 const panelId = computed(() => `${props.id}-panel`)
 const writeTabId = computed(() => `${props.id}-write-tab`)
 const previewTabId = computed(() => `${props.id}-preview-tab`)
 const limitMessageId = computed(() => `${props.id}-limit-message`)
 const counterText = computed(() =>
-  props.maxChars === undefined
-    ? t('markdown_editor_count_plain', { count: charCount.value })
-    : t('markdown_editor_count_limited', { count: charCount.value, limit: props.maxChars })
+  props.maxChars === undefined ? t('markdown_editor_count_plain', { count: charCount.value }) : t('markdown_editor_count_limited', { count: charCount.value, limit: props.maxChars })
 )
 const announcementText = computed(() => {
-  const countText = announcementLimit.value === undefined
-    ? t('markdown_editor_count_plain', { count: announcementCount.value })
-    : t('markdown_editor_count_accessible_limit', { count: announcementCount.value, limit: announcementLimit.value })
+  const countText =
+    announcementLimit.value === undefined
+      ? t('markdown_editor_count_plain', { count: announcementCount.value })
+      : t('markdown_editor_count_accessible_limit', { count: announcementCount.value, limit: announcementLimit.value })
   if (announcementLimit.value === undefined) return countText
   if (announcementCount.value > announcementLimit.value) {
     return `${countText} ${t('markdown_editor_soft_limit', { limit: announcementLimit.value })}`
@@ -84,7 +83,6 @@ watch([charCount, () => props.maxChars], () => {
 onBeforeUnmount(() => {
   if (announcementTimer !== undefined) clearTimeout(announcementTimer)
 })
-
 
 function activateTab(tab: EditorTab, moveFocus = false): void {
   activeTab.value = tab

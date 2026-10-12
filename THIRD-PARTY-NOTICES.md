@@ -56,7 +56,6 @@ SOFTWARE.
 
 `@better-auth/utils@0.4.2` 的 npm 包與上游 tag 未附 LICENSE 全文，但 [公開 npm metadata](https://registry.npmjs.org/@better-auth/utils/0.4.2) 與 [固定 README](https://github.com/better-auth/utils/blob/b20329a32d78f1f9bcc088bbd6f982b28c4192f1/README.md) 都聲明 MIT。維護者兼法務核准依此公開聲明保留該版本，本站補充標準 MIT 許可／免責條款於 [`scripts/third-party-licenses/better-auth-utils-0.4.2.txt`](./scripts/third-party-licenses/better-auth-utils-0.4.2.txt)，隨 Worker notices 提供。此補充保留作者 metadata 及固定來源、不補造 copyright notice，並明確標為非上游附帶 LICENSE。其他套件或版本缺少全文仍會中止 build。
 
-
 ## 直接 runtime dependencies
 
 下列 license 原文從已安裝的對應版本複製，已核對 installed package version 與 lockfile。保留各套件的原 notices，不把它們覆蓋成 AGPL。全部依賴 metadata 見 [`docs/licensing-dependencies.tsv`](./docs/licensing-dependencies.tsv)；以 `node scripts/licensing-dependencies.mjs` 重產，`--check` 檢查與 lockfile 一致。實際 bundle 另外在建置時產生 `/licenses/client.txt` 與 `/licenses/worker.txt`，由 footer 提供公開入口；清單依實際納入的 module 取得已安裝套件的許可及 NOTICE 原文，不能以 metadata 盤點代替。

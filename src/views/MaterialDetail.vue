@@ -23,7 +23,7 @@ const { ensureAuthSession } = useAuth()
 
 const material = ref<Material | null>(props.initialData?.material ?? null)
 const issue = ref<Issue | null>(props.initialData?.issue ?? null)
-const renderedContent = computed(() => material.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(material.value?.content ?? null))
+const renderedContent = computed(() => (material.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(material.value?.content ?? null)))
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)

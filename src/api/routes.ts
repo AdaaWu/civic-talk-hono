@@ -588,7 +588,7 @@ export function registerApiRoutes(app: App): void {
     return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename=\"civic-talk-issue-${issueId}-comments.csv\"`,
+        'Content-Disposition': `attachment; filename="civic-talk-issue-${issueId}-comments.csv"`,
         'Cache-Control': 'private, no-store',
         Vary: 'Cookie',
         'X-Content-Type-Options': 'nosniff',

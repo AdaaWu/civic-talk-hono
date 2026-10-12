@@ -6,28 +6,28 @@
 
 ## 授權分界
 
-| 項目 | 固定紀錄 |
-| --- | --- |
-| MIT final tag | [`v0.1.0-mit-final`](https://github.com/g0v/civic-talk-hono/tree/v0.1.0-mit-final) |
-| MIT baseline commit | `0cb5f309fa373e69ff60563bdc3fb0201332ceba` |
-| Tag 發佈日期 | 2026-10-11；來自 annotated tag 時間，不以 commit 日期代替 |
-| 首個 AGPL 正式版 | `v0.2.0`；合併後建立，指向實際 merge commit；不預填 SHA／發布日期 |
-| 原 MIT 著作權 notice | `Copyright (c) 2026 Bestian Tang`；[`LICENSE-MIT`](../LICENSE-MIT) 原封保留 |
-| 主授權 | AGPL-3.0-only；不是後續版本任選 MIT／AGPL 的雙重授權 |
+| 項目                 | 固定紀錄                                                                           |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| MIT final tag        | [`v0.1.0-mit-final`](https://github.com/g0v/civic-talk-hono/tree/v0.1.0-mit-final) |
+| MIT baseline commit  | `0cb5f309fa373e69ff60563bdc3fb0201332ceba`                                         |
+| Tag 發佈日期         | 2026-10-11；來自 annotated tag 時間，不以 commit 日期代替                          |
+| 首個 AGPL 正式版     | `v0.2.0`；合併後建立，指向實際 merge commit；不預填 SHA／發布日期                  |
+| 原 MIT 著作權 notice | `Copyright (c) 2026 Bestian Tang`；[`LICENSE-MIT`](../LICENSE-MIT) 原封保留        |
+| 主授權               | AGPL-3.0-only；不是後續版本任選 MIT／AGPL 的雙重授權                               |
 
 ## 本 repo 的作者與同意紀錄
 
 以完整、非 shallow 的 Git history 執行 `git shortlog -sne v0.1.0-mit-final`，共 **227** 個 commits（含 merge commits）；Git 作者資料是 attribution 證據，不足以單獨證明權利歸屬。此處不重複公布作者 email，也不改寫歷史。
 
-| Git 作者名稱 | Commits | 可查證同意／尚待確認 |
-| --- | ---: | --- |
-| Bestian Tang（兩組作者紀錄） | 167 | #126 提案及本次維護者兼法務的正式切換核准；不代表擁有所有第三方權利 |
-| Link1515／Terry | 45 | [Link1515 回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5881817204)；Terry 的 GitHub noreply 記錄含 Link1515 |
-| jiangzuojin226-sys | 6 | [同意回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5884842263) |
-| Lynn | 4 | [clhuang224 同意回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5882215174)；Git 作者識別可對照原紀錄 |
-| tahodev | 1 | 未另行取得同意，不視為默認同意。Commit `fdbb0e30cc0a6c469f0bc1e4b7b9155bdb98a013`（[PR #86](https://github.com/g0v/civic-talk-hono/pull/86)）將五處議題內容字級改為 mobile-readable utilities；本次替換為共用語意樣式，仍保留歷史、MIT 來源及 notices |
-| 苗 | 1 | Commit `4cc4333ced68fa249c1f071cc089754d387bf46f`（[PR #75](https://github.com/g0v/civic-talk-hono/pull/75)）在兩個語系的投稿提示加入司法判決項目。PR 帳號為 `miao-agent-ctrl`，不是 shuyanglin；[本人說明](https://github.com/g0v/civic-talk-hono/pull/75#issuecomment-5385906460)涉及正式代表關係會轉交背後真人。已[補送徵詢](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-6104466808)，尚未取得同意；本次以新文案替換該項目，不將帳號等同實際權利人 |
-| Claude | 3 | Git 工具作者紀錄；不是從名稱即可認定的法律權利人或授權同意 |
+| Git 作者名稱                 | Commits | 可查證同意／尚待確認                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| ---------------------------- | ------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Bestian Tang（兩組作者紀錄） |     167 | #126 提案及本次維護者兼法務的正式切換核准；不代表擁有所有第三方權利                                                                                                                                                                                                                                                                                                                                                                                                      |
+| Link1515／Terry              |      45 | [Link1515 回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5881817204)；Terry 的 GitHub noreply 記錄含 Link1515                                                                                                                                                                                                                                                                                                                                      |
+| jiangzuojin226-sys           |       6 | [同意回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5884842263)                                                                                                                                                                                                                                                                                                                                                                                    |
+| Lynn                         |       4 | [clhuang224 同意回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5882215174)；Git 作者識別可對照原紀錄                                                                                                                                                                                                                                                                                                                                               |
+| tahodev                      |       1 | 未另行取得同意，不視為默認同意。Commit `fdbb0e30cc0a6c469f0bc1e4b7b9155bdb98a013`（[PR #86](https://github.com/g0v/civic-talk-hono/pull/86)）將五處議題內容字級改為 mobile-readable utilities；本次替換為共用語意樣式，仍保留歷史、MIT 來源及 notices                                                                                                                                                                                                                    |
+| 苗                           |       1 | Commit `4cc4333ced68fa249c1f071cc089754d387bf46f`（[PR #75](https://github.com/g0v/civic-talk-hono/pull/75)）在兩個語系的投稿提示加入司法判決項目。PR 帳號為 `miao-agent-ctrl`，不是 shuyanglin；[本人說明](https://github.com/g0v/civic-talk-hono/pull/75#issuecomment-5385906460)涉及正式代表關係會轉交背後真人。已[補送徵詢](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-6104466808)，尚未取得同意；本次以新文案替換該項目，不將帳號等同實際權利人 |
+| Claude                       |       3 | Git 工具作者紀錄；不是從名稱即可認定的法律權利人或授權同意                                                                                                                                                                                                                                                                                                                                                                                                               |
 
 [shuyanglin 在 #126 的同意回覆](https://github.com/g0v/civic-talk-hono/issues/126#issuecomment-5884793016)另行保留；維護者確認它**不涵蓋**上表「苗」的 commit。
 
@@ -69,26 +69,25 @@ Git history 另含 Cursor、Codex 與 Claude 的 co-author／session 標記；�
 
 [`licensing-dependencies.tsv`](./licensing-dependencies.tsv) 逐筆記錄 lockfile 的 **343** 個非 root entries：路徑、版本、license metadata、dev／devOptional／optional 標記及 resolved URL（lockfile 未提供時記為 `UNSPECIFIED`）。使用 `node scripts/licensing-dependencies.mjs` 重產，`node scripts/licensing-dependencies.mjs --check` 驗證；CI 執行一致性查核。這是 metadata 盤點，**不是逐一檢查完整著作權 notices 或所有發布產物的法律清單**，也不依 flags 就宣稱某個套件不會進入部署。
 
-| License metadata（原樣保留） | Entries |
-| --- | ---: |
-| MIT | 277 |
-| MIT OR Apache-2.0 | 4 |
-| Apache-2.0 | 24 |
-| LGPL-3.0-or-later | 10 |
-| Apache-2.0 AND LGPL-3.0-or-later AND MIT | 1 |
-| Apache-2.0 AND LGPL-3.0-or-later | 3 |
-| CC0-1.0 | 1 |
-| 0BSD | 2 |
-| Python-2.0 | 1 |
-| BSD-2-Clause | 2 |
-| ISC | 4 |
-| MPL-2.0 | 12 |
-| BSD-3-Clause | 1 |
+| License metadata（原樣保留）             | Entries |
+| ---------------------------------------- | ------: |
+| MIT                                      |     277 |
+| MIT OR Apache-2.0                        |       4 |
+| Apache-2.0                               |      24 |
+| LGPL-3.0-or-later                        |      10 |
+| Apache-2.0 AND LGPL-3.0-or-later AND MIT |       1 |
+| Apache-2.0 AND LGPL-3.0-or-later         |       3 |
+| CC0-1.0                                  |       1 |
+| 0BSD                                     |       2 |
+| Python-2.0                               |       1 |
+| BSD-2-Clause                             |       2 |
+| ISC                                      |       4 |
+| MPL-2.0                                  |      12 |
+| BSD-3-Clause                             |       1 |
 
 六個直接 runtime dependencies（`vue`／`@vue/server-renderer`／`hono`／`better-auth`／`markdown-it`／`vue3-carousel`）的 lockfile metadata 皆 MIT，已從安裝套件逐字保存其 license 全文至 `THIRD-PARTY-NOTICES.md`，並核對 installed version 與 lockfile。實際 client／Worker bundle 的轉依賴另外由建置流程產生 notices；lockfile 盤點不取代產物清單。
 
 實際建置發現 `@better-auth/utils@0.4.2` 的 npm 包及上游 `v0.4.2` tree 都沒有 LICENSE；[npm metadata](https://registry.npmjs.org/@better-auth/utils/0.4.2) 與 [固定 README](https://github.com/better-auth/utils/blob/b20329a32d78f1f9bcc088bbd6f982b28c4192f1/README.md) 明確聲明 MIT，author metadata 為 Bereket Engida。維護者兼法務已核准保留此限定版本，依公開聲明補充標準 MIT 許可／免責全文於 [`scripts/third-party-licenses/better-auth-utils-0.4.2.txt`](../scripts/third-party-licenses/better-auth-utils-0.4.2.txt)。產物明確標示為本站補充，不偽稱上游原文、不補造 copyright 年份；此例外不放行其他版本、不同授權或未知套件缺漏。
-
 
 ## 原始碼入口與操作限制
 

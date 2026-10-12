@@ -77,7 +77,10 @@ async function noticeFiles(packageRoot) {
         continue
       }
       if (!entry.isFile()) continue
-      const inLicenseDirectory = relative.split(path.sep).slice(0, -1).some(part => /^licenses?$/i.test(part))
+      const inLicenseDirectory = relative
+        .split(path.sep)
+        .slice(0, -1)
+        .some(part => /^licenses?$/i.test(part))
       if (isNoticeFilename(entry.name) || (inLicenseDirectory && isTextDocument(entry.name))) {
         files.push({ absolute, relative: relative.split(path.sep).join('/') })
       }
@@ -118,7 +121,9 @@ async function readPackageNotices(packageRoot, root) {
     })
   }
   if (files.length === 0) {
-    throw new Error(`已打包套件 ${name}@${version}（${describePackageRoot(root, packageRoot)}）沒有可取得的 LICENSE、LICENCE、COPYING 或 NOTICE 全文；package.json license metadata 為「${metadataText(packageJson.license)}」。請補足該套件實際許可全文後再建置。`)
+    throw new Error(
+      `已打包套件 ${name}@${version}（${describePackageRoot(root, packageRoot)}）沒有可取得的 LICENSE、LICENCE、COPYING 或 NOTICE 全文；package.json license metadata 為「${metadataText(packageJson.license)}」。請補足該套件實際許可全文後再建置。`
+    )
   }
 
   const contents = []

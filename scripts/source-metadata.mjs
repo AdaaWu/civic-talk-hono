@@ -101,11 +101,7 @@ export function sourceDefines() {
 }
 
 function sourceBranch(branch) {
-  if (
-    typeof branch !== 'string' || !branch || branch !== branch.trim() ||
-    /[\u0000-\u0020\u007f:]/.test(branch) || /^[a-f0-9]{7,40}$/i.test(branch) ||
-    branch.startsWith('refs/')
-  ) {
+  if (typeof branch !== 'string' || !branch || branch !== branch.trim() || /[\u0000-\u0020\u007f:]/.test(branch) || /^[a-f0-9]{7,40}$/i.test(branch) || branch.startsWith('refs/')) {
     throw new Error('CIVIC_SOURCE_BRANCH 必須是目標 repository 的分支名稱，不能填 SHA、其他 fork 的 owner:ref 或完整 refs 路徑。')
   }
   return branch
@@ -170,4 +166,3 @@ export async function verifyPublishedSource(metadata, fetcher = fetch, branch = 
   }
   return metadata.sourceUrl
 }
-

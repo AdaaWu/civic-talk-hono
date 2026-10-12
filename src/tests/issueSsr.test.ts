@@ -40,7 +40,6 @@ describe('Issue SSR', () => {
     return renderToString(app)
   }
   it('renders an issue page with i18n helpers available', async () => {
-
     const app = createSSRApp(IssueView, {
       issueId: 1,
       initialDetail: {

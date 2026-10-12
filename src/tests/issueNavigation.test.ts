@@ -1,5 +1,15 @@
 import { describe, expect, it } from 'vite-plus/test'
-import { parseIssueBriefingSlide, parseIssueCommentAction, parseIssueOpinionAnchor, parseIssueStep, writeIssueBriefingSlide, writeIssueCommentAction, writeIssueCommentSearch, writeIssueOpinionAnchor, writeIssueStep } from '../lib/issueNavigation'
+import {
+  parseIssueBriefingSlide,
+  parseIssueCommentAction,
+  parseIssueOpinionAnchor,
+  parseIssueStep,
+  writeIssueBriefingSlide,
+  writeIssueCommentAction,
+  writeIssueCommentSearch,
+  writeIssueOpinionAnchor,
+  writeIssueStep,
+} from '../lib/issueNavigation'
 
 describe('issue step URL navigation', () => {
   it('parses only supported direct steps', () => {

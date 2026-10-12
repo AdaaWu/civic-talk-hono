@@ -75,16 +75,31 @@ describe('bundle 第三方授權聲明', () => {
 
   it('依 scoped 與巢狀 node_modules 的實際 chunk module IDs 收集原始 notices', async () => {
     const root = makeRoot()
-    const main = writePackage(root, 'node_modules/@fixture/main', { name: '@fixture/main', version: '1.2.3', license: 'MIT' }, {
-      COPYING: 'main license body\n',
-      'vendor/NOTICE.txt': 'vendor attribution notice\n',
-    })
-    const nested = writePackage(main, 'node_modules/@fixture/nested', { name: '@fixture/nested', version: '4.5.6', license: 'Apache-2.0' }, {
-      'LICENSES/Apache-2.0': 'nested Apache license body\n',
-    })
-    const unused = writePackage(root, 'node_modules/dev-only', { name: 'dev-only', version: '99.0.0', license: 'MIT' }, {
-      LICENSE: 'not part of this bundle\n',
-    })
+    const main = writePackage(
+      root,
+      'node_modules/@fixture/main',
+      { name: '@fixture/main', version: '1.2.3', license: 'MIT' },
+      {
+        COPYING: 'main license body\n',
+        'vendor/NOTICE.txt': 'vendor attribution notice\n',
+      }
+    )
+    const nested = writePackage(
+      main,
+      'node_modules/@fixture/nested',
+      { name: '@fixture/nested', version: '4.5.6', license: 'Apache-2.0' },
+      {
+        'LICENSES/Apache-2.0': 'nested Apache license body\n',
+      }
+    )
+    const unused = writePackage(
+      root,
+      'node_modules/dev-only',
+      { name: 'dev-only', version: '99.0.0', license: 'MIT' },
+      {
+        LICENSE: 'not part of this bundle\n',
+      }
+    )
     const mainModule = join(main, 'index.js')
     const nestedModule = join(nested, 'index.js')
     const unusedModule = join(unused, 'index.js')
@@ -107,7 +122,6 @@ describe('bundle 第三方授權聲明', () => {
     expect(emitted[0].source).toMatch(/原始檔案：LICENSES\/Apache-2\.0[\s\S]*nested Apache license body/)
     expect(emitted[0].source).not.toMatch(/dev-only|not part of this bundle/)
   })
-
 
   it('實際打包套件缺少可讀許可全文時中止建置並指出套件', async () => {
     const root = makeRoot()
@@ -159,11 +173,12 @@ describe('依賴授權 TSV 產生器', () => {
     const generated = renderLicensingDependencies(lockfile)
 
     expect(generated.split('\n')[0]).toBe('lock_path\tversion\tlicense_metadata\tdev\tdev_optional\toptional\tresolved')
-    expect(generated.split('\n').slice(1, 4).map(row => row.split('\t')[0])).toEqual([
-      'node_modules/@scope/first',
-      'node_modules/a-middle',
-      'node_modules/z-last',
-    ])
+    expect(
+      generated
+        .split('\n')
+        .slice(1, 4)
+        .map(row => row.split('\t')[0])
+    ).toEqual(['node_modules/@scope/first', 'node_modules/a-middle', 'node_modules/z-last'])
     expect(generated).toContain('node_modules/a-middle\t2.0.0\tUNSPECIFIED\ttrue\tfalse\ttrue\tUNSPECIFIED')
     expect(licensingDependenciesMatchLockfile(lockfile, generated)).toBe(true)
     expect(licensingDependenciesMatchLockfile(lockfile, `${generated}stale`)).toBe(false)

@@ -359,7 +359,10 @@ const MATERIAL_PUBLIC_COLUMNS =
 const MATERIAL_ADMIN_COLUMNS = `${MATERIAL_BASE_COLUMNS}, ${PRIVATE_AUTHOR_COLUMNS}, ${SUBMISSION_CONSENT_COLUMNS}`
 
 export async function listMaterials(db: D1Database, issueId: number): Promise<Material[]> {
-  const { results } = await db.prepare(`SELECT ${MATERIAL_PUBLIC_COLUMNS} FROM ct_materials WHERE issue_id = ? AND abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC, id DESC`).bind(issueId).all<Material>()
+  const { results } = await db
+    .prepare(`SELECT ${MATERIAL_PUBLIC_COLUMNS} FROM ct_materials WHERE issue_id = ? AND abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC, id DESC`)
+    .bind(issueId)
+    .all<Material>()
   return results ?? []
 }
 
@@ -743,7 +746,10 @@ export async function listOpinionsForExport(db: D1Database, issueId: number): Pr
 }
 
 export async function listOpinions(db: D1Database, issueId: number): Promise<Opinion[]> {
-  const { results } = await db.prepare(`SELECT ${OPINION_PUBLIC_COLUMNS} FROM ct_opinions WHERE issue_id = ? AND abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC, id DESC`).bind(issueId).all<Opinion>()
+  const { results } = await db
+    .prepare(`SELECT ${OPINION_PUBLIC_COLUMNS} FROM ct_opinions WHERE issue_id = ? AND abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC, id DESC`)
+    .bind(issueId)
+    .all<Opinion>()
   return results ?? []
 }
 
@@ -821,7 +827,10 @@ export async function listMaterialsForPrompt(db: D1Database, issueId: number): P
 }
 
 export async function listOpinionSummaries(db: D1Database, issueId: number, limit = 50): Promise<Pick<Opinion, 'summary'>[]> {
-  const { results } = await db.prepare('SELECT summary FROM ct_opinions WHERE issue_id = ? AND abuse_flagged = 0 ORDER BY created_at DESC, id DESC LIMIT ?').bind(issueId, limit).all<Pick<Opinion, 'summary'>>()
+  const { results } = await db
+    .prepare('SELECT summary FROM ct_opinions WHERE issue_id = ? AND abuse_flagged = 0 ORDER BY created_at DESC, id DESC LIMIT ?')
+    .bind(issueId, limit)
+    .all<Pick<Opinion, 'summary'>>()
   return results ?? []
 }
 

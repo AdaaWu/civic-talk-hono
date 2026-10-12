@@ -33,15 +33,7 @@ export function renderLicensingDependencies(lockfile) {
     .filter(([lockPath]) => lockPath.startsWith('node_modules/'))
     .map(([lockPath, entry]) => {
       const item = entry ?? {}
-      return [
-        lockPath,
-        item.version ?? 'UNSPECIFIED',
-        licenseMetadata(item.license),
-        flag(item.dev),
-        flag(item.devOptional),
-        flag(item.optional),
-        item.resolved ?? 'UNSPECIFIED',
-      ].map(field)
+      return [lockPath, item.version ?? 'UNSPECIFIED', licenseMetadata(item.license), flag(item.dev), flag(item.devOptional), flag(item.optional), item.resolved ?? 'UNSPECIFIED'].map(field)
     })
     .sort((left, right) => (left[0] < right[0] ? -1 : left[0] > right[0] ? 1 : 0))
 

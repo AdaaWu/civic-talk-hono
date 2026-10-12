@@ -24,7 +24,7 @@ const { authState, ensureAuthSession } = useAuth()
 
 const opinion = ref<Opinion | null>(props.initialData?.opinion ?? null)
 const issue = ref<Issue | null>(props.initialData?.issue ?? null)
-const renderedSummary = computed(() => opinion.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(opinion.value?.summary ?? null))
+const renderedSummary = computed(() => (opinion.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(opinion.value?.summary ?? null)))
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)

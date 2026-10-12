@@ -175,7 +175,7 @@ export const messages = {
   brief_updated: 'last updated',
   brief_author_label: 'Prepared by',
   op_start_title: 'What do you think?',
-  op_start_desc: 'Share your thoughts on this issue — an AI tool can help you organize and refine your thinking. You can also browse others\' opinions and vote on them.',
+  op_start_desc: "Share your thoughts on this issue — an AI tool can help you organize and refine your thinking. You can also browse others' opinions and vote on them.",
   op_start_continue: 'Continue',
   op_start_browse: 'Browse opinions',
   op_back_to_issue: 'Back to issue',
@@ -184,7 +184,8 @@ export const messages = {
   op_ai_help_title: 'AI assist',
   op_celebrate_title: 'Thank you for participating!',
   op_celebrate_browse: 'See what others say',
-  op_ai_help_desc: 'Copy OPINION.md to your clipboard (or download it), paste it into your preferred AI tool (conversational AIs such as Claude, ChatGPT, Gemini, or Ollama), and let the AI guide your thinking. When the conversation ends, paste the AI-generated summary back into the field below and submit.',
+  op_ai_help_desc:
+    'Copy OPINION.md to your clipboard (or download it), paste it into your preferred AI tool (conversational AIs such as Claude, ChatGPT, Gemini, or Ollama), and let the AI guide your thinking. When the conversation ends, paste the AI-generated summary back into the field below and submit.',
   op_browse_title: 'Collected opinions',
   op_search_placeholder: 'Search by keyword',
   op_download_btn: '⬇️ Download OPINION.md',
