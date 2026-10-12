@@ -19,3 +19,6 @@ wrangler.personal.jsonc
 # 建置時產生的來源 manifest 與實際 bundle 授權聲明
 /public/civic-source-manifest.json
 /public/licenses
+
+# 本機動畫與音檔工作目錄
+/mv/
