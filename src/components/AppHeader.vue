@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useI18n, useLocaleLabel, type Locale } from '../l10n'
+import { useI18n, readStoredLocale } from '../l10n'
 import { isAdminSession } from '../client/auth-session'
 import { useAuth } from '../composables/useAuth'
 import { useDarkMode } from '../composables/useDarkMode'
 import { useViewerRole } from '../composables/useViewerRole'
 import SignInButtons from './SignInButtons.vue'
 import ViewerRoleSwitch from './ViewerRoleSwitch.vue'
+import LanguageSwitcher from './LanguageSwitcher.vue'
 const darkMode = useDarkMode()
 const { initViewerRole } = useViewerRole()
 
@@ -28,9 +29,8 @@ const emit = defineEmits<{
   'new-issue': []
 }>()
 
-const { t, toggleLocale, setLocale, locale } = useI18n()
-const langLabel = useLocaleLabel()
-const ready = ref(false)
+const { t, setLocale, locale } = useI18n()
+const isJapanese = computed(() => locale.value === 'ja')
 
 const { authState, session, ensureAuthSession, signOutAndReload } = useAuth()
 /** 桌面版：按「登入」展開的 provider 小面板 */
@@ -45,21 +45,8 @@ const loginCallbackUrl = computed(() => props.callbackUrl ?? (typeof window === 
 
 onMounted(() => {
   // hydration 後才讀 localStorage，避免 SSR mismatch
-  const stored =
-    typeof window !== 'undefined'
-      ? (() => {
-          try {
-            return window.localStorage.getItem('civic_lang')
-          } catch {
-            return null
-          }
-        })()
-      : null
-  if (stored === 'en' || stored === 'zh' || stored === 'zh-TW') {
-    const next: Locale = stored === 'en' ? 'en' : 'zh-TW'
-    if (next !== locale.value) setLocale(next)
-  }
-  ready.value = true
+  const next = readStoredLocale()
+  if (next !== locale.value) setLocale(next)
   darkMode.init()
   initViewerRole()
   // 登入狀態同樣是 hydration 後才知道；useAuth 會跟頁面上的表單共用同一次 /api/me
@@ -87,15 +74,25 @@ function handleNewIssue() {
 <template>
   <header class="sticky top-0 z-[100] px-4 pt-3 bg-transparent">
     <!-- ── 主列：logo ＋ 桌面 nav ＋ 手機漢堡按鈕 ── -->
-    <div class="mx-auto flex h-16 max-w-[980px] items-center justify-between rounded-xl border border-vt-border/75 bg-vt-bg-1/88 px-4 pl-6 shadow-md backdrop-blur-[20px]">
+    <div
+      class="mx-auto flex h-16 items-center justify-between rounded-xl border border-vt-border/75 bg-vt-bg-1/88 px-4 pl-6 shadow-md backdrop-blur-[20px]"
+      :class="isJapanese ? 'max-w-6xl max-sm:pl-4 max-sm:pr-2' : 'max-w-[980px]'"
+    >
       <!-- Logo -->
       <a href="/" class="flex shrink-0 items-center no-underline" aria-label="vTaiwan Civic Talk">
-        <img src="/vtaiwan-logo.svg" alt="vTaiwan" class="h-7 w-auto dark:hidden" />
-        <img src="/vtaiwan-logo-dark.svg" alt="vTaiwan" class="hidden h-7 w-auto dark:block" />
+        <img src="/vtaiwan-logo.svg" alt="vTaiwan" class="w-auto dark:hidden" :class="isJapanese ? 'h-6 sm:h-7' : 'h-7'" />
+        <img src="/vtaiwan-logo-dark.svg" alt="vTaiwan" class="hidden w-auto dark:block" :class="isJapanese ? 'h-6 sm:h-7' : 'h-7'" />
       </a>
 
-      <!-- ── 桌面 nav（md 以上才顯示）── -->
-      <nav class="hidden items-center gap-0.5 md:flex">
+      <!-- 日語長字詞在平板先沿用手機選單，避免導覽列換行。 -->
+      <nav
+        class="hidden items-center gap-0.5"
+        :class="
+          isJapanese
+            ? 'xl:flex [&_a]:text-xs [&_a>span]:text-xs [&_button]:text-xs [&_select]:text-xs [&>a]:whitespace-nowrap [&>a]:px-2 [&_button]:px-2 [&_select]:px-2'
+            : 'md:flex'
+        "
+      >
         <a v-if="backHref" :href="backHref" class="rounded-pill px-3 py-1.5 text-[15px] text-vt-fg-2 no-underline hover:bg-black/5 dark:hover:bg-white/10">
           {{ backText }}
         </a>
@@ -124,9 +121,7 @@ function handleNewIssue() {
           {{ t('nav_admin') }}
         </a>
         <span class="mx-1 h-4 w-px bg-vt-border" aria-hidden="true" />
-        <button type="button" class="btn btn-ghost btn-sm" @click="toggleLocale">
-          {{ ready ? langLabel : 'EN' }}
-        </button>
+        <LanguageSwitcher />
         <button type="button" class="btn btn-ghost btn-sm" :aria-label="t('dark_mode_toggle')" @click="darkMode.toggle()">
           <!-- 月亮（亮色模式時顯示） -->
           <svg
@@ -199,7 +194,7 @@ function handleNewIssue() {
       </nav>
 
       <!-- ── 手機右側：avatar（已登入時）＋ 漢堡按鈕 ── -->
-      <div class="flex items-center gap-1.5 md:hidden">
+      <div class="flex items-center gap-1.5" :class="isJapanese ? 'xl:hidden max-sm:[&_[role=group]_button]:px-1' : 'md:hidden'">
         <!-- 角色會影響所有頁面的內容排序，手機版也固定顯示，不收進漢堡選單。 -->
         <ViewerRoleSwitch compact />
 
@@ -216,7 +211,7 @@ function handleNewIssue() {
           type="button"
           class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10"
           :aria-expanded="showMenu"
-          aria-label="選單"
+          :aria-label="t('nav_menu')"
           @click="showMenu = !showMenu"
         >
           <!-- 關閉（X）圖示 -->
@@ -259,7 +254,11 @@ function handleNewIssue() {
     </div>
 
     <!-- ── 手機下拉選單 ── -->
-    <div v-if="showMenu" class="mx-auto mt-2 max-w-[980px] rounded-xl border border-vt-border/75 bg-vt-bg-1/95 px-5 py-4 shadow-md backdrop-blur-[20px] md:hidden">
+    <div
+      v-if="showMenu"
+      class="mx-auto mt-2 rounded-xl border border-vt-border/75 bg-vt-bg-1/95 px-5 py-4 shadow-md backdrop-blur-[20px]"
+      :class="isJapanese ? 'max-w-6xl xl:hidden' : 'max-w-[980px] md:hidden'"
+    >
       <!-- 導航連結 -->
       <nav class="mb-4 flex flex-col gap-1">
         <a v-if="backHref" :href="backHref" class="rounded-lg px-3 py-2.5 text-[15px] text-vt-fg-1 no-underline hover:bg-black/5 dark:hover:bg-white/10" @click="closeMenu"> ← {{ backText }} </a>
@@ -296,9 +295,7 @@ function handleNewIssue() {
 
       <!-- 工具列：語言切換 ＋ 建立議題（若適用） -->
       <div class="mb-4 flex flex-wrap gap-2">
-        <button type="button" class="btn btn-secondary btn-sm" @click="toggleLocale">
-          {{ ready ? langLabel : 'EN' }}
-        </button>
+        <LanguageSwitcher />
         <button type="button" class="btn btn-ghost btn-sm" :aria-label="t('dark_mode_toggle')" @click="darkMode.toggle()">
           <svg
             v-if="!darkMode.isDark.value"
@@ -368,8 +365,12 @@ function handleNewIssue() {
       </template>
     </div>
 
-    <!-- ── 桌面版登入面板（僅 md 以上顯示，未登入且按了「登入」才出現）── -->
-    <div v-if="authState === 'anonymous' && showLoginPanel" class="mx-auto mt-2 hidden max-w-[980px] rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px] md:block">
+    <!-- 桌面登入面板沿用該語言的導覽斷點。 -->
+    <div
+      v-if="authState === 'anonymous' && showLoginPanel"
+      class="mx-auto mt-2 hidden rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px]"
+      :class="isJapanese ? 'max-w-6xl xl:block' : 'max-w-[980px] md:block'"
+    >
       <p class="mt-0 mb-3 text-sm text-muted">{{ t('login_panel_desc') }}</p>
       <SignInButtons :callback-url="loginCallbackUrl" />
     </div>

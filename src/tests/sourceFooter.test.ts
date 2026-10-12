@@ -52,7 +52,7 @@ afterEach(() => Object.assign(sourceMetadata, originalMetadata))
 
 describe('footer source and license notices', () => {
   for (const sourceCase of sourceCases) {
-    it.each(['zh-TW', 'en'] as const)(`renders ${sourceCase.name} metadata correctly in %s SSR`, async locale => {
+    it.each(['zh-TW', 'en', 'ja'] as const)(`renders ${sourceCase.name} metadata correctly in %s SSR`, async locale => {
       Object.assign(sourceMetadata, sourceCase.metadata)
       const app = createSSRApp(AppFooter)
       provideI18n(app, locale)

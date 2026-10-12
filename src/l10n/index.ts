@@ -1,22 +1,31 @@
-import { computed, inject, ref, type App, type InjectionKey, type Ref } from 'vue'
+import { inject, ref, type App, type InjectionKey, type Ref } from 'vue'
 import { messages as zhTW } from './zh-TW'
 import { messages as en } from './en'
+import { messages as ja } from './ja'
 import type { MessageKey } from './zh-TW'
 
-export type Locale = 'zh-TW' | 'en'
+export const supportedLocales = [
+  { code: 'zh-TW', labelKey: 'language_zh_tw' },
+  { code: 'en', labelKey: 'language_en' },
+  { code: 'ja', labelKey: 'language_ja' },
+] as const
+
+export type Locale = (typeof supportedLocales)[number]['code']
 
 const catalogs: Record<Locale, Record<MessageKey, string>> = {
   'zh-TW': zhTW,
   en,
+  ja,
 }
 
 export const LOCALE_KEY: InjectionKey<Ref<Locale>> = Symbol('civic-locale')
 
 const STORAGE_KEY = 'civic_lang'
 
-/** 將舊站 'zh'/'en' 與新碼 'zh-TW'/'en' 正規化 */
+/** 保留舊站 'zh' 偏好；其餘使用標準語言代碼。 */
 export function normalizeLocale(raw: string | null | undefined): Locale {
   if (raw === 'en') return 'en'
+  if (raw === 'ja') return 'ja'
   if (raw === 'zh' || raw === 'zh-TW') return 'zh-TW'
   return 'zh-TW'
 }
@@ -33,7 +42,7 @@ export function readStoredLocale(): Locale {
 export function persistLocale(locale: Locale): void {
   if (typeof window === 'undefined') return
   try {
-    window.localStorage.setItem(STORAGE_KEY, locale === 'zh-TW' ? 'zh' : 'en')
+    window.localStorage.setItem(STORAGE_KEY, locale === 'zh-TW' ? 'zh' : locale)
   } catch {
     /* ignore */
   }
@@ -42,7 +51,7 @@ export function persistLocale(locale: Locale): void {
 /** 與 src/ssr/render.ts 的 `<html lang="zh-Hant">` 對齊；只在瀏覽器端執行（不變量 3） */
 export function syncDocumentLang(locale: Locale): void {
   if (typeof window === 'undefined') return
-  document.documentElement.lang = locale === 'zh-TW' ? 'zh-Hant' : 'en'
+  document.documentElement.lang = locale === 'zh-TW' ? 'zh-Hant' : locale
 }
 
 export function createI18n(initial: Locale = 'zh-TW') {
@@ -52,9 +61,7 @@ export function createI18n(initial: Locale = 'zh-TW') {
     const table = catalogs[locale.value] ?? catalogs['zh-TW']
     let text = table[key] ?? catalogs['zh-TW'][key] ?? String(key)
     if (vars) {
-      for (const [k, v] of Object.entries(vars)) {
-        text = text.replaceAll(`{${k}}`, String(v))
-      }
+      text = text.replace(/\{([^{}]+)\}/g, (placeholder, name: string) => (Object.hasOwn(vars, name) ? String(vars[name]) : placeholder))
     }
     return text
   }
@@ -65,11 +72,7 @@ export function createI18n(initial: Locale = 'zh-TW') {
     syncDocumentLang(next)
   }
 
-  function toggleLocale() {
-    setLocale(locale.value === 'zh-TW' ? 'en' : 'zh-TW')
-  }
-
-  return { locale, t, setLocale, toggleLocale }
+  return { locale, t, setLocale }
 }
 
 export type I18nApi = ReturnType<typeof createI18n>
@@ -88,14 +91,9 @@ export function useI18n(): I18nApi {
   return createI18n('zh-TW')
 }
 
-export function useLocaleLabel() {
-  const { locale } = useI18n()
-  return computed(() => (locale.value === 'zh-TW' ? 'EN' : '中文'))
-}
-
 export function formatDate(iso: string | null | undefined, locale: Locale): string {
   if (!iso) return ''
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return d.toLocaleDateString(locale === 'zh-TW' ? 'zh-TW' : 'en-US')
+  return d.toLocaleDateString(locale === 'en' ? 'en-US' : locale)
 }

@@ -33,6 +33,7 @@
     --container-xl: 36rem;
     --container-2xl: 42rem;
     --container-3xl: 48rem;
+    --container-6xl: 72rem;
     --text-xs: 0.75rem;
     --text-xs--line-height: calc(1 / 0.75);
     --text-sm: 0.875rem;
@@ -546,6 +547,9 @@
   }
   .max-w-3xl {
     max-width: var(--container-3xl);
+  }
+  .max-w-6xl {
+    max-width: var(--container-6xl);
   }
   .max-w-\[10rem\] {
     max-width: 10rem;
@@ -1262,6 +1266,14 @@
   .focus-visible\:outline-vt-democratic-red:focus-visible {
     outline-color: var(--color-vt-democratic-red);
   }
+  @media (width < 40rem) {
+    .max-sm\:pr-2 {
+      padding-right: calc(var(--spacing) * 2);
+    }
+    .max-sm\:pl-4 {
+      padding-left: calc(var(--spacing) * 4);
+    }
+  }
   @media (width >= 40rem) {
     .sm\:mt-2 {
       margin-top: calc(var(--spacing) * 2);
@@ -1277,6 +1289,9 @@
     }
     .sm\:inline {
       display: inline;
+    }
+    .sm\:h-7 {
+      height: calc(var(--spacing) * 7);
     }
     .sm\:max-w-sm {
       max-width: var(--container-sm);
@@ -1349,6 +1364,17 @@
       align-items: center;
     }
   }
+  @media (width >= 80rem) {
+    .xl\:block {
+      display: block;
+    }
+    .xl\:flex {
+      display: flex;
+    }
+    .xl\:hidden {
+      display: none;
+    }
+  }
   .dark\:block:where(.dark, .dark *) {
     display: block;
   }
@@ -1378,6 +1404,54 @@
       .dark\:hover\:bg-white\/10:where(.dark, .dark *):hover {
         background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
       }
+    }
+  }
+  @media (width < 40rem) {
+    .max-sm\:\[\&_\[role\=group\]_button\]\:px-1 [role=group] button {
+      padding-inline: var(--spacing);
+    }
+  }
+  .\[\&_a\]\:text-xs a {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  .\[\&_a\>span\]\:text-xs a > span {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  .\[\&_button\]\:px-2 button {
+    padding-inline: calc(var(--spacing) * 2);
+  }
+  .\[\&_button\]\:text-xs button {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  @media (width < 40rem) {
+    .max-sm\:\[\&_label\]\:text-sm label {
+      font-size: var(--text-sm);
+      line-height: var(--tw-leading, var(--text-sm--line-height));
+    }
+  }
+  .\[\&_select\]\:px-2 select {
+    padding-inline: calc(var(--spacing) * 2);
+  }
+  .\[\&_select\]\:text-xs select {
+    font-size: var(--text-xs);
+    line-height: var(--tw-leading, var(--text-xs--line-height));
+  }
+  .\[\&\>a\]\:px-2 > a {
+    padding-inline: calc(var(--spacing) * 2);
+  }
+  .\[\&\>a\]\:whitespace-nowrap > a {
+    white-space: nowrap;
+  }
+  @media (width < 40rem) {
+    .max-sm\:\[\&\>button\]\:px-2 > button {
+      padding-inline: calc(var(--spacing) * 2);
+    }
+    .max-sm\:\[\&\>button\]\:text-xs > button {
+      font-size: var(--text-xs);
+      line-height: var(--tw-leading, var(--text-xs--line-height));
     }
   }
 }
@@ -1791,7 +1865,7 @@
     box-shadow: var(--shadow-sm);
   }
   .form-group {
-    margin-bottom: .25rem;
+    margin-bottom: 0.25rem;
   }
   .form-group label {
     display: block;

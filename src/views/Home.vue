@@ -21,7 +21,8 @@ const props = defineProps<{
   initialPreviewIssueId?: number | null
 }>()
 
-const { t } = useI18n()
+const { t, locale } = useI18n()
+const isJapanese = computed(() => locale.value === 'ja')
 const issues = ref<IssueListItem[]>(props.initialIssues ?? [])
 const loading = ref(!props.initialIssues)
 const showForm = ref(false)
@@ -395,7 +396,7 @@ async function copyRssUrl() {
               class="flex-1 min-w-40 rounded border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
               :placeholder="t('idx_search_ph')"
             />
-            <div class="flex gap-1 shrink-0">
+            <div class="flex gap-1 shrink-0" :class="{ 'max-sm:[&>button]:text-xs max-sm:[&>button]:px-2': isJapanese }">
               <button v-for="s in ['newest', 'most', 'least'] as const" :key="s" type="button" class="btn btn-sm" :class="sortOrder === s ? 'btn-primary' : 'btn-secondary'" @click="sortOrder = s">
                 {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
               </button>

@@ -702,6 +702,41 @@ export const messages = {
   appeals_account_ban_item_title: '帳號停權申訴',
   appeals_account_ban_item_body: '你的帳號目前處於停權狀態。如果你認為處置有誤，請在下方說明原因與相關脈絡。',
   appeals_content_snapshot: '投稿內容',
+  nav_menu: '選單',
+  language_select: '選擇顯示語言',
+  language_zh_tw: '繁體中文',
+  language_en: 'English',
+  language_ja: '日本語',
+  op_md_consensus: '共識',
+  op_md_disputes: '爭點',
+  op_md_positions: '立場地圖',
+  op_md_overview: '議題說明',
+  op_md_unpublished: '（說明頁尚未發布）',
+  op_md_default_title: '本議題',
+  op_md_document: `# OPINION.md｜Civic Talk
+## 這是什麼？
+這是 Civic Talk 平台為「{title}」生成的對話引導文件。
+請將這整份文件複製貼上到你慣用的 AI chatbot（如 Claude、ChatGPT、Gemini、Ollama 等對話式 AI 皆可），
+讓 AI 根據你的生活情境，引導你思考你自己對這個議題的看法。
+---
+## 議題背景說明
+{briefing}
+---
+## 對 AI 的指示
+請你扮演一位公民審議引導員，根據以上議題說明，用對話方式引導我思考這個議題。
+請從這個問題開始：**你對這個議題的第一個直覺或感受是什麼？**
+接著根據我的回答：
+1. 幫我找出我這個直覺背後更深層的在乎是什麼
+2. 提出我可能沒有考慮到的面向
+3. 不要幫我選邊站，而是幫我說清楚自己真正的想法
+對話結束後，請幫我整理一份 100-300 字的意見摘要，說明：
+- 我最在乎的面向是什麼
+- 我的觀點或立場大概是什麼
+- 有沒有我還有疑問或不確定的地方
+這份摘要可以回傳到 Civic Talk 平台，作為公民意見參考。
+---
+*生成於 {date}｜civic.vtaiwan.tw*
+`,
 } as const
 
 export type MessageKey = keyof typeof messages
