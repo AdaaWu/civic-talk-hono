@@ -6,6 +6,7 @@ import AppHeader from '../components/AppHeader.vue'
 import IssueCard from '../components/IssueCard.vue'
 import IssuePreviewCard from '../components/IssuePreviewCard.vue'
 import LongTextContent from '../components/LongTextContent.vue'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
 import ModerationAppealForm from '../components/ModerationAppealForm.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
 import SignInButtons from '../components/SignInButtons.vue'
@@ -159,6 +160,36 @@ describe('home issue preview', () => {
   })
 })
 
+describe('detail content Markdown and moderation boundaries', () => {
+  const source = '**重點**\n\n- 第一項\n- 第二項\n\n[來源](https://example.com/reference)\n\n<script>alert(1)</script>\n\n![圖片](https://evil.example/tracker.png)\n\n[危險](javascript:alert(1))'
+  const cases = [
+    { component: MaterialDetailView, props: { issueId: 1, materialId: 1 }, entry: 'material', value: { ...material, content: source } },
+    { component: OpinionDetailView, props: { issueId: 1, opinionId: 1 }, entry: 'opinion', value: { ...opinion, summary: source } },
+  ]
+
+  for (const { component, props, entry, value } of cases) {
+    it(`renders formatted ${entry} content without executable HTML or remote images`, async () => {
+      const html = await render(component, { ...props, initialData: { issue, [entry]: value } })
+      expect(html).toContain('<strong>重點</strong>')
+      expect(html).toContain('<li>第一項</li>')
+      expect(html).toContain('href="https://example.com/reference"')
+      expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
+      expect(html).not.toContain('<script>')
+      expect(html).not.toMatch(/<img\b[^>]*\bsrc=["'](?:https?:|data:|\/\/)/i)
+      expect(html).not.toContain('tracker.png')
+      expect(html).not.toContain('href="javascript:')
+    })
+
+    it(`keeps hidden ${entry} content out of the rendered page`, async () => {
+      const html = await render(component, { ...props, initialData: { issue, [entry]: { ...value, abuse_flagged: 3 } } })
+      expect(html).not.toContain('重點')
+      expect(html).not.toContain('第一項')
+      expect(html).not.toContain('alert(1)')
+      expect(html).not.toContain('https://example.com/reference')
+    })
+  }
+})
+
 describe('shared component SSR smoke tests', () => {
   const cases: Array<{ name: string; component: Component; props?: Record<string, unknown> }> = [
     { name: 'app footer', component: AppFooter },
@@ -225,5 +256,19 @@ describe('long text collapsing (#65)', () => {
   it('counts astral characters as single characters', async () => {
     const html = await render(LongTextContent, { text: '😀'.repeat(1001) })
     expect(html).toContain('全文共 1001 字')
+  })
+})
+
+describe('shared Markdown editor soft character limit', () => {
+  it('counts emoji as code points and keeps content beyond the suggested limit', async () => {
+    const atLimit = '😀'.repeat(100)
+    const overLimit = '😀'.repeat(101)
+    const atLimitHtml = await render(MarkdownEditor, { modelValue: atLimit, id: 'editor', label: '內容', maxChars: 100 })
+    const overLimitHtml = await render(MarkdownEditor, { modelValue: overLimit, id: 'editor', label: '內容', maxChars: 100 })
+
+    expect(atLimitHtml).toContain('100/100')
+    expect(overLimitHtml).toContain('101/100')
+    expect(overLimitHtml).not.toContain('maxlength=')
+    expect(overLimitHtml).toContain(overLimit)
   })
 })

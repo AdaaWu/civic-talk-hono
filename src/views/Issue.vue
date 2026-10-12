@@ -10,6 +10,7 @@ import SignInButtons from '../components/SignInButtons.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import Toast from '../components/Toast.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
 import { useSubmitGuard } from '../composables/useSubmitGuard'
@@ -1037,16 +1038,16 @@ async function submitOpinion() {
                 <p class="mb-2 text-sm font-medium">{{ t('vol_paste_title') }}</p>
                 <p class="mb-3 text-sm text-muted">{{ t('vol_paste_desc') }}</p>
                 <div class="form-group">
-                  <label>{{ t('vol_label_consensus') }}</label>
-                  <textarea v-model="consensus" rows="3" :placeholder="t('vol_ph_consensus')" />
+                  <label for="briefing-consensus">{{ t('vol_label_consensus') }}</label>
+                  <MarkdownEditor id="briefing-consensus" v-model="consensus" :label="t('vol_label_consensus')" :rows="3" :placeholder="t('vol_ph_consensus')" />
                 </div>
                 <div class="form-group">
-                  <label>{{ t('vol_label_disputes') }}</label>
-                  <textarea v-model="disputes" rows="3" :placeholder="t('vol_ph_disputes')" />
+                  <label for="briefing-disputes">{{ t('vol_label_disputes') }}</label>
+                  <MarkdownEditor id="briefing-disputes" v-model="disputes" :label="t('vol_label_disputes')" :rows="3" :placeholder="t('vol_ph_disputes')" />
                 </div>
                 <div class="form-group">
-                  <label>{{ t('vol_label_positions') }}</label>
-                  <textarea v-model="positions" rows="4" :placeholder="t('vol_ph_positions')" />
+                  <label for="briefing-positions">{{ t('vol_label_positions') }}</label>
+                  <MarkdownEditor id="briefing-positions" v-model="positions" :label="t('vol_label_positions')" :rows="4" :placeholder="t('vol_ph_positions')" />
                 </div>
                 <button type="button" class="btn btn-primary" @click="submitSummarize">
                   {{ t('vol_submit_summarize') }}
@@ -1066,8 +1067,8 @@ async function submitOpinion() {
                 </div>
                 <div v-if="promptVisible.narrative" class="prompt-box mb-4">{{ promptText.narrative }}</div>
                 <div class="form-group">
-                  <label>{{ t('vol_paste_narrative') }}</label>
-                  <textarea v-model="narrative" rows="6" :placeholder="t('vol_ph_narrative')" />
+                  <label for="briefing-narrative">{{ t('vol_paste_narrative') }}</label>
+                  <MarkdownEditor id="briefing-narrative" v-model="narrative" :label="t('vol_paste_narrative')" :rows="6" :placeholder="t('vol_ph_narrative')" />
                 </div>
                 <button type="button" class="btn btn-primary" @click="submitNarrative">
                   {{ t('vol_submit_narrative') }}
@@ -1089,16 +1090,16 @@ async function submitOpinion() {
                 <p class="mb-2 text-sm font-medium">{{ t('vol_paste_title') }}</p>
                 <div class="alert alert-info mb-3 text-sm">{{ t('vol_s3_partial_hint') }}</div>
                 <div class="form-group">
-                  <label>{{ t('vol_label_consensus') }}</label>
-                  <textarea v-model="synthConsensus" rows="3" :placeholder="t('vol_ph_consensus')" />
+                  <label for="synthesis-consensus">{{ t('vol_label_consensus') }}</label>
+                  <MarkdownEditor id="synthesis-consensus" v-model="synthConsensus" :label="t('vol_label_consensus')" :rows="3" :placeholder="t('vol_ph_consensus')" />
                 </div>
                 <div class="form-group">
-                  <label>{{ t('vol_label_disputes') }}</label>
-                  <textarea v-model="synthDisputes" rows="3" :placeholder="t('vol_ph_disputes')" />
+                  <label for="synthesis-disputes">{{ t('vol_label_disputes') }}</label>
+                  <MarkdownEditor id="synthesis-disputes" v-model="synthDisputes" :label="t('vol_label_disputes')" :rows="3" :placeholder="t('vol_ph_disputes')" />
                 </div>
                 <div class="form-group">
-                  <label>{{ t('vol_label_positions') }}</label>
-                  <textarea v-model="synthPositions" rows="4" :placeholder="t('vol_ph_positions')" />
+                  <label for="synthesis-positions">{{ t('vol_label_positions') }}</label>
+                  <MarkdownEditor id="synthesis-positions" v-model="synthPositions" :label="t('vol_label_positions')" :rows="4" :placeholder="t('vol_ph_positions')" />
                 </div>
                 <button type="button" class="btn btn-primary" @click="submitSynthesis">
                   {{ t('vol_submit_synthesis') }}
@@ -1151,11 +1152,11 @@ async function submitOpinion() {
                     <button type="button" class="btn btn-secondary" @click="downloadOpinionMd">{{ t('op_download_btn') }}</button>
                   </div>
                   <div class="form-group">
-                    <label>
+                    <label for="opinion-content">
                       <span v-if="commentAction === 'ai_help'">{{ t('op_label_summary') }}</span>
                       <span class="label-hint">{{ t('op_hint_summary') }}</span>
                     </label>
-                    <textarea v-model="opinionInput" rows="5" :placeholder="commentAction === 'ai_help' ? t('op_ph_summary') : t('op_ph_summary_direct')" :aria-label="commentAction === 'ai_help' ? t('op_label_summary') : t('op_commit_title')" />
+                    <MarkdownEditor id="opinion-content" v-model="opinionInput" :rows="5" :placeholder="commentAction === 'ai_help' ? t('op_ph_summary') : t('op_ph_summary_direct')" :label="commentAction === 'ai_help' ? t('op_label_summary') : t('op_commit_title')" />
                   </div>
                   <div class="form-group">
                     <label class="flex items-start gap-2 font-normal">

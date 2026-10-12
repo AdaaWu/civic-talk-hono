@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import AuthorEmailLink from '../components/AuthorEmailLink.vue'
@@ -8,6 +8,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, useI18n } from '../l10n'
 import { useAuth } from '../composables/useAuth'
 import type { Issue, Opinion } from '../db/queries'
+import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 
 const props = defineProps<{
   issueId: number
@@ -23,6 +24,7 @@ const { authState, ensureAuthSession } = useAuth()
 
 const opinion = ref<Opinion | null>(props.initialData?.opinion ?? null)
 const issue = ref<Issue | null>(props.initialData?.issue ?? null)
+const renderedSummary = computed(() => opinion.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(opinion.value?.summary ?? null))
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)
@@ -127,7 +129,7 @@ async function copyLink() {
             </p>
 
             <div v-if="opinion.abuse_flagged === 3" class="whitespace-pre-wrap leading-relaxed text-muted">{{ t('moderation_hidden_placeholder') }}</div>
-            <div v-else class="whitespace-pre-wrap leading-relaxed">{{ opinion.summary }}</div>
+            <div v-else class="markdown-content leading-relaxed" v-html="renderedSummary"></div>
             <OpinionVote :opinion="opinion" :callback-url="`/issues/${issue.id}/comment/${opinion.id}`" @update="updateOpinionVote" />
           </div>
 

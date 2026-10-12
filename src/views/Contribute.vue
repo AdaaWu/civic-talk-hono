@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import SignInButtons from '../components/SignInButtons.vue'
 import Toast from '../components/Toast.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
 import { useI18n } from '../l10n'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
@@ -43,7 +44,7 @@ const checkedFactCheckKey = ref('')
 const factCheckRequestId = ref(0)
 let factCheckController: AbortController | null = null
 const toast = ref<{ show: (msg: string) => void } | null>(null)
-const contentInput = ref<HTMLTextAreaElement | null>(null)
+const contentInput = ref<{ focus: () => void } | null>(null)
 
 /**
  * 登入狀態走全站共用的 useAuth（與 AppHeader 共用同一次 /api/me）。'loading' 是 SSR 與
@@ -59,7 +60,6 @@ const duplicateNameRequiresEmail = computed(() => session.value?.hasDuplicateDis
 const sessionExpired = ref(false)
 const moderationNotice = ref<{ appealType: 'rejected_submission' | 'account_ban'; reportId?: number; policyCode?: string; rationale?: string } | null>(null)
 
-const charLabel = computed(() => `${content.value.length}${t('contrib_chars_suffix')}`)
 const backHref = computed(() => `/issues/${props.issueId}`)
 // 登入後導回這一頁，使用者可以接著把剛才想投的素材貼上
 const loginCallbackUrl = computed(() => `/contribute/${props.issueId}`)
@@ -93,7 +93,6 @@ async function editFactCheckInput() {
   factCheckResult.value = null
   factCheckError.value = null
   checkedFactCheckKey.value = ''
-  await nextTick()
   contentInput.value?.focus()
 }
 
@@ -357,20 +356,18 @@ async function submitMaterial() {
             </select>
           </div>
           <div class="form-group">
-            <label>
-              <span>{{ t('contrib_label_content') }}</span>
-              <span class="label-hint">{{ t('contrib_hint_content') }}</span>
-            </label>
-            <textarea
+            <label for="material-content">{{ t('contrib_label_content') }}</label>
+            <MarkdownEditor
               ref="contentInput"
               v-model="content"
-              rows="12"
+              id="material-content"
+              :label="t('contrib_label_content')"
+              :rows="12"
               :placeholder="t('contrib_ph_content')"
               :readonly="factCheckLocked"
-              :aria-readonly="factCheckLocked"
               :class="{ 'opacity-60': factCheckLocked }"
             />
-            <p class="mt-1 mb-0 text-sm text-muted">{{ charLabel }}</p>
+            <p class="label-hint">{{ t('contrib_hint_content') }}</p>
           </div>
           <div class="form-group">
             <button v-if="!factCheckResult" type="button" class="btn btn-secondary" :disabled="factChecking" @click="checkFact">
