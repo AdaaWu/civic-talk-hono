@@ -1,12 +1,17 @@
 import { randomUUID } from 'node:crypto'
 import { spawnSync } from 'node:child_process'
 import { copyFileSync, existsSync, mkdirSync, rmSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { artifactSha256, deployConfigPath, resolveDeployTarget, sourceManifestName, verifyClientAssetCopies, writeSourceManifest } from './build-artifacts.mjs'
 import { projectRoot, readSourceIdentity, sourceSnapshotEnv, sourceSnapshotRunEnv } from './source-metadata.mjs'
 
-function run(command, args, env = process.env) {
-  const result = spawnSync(command, args, { cwd: projectRoot, env, stdio: 'inherit' })
+const require = createRequire(import.meta.url)
+const vp = path.join(path.dirname(require.resolve('vite-plus/package.json')), 'bin/vp')
+
+function runVp(args, env = process.env) {
+  // 直接以 Node 執行 CLI，避免 Windows 的 npm.cmd／vp.cmd 與 shell 路徑解析差異。
+  const result = spawnSync(process.execPath, [vp, ...args], { cwd: projectRoot, env, stdio: 'inherit' })
   if (result.error) throw result.error
   if (result.status !== 0) process.exit(result.status ?? 1)
 }
@@ -15,14 +20,13 @@ const initial = readSourceIdentity(projectRoot)
 const publicDir = path.join(projectRoot, 'public')
 rmSync(path.join(publicDir, 'licenses/worker.txt'), { force: true })
 
-run('npm', ['run', 'build:css'])
+runVp(['exec', 'tailwindcss', '-i', './src/styles/app.css', '-o', './public/styles.css'])
 const snapshotEnv = {
   ...process.env,
   [sourceSnapshotEnv]: JSON.stringify(initial.metadata),
   [sourceSnapshotRunEnv]: randomUUID(),
 }
-const vp = path.join(projectRoot, 'node_modules/.bin/vp')
-run(vp, ['build', '-c', 'vite.client.config.mts'], snapshotEnv)
+runVp(['build', '-c', 'vite.client.config.mts'], snapshotEnv)
 
 const clientManifest = {
   schema: 1,
@@ -35,7 +39,7 @@ writeSourceManifest(publicDir, clientManifest)
 // 舊 redirect 不能指向上次 build；worker build 必須重新產生本次部署設定。
 mkdirSync(path.dirname(deployConfigPath), { recursive: true })
 rmSync(deployConfigPath, { force: true })
-run(vp, ['build'], snapshotEnv)
+runVp(['build'], snapshotEnv)
 
 const target = resolveDeployTarget(deployConfigPath)
 if (path.resolve(target.assetsDirectory) === path.resolve(publicDir)) throw new Error('Worker ASSETS directory 不可與 client build source 目錄相同。')
