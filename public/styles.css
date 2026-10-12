@@ -496,6 +496,9 @@
   .max-h-\[calc\(100vh-2rem\)\] {
     max-height: calc(100vh - 2rem);
   }
+  .min-h-24 {
+    min-height: calc(var(--spacing) * 24);
+  }
   .w-1\/4 {
     width: calc(1 / 4 * 100%);
   }
@@ -585,6 +588,9 @@
   }
   .cursor-pointer {
     cursor: pointer;
+  }
+  .resize-y {
+    resize: vertical;
   }
   .scroll-mt-28 {
     scroll-margin-top: calc(var(--spacing) * 28);
@@ -708,6 +714,10 @@
   .rounded-xl {
     border-radius: var(--radius-xl);
   }
+  .rounded-b-none {
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
   .border {
     border-style: var(--tw-border-style);
     border-width: 1px;
@@ -724,11 +734,18 @@
     border-bottom-style: var(--tw-border-style);
     border-bottom-width: 1px;
   }
+  .border-b-2 {
+    border-bottom-style: var(--tw-border-style);
+    border-bottom-width: 2px;
+  }
   .border-border {
     border-color: var(--color-border);
   }
   .border-gray-300 {
     border-color: var(--color-gray-300);
+  }
+  .border-teal {
+    border-color: var(--color-teal);
   }
   .border-teal\/20 {
     border-color: color-mix(in srgb, #008888 20%, transparent);
@@ -1020,6 +1037,9 @@
   .tracking-widest {
     --tw-tracking: var(--tracking-widest);
     letter-spacing: var(--tracking-widest);
+  }
+  .\[overflow-wrap\:anywhere\] {
+    overflow-wrap: anywhere;
   }
   .break-words {
     overflow-wrap: break-word;

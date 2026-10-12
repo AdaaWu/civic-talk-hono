@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import AuthorEmailLink from '../components/AuthorEmailLink.vue'
@@ -7,6 +7,7 @@ import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, useI18n } from '../l10n'
 import { useAuth } from '../composables/useAuth'
 import type { Issue, Material } from '../db/queries'
+import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 
 const props = defineProps<{
   issueId: number
@@ -22,6 +23,7 @@ const { ensureAuthSession } = useAuth()
 
 const material = ref<Material | null>(props.initialData?.material ?? null)
 const issue = ref<Issue | null>(props.initialData?.issue ?? null)
+const renderedContent = computed(() => material.value?.abuse_flagged === 3 ? '' : renderSafeMarkdown(material.value?.content ?? null))
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)
@@ -138,7 +140,7 @@ async function copyLink() {
             </p>
 
             <div v-if="material.abuse_flagged === 3" class="whitespace-pre-wrap leading-relaxed text-muted">{{ t('moderation_hidden_placeholder') }}</div>
-            <div v-else class="whitespace-pre-wrap leading-relaxed">{{ material.content }}</div>
+            <div v-else class="markdown-content leading-relaxed" v-html="renderedContent"></div>
 
             <!-- 後設資訊 -->
             <p class="mt-4 mb-0 text-sm text-muted">

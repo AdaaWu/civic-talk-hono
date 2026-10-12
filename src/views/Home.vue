@@ -7,6 +7,7 @@ import IssuePreviewCard from '../components/IssuePreviewCard.vue'
 import SignInButtons from '../components/SignInButtons.vue'
 import Toast from '../components/Toast.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
+import MarkdownEditor from '../components/MarkdownEditor.vue'
 import { useI18n } from '../l10n'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
@@ -348,11 +349,11 @@ async function copyRssUrl() {
                 </ul>
               </div>
               <div class="form-group">
-                <label>
+                <label for="issue-description">
                   <span>{{ t('idx_label_desc') }}</span>
                   <span class="label-hint">{{ t('idx_hint_desc') }}</span>
                 </label>
-                <textarea v-model="description" rows="3" :placeholder="t('idx_ph_desc')" />
+                <MarkdownEditor id="issue-description" v-model="description" :label="t('idx_label_desc')" :rows="3" :placeholder="t('idx_ph_desc')" mode="plain" :max-chars="100" />
               </div>
               <div class="form-group">
                 <label class="flex items-start gap-2 font-normal">
