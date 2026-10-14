@@ -1138,8 +1138,8 @@ async function submitOpinion() {
                       >
                     </label>
                   </div>
-                  <div class="flex flex-col gap-3 sm:flex-row">
-                    <button v-if="commentAction === 'commit'" type="button" class="btn btn-secondary" @click="setIssueCommentAction('ai_help')">
+                  <div class="flex flex-col gap-3 sm:flex-row sm:justify-center">
+                    <button v-if="commentAction === 'commit'" type="button" class="btn btn-wheat-yellow" @click="setIssueCommentAction('ai_help')">
                       {{ t('op_ai_help_title') }}
                     </button>
                     <button type="button" class="btn btn-primary" :disabled="opinionSubmitting" @click="runOpinionSubmit(submitOpinion)">

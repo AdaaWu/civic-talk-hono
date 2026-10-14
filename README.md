@@ -68,7 +68,7 @@ vp run dev
 
 樣式 token 以 `vtaiwan-design-system/project/colors_and_type.css` 為穩定來源，透過 Tailwind v4 的 `vt-*` utilities 使用，例如 `text-vt-democratic-red`、`bg-vt-bg-2`、`font-vt-serif`。
 
-議題頁意見入口的「瀏覽意見」使用 `.btn-wheat-yellow`（麥穗黃底、白字，懸停時加深），與紅色「繼續」及透明底「返回議題」區隔；樣式定義於 `src/styles/app.css`，沿用 `--color-vt-wheat-yellow` token。
+議題頁意見入口的「瀏覽意見」及發表意見表單的「AI 幫幫忙」使用 `.btn-wheat-yellow`（麥穗黃底、白字，懸停時加深）；樣式定義於 `src/styles/app.css`，沿用 `--color-vt-wheat-yellow` token。發表意見表單下方的操作按鈕在 `sm` 以上寬度橫排置中，手機維持直向排列。
 
 議題頁在寬度超過 600px 時提供「概覽／共識／爭點／立場地圖／意見（公民）或行動（志願者）」三語文字頁籤；前四項切換說明輪播，公民的第五項進入公民意見，志願者的「行動」切到手機第五張的同一張導航卡，提供公民意見、素材庫與志願者工具三個入口。桌機左右箭頭位於輪播高度的 30%，下方圓點為 16px；手機維持原有控制。輪播頁面以 `tab=consensus|disputes|positions|actions` 保存，省略 `tab` 為概覽；志願者的 `actions` 還原第五張導航卡，公民則停在最後一張立場地圖。`step=comments|materials|volunteer` 仍控制操作版面，重新整理與上一頁／下一頁會還原對應狀態。
 
