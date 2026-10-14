@@ -328,6 +328,15 @@
     background: color-mix(in srgb, var(--color-vt-wheat-yellow), var(--color-vt-black) 10%);
   }
 
+  .btn-jade-green {
+    background: var(--color-vt-jade-green);
+    color: var(--color-vt-white);
+  }
+
+  .btn-jade-green:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-vt-jade-green), var(--color-vt-black) 10%);
+  }
+
   .btn-secondary {
     background: var(--color-vt-bg-1);
     color: var(--color-ink);

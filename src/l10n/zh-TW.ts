@@ -176,6 +176,7 @@ export const messages = {
   op_start_title: '你認為呢？',
   op_start_desc: '提出你對這個議題的想法，過程可以請 AI 幫忙梳理引導討論。你也可以瀏覽別人的意見，並進行投票。',
   op_start_continue: '繼續',
+  op_start_commit: '發表意見',
   op_start_browse: '瀏覽意見',
   op_back_to_issue: '返回議題',
   op_back_to_start: '回到議題',

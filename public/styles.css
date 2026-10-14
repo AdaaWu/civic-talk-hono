@@ -1275,6 +1275,9 @@
     }
   }
   @media (width >= 40rem) {
+    .sm\:mx-auto {
+      margin-inline: auto;
+    }
     .sm\:mt-2 {
       margin-top: calc(var(--spacing) * 2);
     }
@@ -1289,6 +1292,9 @@
     }
     .sm\:inline {
       display: inline;
+    }
+    .sm\:inline-flex {
+      display: inline-flex;
     }
     .sm\:h-7 {
       height: calc(var(--spacing) * 7);
@@ -1316,6 +1322,9 @@
     }
     .sm\:gap-2 {
       gap: calc(var(--spacing) * 2);
+    }
+    .sm\:gap-4 {
+      gap: calc(var(--spacing) * 4);
     }
     .sm\:p-7 {
       padding: calc(var(--spacing) * 7);
@@ -1446,6 +1455,15 @@
     .max-sm\:\[\&\>button\]\:text-xs > button {
       font-size: var(--text-xs);
       line-height: var(--tw-leading, var(--text-xs--line-height));
+    }
+  }
+  @media (width >= 40rem) {
+    .sm\:\[\&\>button\]\:py-4 > button {
+      padding-block: calc(var(--spacing) * 4);
+    }
+    .sm\:\[\&\>button\]\:text-lg > button {
+      font-size: var(--text-lg);
+      line-height: var(--tw-leading, var(--text-lg--line-height));
     }
   }
 }
@@ -1822,6 +1840,16 @@
     background: color-mix(in srgb, #db7700, #000000 10%);
     @supports (color: color-mix(in lab, red, red)) {
       background: color-mix(in srgb, var(--color-vt-wheat-yellow), var(--color-vt-black) 10%);
+    }
+  }
+  .btn-jade-green {
+    background: var(--color-vt-jade-green);
+    color: var(--color-vt-white);
+  }
+  .btn-jade-green:hover:not(:disabled) {
+    background: color-mix(in srgb, #008888, #000000 10%);
+    @supports (color: color-mix(in lab, red, red)) {
+      background: color-mix(in srgb, var(--color-vt-jade-green), var(--color-vt-black) 10%);
     }
   }
   .btn-secondary {

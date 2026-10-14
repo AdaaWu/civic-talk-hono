@@ -1068,9 +1068,13 @@ async function submitOpinion() {
               <div class="comment-action-panel">
                 <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('op_start_title') }}</h2>
                 <p class="mb-6 text-muted">{{ t('op_start_desc') }}</p>
-                <div class="flex flex-col gap-3 sm:flex-row">
-                  <button type="button" class="btn btn-primary" @click="setIssueCommentAction('commit')">{{ t('op_start_continue') }}</button>
-                  <button type="button" class="btn btn-wheat-yellow" @click="setIssueCommentAction('browse')">{{ t('op_start_browse') }}</button>
+                <div class="flex flex-col gap-3 sm:mx-auto sm:max-w-sm sm:gap-4 sm:[&>button]:py-4 sm:[&>button]:text-lg">
+                  <button type="button" class="btn btn-primary" @click="setIssueCommentAction('commit')">
+                    <span class="sm:hidden">{{ t('op_start_continue') }}</span>
+                    <span class="hidden sm:inline">{{ t('op_start_commit') }}</span>
+                  </button>
+                  <button type="button" class="btn btn-wheat-yellow hidden sm:inline-flex" @click="setIssueCommentAction('ai_help')">{{ t('op_ai_help_title') }}</button>
+                  <button type="button" class="btn btn-jade-green" @click="setIssueCommentAction('browse')">{{ t('op_start_browse') }}</button>
                   <button type="button" class="btn btn-ghost" @click="setIssueStep(null)">{{ t('op_back_to_issue') }}</button>
                 </div>
               </div>
