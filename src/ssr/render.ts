@@ -1,6 +1,7 @@
 import { createSSRApp, type Component } from 'vue'
 import { renderToString } from '@vue/server-renderer'
 import { provideI18n } from '../l10n'
+import { sourceMetadata } from '../source'
 import { renderHeadTags, type HeadConfig } from './heads'
 import { serializeState } from './serialize'
 
@@ -22,7 +23,9 @@ export async function renderPage(component: Component, props: Record<string, unk
   const hydrateBits: string[] = []
   if (options?.hydrate) {
     const state = options.hydrate.state ?? props
-    hydrateBits.push(`<script>window.__PAGE__=${JSON.stringify(options.hydrate.page)};window.__SSR_STATE__=${serializeState(state)}</script>`)
+    // Dev 模式的 client define 由 Vite 注入；SSR HTML 直接提供同一份資料，避免開發環境未注入時中斷 hydration。
+    const devSource = import.meta.env.PROD ? '' : `window.__CIVIC_SOURCE__=${serializeState(sourceMetadata)};`
+    hydrateBits.push(`<script>${devSource}window.__PAGE__=${JSON.stringify(options.hydrate.page)};window.__SSR_STATE__=${serializeState(state)}</script>`)
     const src = import.meta.env.PROD ? '/js/civic.js' : '/src/client/civic-entry.ts'
     hydrateBits.push(`<script type="module" src="${src}"></script>`)
   }
