@@ -6,7 +6,7 @@
 >
 > 🚀 **已部署於 <https://civic.vtaiwan.tw>**（Worker `civic-talk`，首次部署 2026-08-05）。**Google／GitHub 登入、`admin` 角色進後台、登入後投稿都已在正式站實測成功**（使用者確認 2026-08-11）；需要真人瀏覽器的驗證直接在正式站做，不必只靠 `dev:remote`。部署與環境設定見 [`deploy_notes.md`](./deploy_notes.md)。
 >
-> 🚧 **仍未實證的兩項**（不要因為「登入可用」就一起勾掉）：同一個 email 用 Google 與 GitHub 登入是否落到同一個 `user.id`（#5 的 5-5）、四種寫入是否都落下完整作者快照且管理端取得完整快照（#9 的 9-8）。逐項完成度一律以「移植進度」的表為準。
+> ✅ **同 email 帳號整合已在正式站實測成功**（使用者確認 2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）；5-5 已完成。🚧 **仍未實證**：四種寫入是否都落下完整作者快照且管理端取得完整快照（#9 的 9-8），不要因為登入與帳號整合可用就一起勾掉。逐項完成度一律以「移植進度」的表為準。
 >
 > [#9「讓使用者必須先登入才能張貼素材」](https://github.com/g0v/civic-talk-hono/issues/9)（分支 `feat/require-login-for-materials`）的程式碼與 D1 migration（本機＋遠端）都已完成——規格見「API 契約 → 投稿與志願者工具需登入」。[#5「使用 Better-Auth 來實作登入和 Admin 功能」](https://github.com/g0v/civic-talk-hono/issues/5)（分支 `feat/better-auth`，已併回 `main`）的程式碼也都在了——「身分驗證與權限」一節是規格。
 
@@ -140,7 +140,7 @@ Civic Talk 已以 **每頁 `renderPage` + 單一 client bundle hydration** 跑�
 - **共用 auth DB**：`wrangler.jsonc` 新增第二個 D1 綁定 `DB_AUTH` → `vtaiwan-auth`（`database_id: e26edd14-d163-427d-8630-9304f815e9fa`，與 vTaiwan-hono 同一顆），`betterAuth({ database: env.DB_AUTH })`。使用者表就是 vTaiwan 的 `user` 表，兩站帳號天然共通。
 - **Google 登入**：沿用**同一組** `GOOGLE_CLIENT_ID`／`GOOGLE_CLIENT_SECRET`。
 - **GitHub 登入**：沿用**同一組** `GITHUB_CLIENT_ID`／`GITHUB_CLIENT_SECRET`。
-- **同 email 帳號整合**：對齊 vTaiwan-hono 的 `account.accountLinking.trustedProviders: ['google', 'github']`；設計上同一個 email 用 Google 或 GitHub 登入會落到同一個 `user`，但跨 provider 的端到端行為仍待實證。
+- **同 email 帳號整合**：對齊 vTaiwan-hono 的 `account.accountLinking.trustedProviders: ['google', 'github']`；同一個 email 用 Google 或 GitHub 登入落到同一個帳號，**已由使用者於正式站實測確認**（2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）。
 - **角色制 Admin**：角色沿用 vTaiwan 的 `user`／`admin`／`super-admin`（欄位就是 `user.role`）。Admin 頁與管理 API 一律用 `isAdminRole()`（`admin` 或 `super-admin`）把關。**本站只讀角色、不寫角色**。
   - ✅ **開 `admin` plugin 用於濫用審核（#21，使用者裁示）。** `createAuth.ts` 以 `adminRoles: ['super-admin', 'admin']` 與 vTaiwan-hono 一致的 `adminRoleAccess` 啟用 plugin。停權操作走 **server 端 `createAuth(env).api.banUser()`**（程式呼叫），**不經 HTTP 路由**。
   - ⚠️ **`/api/auth/admin/*` HTTP 端點整段封鎖（不維護黑名單）。** `auth.ts` 以一條 `app.all('/api/auth/admin/*', 404)` 擋掉全部——包含 `create-user`、`set-user-password`、`update-user`、`list-users`、`list-user-sessions` 等現有及未來新增的端點。server 端程式呼叫不走 Hono 路由，照常運作。**不得改為選擇性黑名單**——better-auth 每次改版都可能新增端點，黑名單必然落後。日後若要開放任何 HTTP 端點，必須先問使用者。
@@ -168,7 +168,7 @@ Civic Talk 已以 **每頁 `renderPage` + 單一 client bundle hydration** 跑�
 1. **OAuth callback 網址**：共用的 Google／GitHub OAuth 應用程式必須把 civic-talk 的 callback（`<origin>/api/auth/callback/google`、`/api/auth/callback/github`）加進允許清單。正式站已完成並實測；換網域或建立新環境時仍只能由使用者在 Google Cloud／GitHub 主控台設定。
 2. **`BETTER_AUTH_URL` 逐環境不同**：本機是 `http://localhost:<port>`，正式是 civic-talk 自己的 origin，**不要從 vTaiwan-hono 複製**（跟 `BETTER_AUTH_SECRET` 不一樣，這個不共用）。
 
-> ⚠️ **「共用帳號、共用 secret」不等於「共用登入狀態」**：兩站共用 `user`／`account` 資料並設定 trusted provider account linking；同 email 應共用 `user.id`，但跨 provider 行為仍待端到端實證。**session cookie 綁 origin**，不同網域各自要登入一次，除非刻意設定 cookie `domain` 且兩站在同一個父網域下（要做先問使用者）。**不要預設「在 vTaiwan 登入過就自動登入 civic-talk」**，也不要拿共用 secret 當作單一登入已經成立的證據。
+> ⚠️ **「共用帳號、共用 secret」不等於「共用登入狀態」**：兩站共用 `user`／`account` 資料並設定 trusted provider account linking；同 email 的 Google／GitHub 帳號整合已在 Civic Talk 正式站實測成功（使用者確認 2026-10-16）。**session cookie 綁 origin**，不同網域各自要登入一次，除非刻意設定 cookie `domain` 且兩站在同一個父網域下（要做先問使用者）。**不要預設「在 vTaiwan 登入過就自動登入 civic-talk」**，也不要拿共用 secret 或帳號整合成功當作單一登入已經成立的證據。
 
 **SSR 與 session**：session 由請求的 `Cookie` 標頭解析（`auth.api.getSession({ headers })`），這是**伺服器端行為，SSR 期間合法**，不違反不變量 3——不變量 3 禁的是 `localStorage`／`document`／`window`。前端的登入狀態一律走 `GET /api/me`，**不要**把使用者資料存進 `localStorage`。SSR 若要依登入狀態出不同內容，記得該頁不可被邊緣快取。
 
@@ -468,7 +468,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 | 5   | `routes-compat`  | ✅ 完成 | 乾淨路由、舊網址導向與 SSR metadata                                            |
 | 6   | `verify`         | ✅ 完成 | 型別、建置、D1/API、hydration 與響應式驗證                                     |
 
-### 進行中：#5 Better Auth 登入與 Admin 權限
+### 已完成：#5 Better Auth 登入與 Admin 權限
 
 分支 **`feat/better-auth`**（issue 內文寫 `feat-better/auth`，但兩個 repo 實際用的都是 `feat/better-auth`，以實際分支為準）。狀態一律以「程式碼是否真的在 repo 裡」為準，**不要憑 commit 訊息或 issue 勾選臆測完成度**。
 
@@ -479,9 +479,9 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 | 5-2 | `shared-auth-db`   | ✅ 完成            | `DB_AUTH` → `vtaiwan-auth`（`remote: true`，無 `migrations_dir`）；**沿用既有 user table，本 repo 不建表**                                                                                                             |
 | 5-3 | `google-login`     | ✅ 完成            | provider 已設定；**正式站端到端登入已實測成功**（使用者確認 2026-08-11）                                                                                                                                               |
 | 5-4 | `github-login`     | ✅ 完成            | 同上，正式站已實測成功                                                                                                                                                                                                 |
-| 5-5 | `account-linking`  | 🚧 code 進、待實測 | `trustedProviders: ['google', 'github']` 已設；兩個 provider 各自都能登入，但**「同一個 email 落到同一個 `user.id`」仍未實證**（要在正式站用同 email 兩種方式登入並比對帳號）                                          |
+| 5-5 | `account-linking`  | ✅ 完成 | `trustedProviders: ['google', 'github']` 已設。**同 email 的 Google／GitHub 帳號整合已在正式站（共用 OAuth＋`vtaiwan-auth`）實測成功**（使用者確認 2026-10-16，見 [正式站回報](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）。[個人自架環境回報](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6216546917)亦於同日確認兩個 provider 落到同一個 `user.id`，角色與名稱保留。 |
 | 5-6 | `role-based-admin` | ✅ 完成            | `requireAdmin()` 判角色（401／403）；`ADMIN_PASSWORD`／`X-Admin-Token`／`POST /api/admin/login` 全數移除；管理與寫入 API 不輸出 CORS 放行標頭，跨站寫入由全域 csrf 防護；Admin 頁改 Google／GitHub 登入；i18n 雙檔同步 |
-| 5-7 | `verify`           | 🚧 幾乎完成        | 已驗：未登入打管理端點 401、`/api/admin/login` 404、公開端點不受影響、`/admin` SSR 無 mismatch；**正式站 Google／GitHub 登入成功、`admin` 角色進得了後台**（2026-08-11）。**尚未驗**：同 email 帳號整合（見 5-5）      |
+| 5-7 | `verify`           | ✅ 完成 | 已驗：未登入打管理端點 401、`/api/admin/login` 404、公開端點不受影響、`/admin` SSR 無 mismatch；**正式站 Google／GitHub 登入成功、`admin` 角色進得了後台**（2026-08-11）；**同 email 帳號整合亦已由使用者於正式站確認**（2026-10-16，見 5-5）。 |
 
 > 已裁示的設定（啟用 admin plugin 但封鎖全部 `/api/auth/admin/*` HTTP 端點、`account_id` 不寫死、`nodejs_compat` 實測必要、`BETTER_AUTH_SECRET` 與 vTaiwan-hono 共用）見「身分驗證與權限」一節。OAuth callback 網址與 `BETTER_AUTH_URL` 在本機與正式站都已設好（登入實測通過即為證明）；**換網域或建新環境時這兩項要重設**，做法見 [`deploy_notes.md`](./deploy_notes.md)。
 
