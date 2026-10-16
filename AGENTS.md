@@ -6,7 +6,7 @@
 >
 > 🚀 **已部署於 <https://civic.vtaiwan.tw>**（Worker `civic-talk`，首次部署 2026-08-05）。**Google／GitHub 登入、`admin` 角色進後台、登入後投稿都已在正式站實測成功**（使用者確認 2026-08-11）；需要真人瀏覽器的驗證直接在正式站做，不必只靠 `dev:remote`。部署與環境設定見 [`deploy_notes.md`](./deploy_notes.md)。
 >
-> 🚧 **仍未實證的兩項**（不要因為「登入可用」就一起勾掉）：同一個 email 用 Google 與 GitHub 登入是否落到同一個 `user.id`（#5 的 5-5）、四種寫入是否都落下完整作者快照且管理端取得完整快照（#9 的 9-8）。逐項完成度一律以「移植進度」的表為準。
+> 🚧 **仍未實證的兩項**（不要因為「登入可用」就一起勾掉）：同一個 email 用 Google 與 GitHub 登入是否落到同一個 `user.id`（#5 的 5-5；個人自架環境已實證，正式站未驗）、四種寫入是否都落下完整作者快照且管理端取得完整快照（#9 的 9-8）。逐項完成度一律以「移植進度」的表為準。
 >
 > [#9「讓使用者必須先登入才能張貼素材」](https://github.com/g0v/civic-talk-hono/issues/9)（分支 `feat/require-login-for-materials`）的程式碼與 D1 migration（本機＋遠端）都已完成——規格見「API 契約 → 投稿與志願者工具需登入」。[#5「使用 Better-Auth 來實作登入和 Admin 功能」](https://github.com/g0v/civic-talk-hono/issues/5)（分支 `feat/better-auth`，已併回 `main`）的程式碼也都在了——「身分驗證與權限」一節是規格。
 
@@ -479,7 +479,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 | 5-2 | `shared-auth-db`   | ✅ 完成            | `DB_AUTH` → `vtaiwan-auth`（`remote: true`，無 `migrations_dir`）；**沿用既有 user table，本 repo 不建表**                                                                                                             |
 | 5-3 | `google-login`     | ✅ 完成            | provider 已設定；**正式站端到端登入已實測成功**（使用者確認 2026-08-11）                                                                                                                                               |
 | 5-4 | `github-login`     | ✅ 完成            | 同上，正式站已實測成功                                                                                                                                                                                                 |
-| 5-5 | `account-linking`  | 🚧 code 進、待實測 | `trustedProviders: ['google', 'github']` 已設；兩個 provider 各自都能登入，但**「同一個 email 落到同一個 `user.id`」仍未實證**（要在正式站用同 email 兩種方式登入並比對帳號）                                          |
+| 5-5 | `account-linking`  | 🚧 code 進、待正式站實測 | `trustedProviders: ['google', 'github']` 已設；兩個 provider 各自都能登入。**個人自架環境已實證（2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6216546917)）：同 email 以 Google、GitHub 登入落到同一個 `user.id`**；正式站（共用 OAuth＋`vtaiwan-auth`）仍待以同 email 兩種方式登入並比對帳號 |
 | 5-6 | `role-based-admin` | ✅ 完成            | `requireAdmin()` 判角色（401／403）；`ADMIN_PASSWORD`／`X-Admin-Token`／`POST /api/admin/login` 全數移除；管理與寫入 API 不輸出 CORS 放行標頭，跨站寫入由全域 csrf 防護；Admin 頁改 Google／GitHub 登入；i18n 雙檔同步 |
 | 5-7 | `verify`           | 🚧 幾乎完成        | 已驗：未登入打管理端點 401、`/api/admin/login` 404、公開端點不受影響、`/admin` SSR 無 mismatch；**正式站 Google／GitHub 登入成功、`admin` 角色進得了後台**（2026-08-11）。**尚未驗**：同 email 帳號整合（見 5-5）      |
 
