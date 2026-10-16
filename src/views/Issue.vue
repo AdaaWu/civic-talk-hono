@@ -1084,6 +1084,10 @@ async function submitOpinion() {
               <h2 class="mt-0 mb-2 font-serif text-xl">{{ commentAction === 'commit' ? t('op_commit_title') : t('op_ai_help_title') }}</h2>
               <p v-if="commentAction === 'ai_help'" class="mb-6 text-muted">{{ t('op_ai_help_desc') }}</p>
               <div class="card mb-6">
+                <div v-if="commentAction === 'ai_help'" class="mb-6 flex flex-col gap-3 sm:flex-row">
+                  <button type="button" class="btn btn-secondary" @click="copyOpinionMd">{{ t('op_copy_btn') }}</button>
+                  <button type="button" class="btn btn-secondary" @click="downloadOpinionMd">{{ t('op_download_btn') }}</button>
+                </div>
                 <template v-if="authState === 'loading'">
                   <p class="m-0 text-muted">{{ t('loading') }}</p>
                 </template>
@@ -1103,10 +1107,6 @@ async function submitOpinion() {
                   <div v-if="sessionExpired" class="alert alert-warn mb-4">
                     <p class="mt-0 mb-3">{{ t('login_expired_hint') }}</p>
                     <SignInButtons :callback-url="loginCallbackUrl" />
-                  </div>
-                  <div v-if="commentAction === 'ai_help'" class="mb-6 flex flex-col gap-3 sm:flex-row">
-                    <button type="button" class="btn btn-secondary" @click="copyOpinionMd">{{ t('op_copy_btn') }}</button>
-                    <button type="button" class="btn btn-secondary" @click="downloadOpinionMd">{{ t('op_download_btn') }}</button>
                   </div>
                   <div class="form-group">
                     <label for="opinion-content">
