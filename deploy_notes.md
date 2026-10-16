@@ -121,7 +121,7 @@ auth schema 的唯一來源是 `../vTaiwan-hono/migrations/auth/`；要改 schem
 
 ### 2.3 🚫 不要以為部署後 vTaiwan 的登入狀態會自動延續
 
-兩站共用 `user`／`account` 資料，並設定 Google／GitHub trusted provider account linking；**設計上**同一個 email 應落到同一個帳號，但跨 provider 的端到端行為仍待實證。session cookie 綁 origin，所以**兩個網域仍要各自登入一次**。除非兩站在同一個父網域下並刻意設定 cookie `domain`（要做先討論），否則不要對外宣稱「單一登入」。
+兩站共用 `user`／`account` 資料，並設定 Google／GitHub trusted provider account linking；**同一個 email 的 Google／GitHub 帳號整合已在 Civic Talk 正式站實測成功**（使用者確認 2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）。session cookie 綁 origin，所以**兩個網域仍要各自登入一次**。除非兩站在同一個父網域下並刻意設定 cookie `domain`（要做先討論），否則不要對外宣稱「單一登入」。
 
 ---
 
@@ -179,7 +179,7 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
 | 瀏覽器開 `/admin`                                 | 顯示 Google／GitHub 登入卡片                                                         | 2026-08-11 |
 | 用 Google 登入                                    | 導回 `/admin`；角色是 `admin`／`super-admin` 就進後台，否則顯示「沒有管理權限」      | 2026-08-11 |
 | 用 GitHub 登入                                    | 同樣能登入並導回原頁                                                                 | 2026-08-11 |
-| 用同一個 email 換 provider 登入                   | 同一個帳號、同樣權限，**不會變成新帳號**                                             | —          |
+| 用同一個 email 換 provider 登入                   | 同一個帳號、同樣權限，**不會變成新帳號**                                             | [2026-10-16（使用者確認）](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110) |
 | 登入後投稿素材／意見／議題                        | 寫入成功，且該筆內容顯示投稿者名稱（email 只在勾選公開時才出現）                     | 2026-08-11 |
 | 登入後送出說明頁                                  | 寫入成功且記錄 `author_id`；管理端看得到完整作者快照                                 | —          |
 | 登出後 `GET /api/me`                              | 401                                                                                  | —          |
@@ -206,7 +206,7 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
 
 ## 5. 已知限制
 
-- **登入主流程已實測**（Google／GitHub 登入、admin 進後台、登入後投稿，2026-08-11）；**尚未實證**：同一個 email 換 provider 登入是否落到同一個帳號、說明頁寫入的作者快照與管理端完整快照。
+- **登入主流程已實測**（Google／GitHub 登入、admin 進後台、登入後投稿，2026-08-11）；**同 email 帳號整合亦已在正式站實測成功**（使用者確認 2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）。**尚未實證**：四種寫入是否都落下完整作者快照（含說明頁與管理端取得完整快照）。
 - **已有自動化測試與 CI**：`src/tests/` 的 Vitest 測試涵蓋 i18n、SSR、API 安全邊界、作者隱私、moderation、投稿併發、首頁排序與意見投票等；`.github/workflows/ci.yml` 會在 push 到 `main` 與 pull request 執行 binding type generation、typecheck、`vp test` 及 build。正式站 OAuth、遠端 D1、Service Binding 與本節煙霧測試仍需人工驗證。
 - **公開唯讀 API 支援跨來源讀取**：`GET /api/issues`、`GET /api/issues/:id` 及其 `materials`／`briefing`／`opinions` 子資源維持 `Access-Control-Allow-Origin: *`，但不提供 `Access-Control-Allow-Credentials`。這些回應一律帶 `Cache-Control: private, no-store`、`X-Content-Type-Options: nosniff` 與 `Vary: Cookie`，避免公開／管理員投影被快取混用。管理端、需登入資料與所有寫入端點都不輸出 CORS 放行標頭。
 - **跨站寫入由 csrf 防護，不靠 CORS 或登入守衛**：缺少 `Access-Control-Allow-Credentials` 只會阻止瀏覽器把 credentialed response 交給跨來源程式碼，不代表 cookie 不會隨請求送出。`src/index.ts` 在所有 `/api/*` 路由之前掛上 `hono/csrf`，阻擋跨站與同站 sibling origin 的簡單寫入請求；登入、停權與角色守衛回答「是哪位使用者」，csrf 則回答「請求是不是本站頁面發起」。

@@ -25,7 +25,9 @@
 - 首頁與 `/api/issues` 皆 200、未登入打 `/api/me` 與 `/api/admin/stats` 得 401、`/api/auth/admin/list-users` 得 404（本站刻意不開成員管理端點）、`/index.html` 301 導向 `/`。
 - **Google 與 GitHub 登入都成功**、`admin` 角色進得了後台、登入後投稿成功。
 
-⚠️ 尚未實證的兩項：**同一個 email 用兩種 provider 登入是否落到同一個帳號**、四種寫入是否都落下完整作者快照（含管理端取得完整快照）。
+**同一個 email 的 Google／GitHub 帳號整合也已在正式站實測成功**（使用者確認 2026-10-16，見 [#5 留言](https://github.com/g0v/civic-talk-hono/issues/5#issuecomment-6225088110)）。
+
+⚠️ 尚未實證：四種寫入是否都落下完整作者快照（含管理端取得完整快照）。
 
 功能面重點：
 
