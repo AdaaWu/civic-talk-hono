@@ -359,6 +359,8 @@ npx wrangler tail --config wrangler.personal.jsonc
 
 `dist/civic_talk/` 與 `dist/<個人 worker 名>/` 會同時存在，真正決定 `wrangler deploy` 上傳哪一個的是 `.wrangler/deploy/config.json`，而它**只反映最後一次 build**。切換環境時務必重新建置，並用 `--dry-run` 確認後再部署。
 
+`vp run dev`／`vp run dev:remote` 啟動前也會先跑一次預設 build（`package.json` 的 `dev` 是 `vp run build && vp dev`），因此會把轉向檔切回 `dist/civic_talk/wrangler.json`。跑過 dev 之後要部署個人環境，必須先停掉 dev server，再以 `CLOUDFLARE_VITE_WRANGLER_CONFIG_PATH=./wrangler.personal.jsonc` 重新建置。
+
 ### 6.7 自架環境必須自備的外部相依
 
 | 項目                  | 說明                                                                                                                                                                   |
