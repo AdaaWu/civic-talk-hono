@@ -51,6 +51,42 @@ function publicError(c: Context, msg: string, status: ContentfulStatusCode = 400
   return publicJson(c, { error: msg }, status)
 }
 
+const FEEDBACK_CATEGORIES = ['bug', 'usability', 'suggestion'] as const
+
+function codePointLength(value: string): number {
+  let length = 0
+  for (let index = 0; index < value.length; index++) {
+    if (value.codePointAt(index)! > 0xffff) index++
+    length++
+  }
+  return length
+}
+
+function isSafeFeedbackPagePath(pagePath: string): boolean {
+  if (!pagePath.startsWith('/') || pagePath.startsWith('//') || pagePath.includes('#') || pagePath.includes('\\')) return false
+
+  for (const character of pagePath) {
+    const codePoint = character.codePointAt(0)!
+    if (codePoint <= 0x20 || (codePoint >= 0x7f && codePoint <= 0x9f)) return false
+  }
+  for (let index = 0; index < pagePath.length; index++) {
+    if (pagePath[index] !== '%') continue
+    const firstHexDigit = pagePath.charCodeAt(index + 1)
+    const secondHexDigit = pagePath.charCodeAt(index + 2)
+    const firstIsHex = (firstHexDigit >= 48 && firstHexDigit <= 57) || (firstHexDigit >= 65 && firstHexDigit <= 70) || (firstHexDigit >= 97 && firstHexDigit <= 102)
+    const secondIsHex = (secondHexDigit >= 48 && secondHexDigit <= 57) || (secondHexDigit >= 65 && secondHexDigit <= 70) || (secondHexDigit >= 97 && secondHexDigit <= 102)
+    if (!firstIsHex || !secondIsHex) return false
+    index += 2
+  }
+
+  try {
+    const parsed = new URL(pagePath, 'https://feedback.invalid')
+    return parsed.origin === 'https://feedback.invalid' && parsed.hash === ''
+  } catch {
+    return false
+  }
+}
+
 function factCheckUnavailable(c: Context): Response {
   return c.json(
     {
@@ -770,7 +806,39 @@ export function registerApiRoutes(app: App): void {
     return c.json({ ok: true }, 201)
   })
 
-  // POST /api/appeals — 被拒投稿／帳號停權的申訴；停權者仍可使用。
+  // POST /api/feedback — 匿名意見回饋；只驗證並保存表單明確提供的三個欄位。
+  app.post('/api/feedback', async c => {
+    let value: unknown
+    try {
+      value = await c.req.json()
+    } catch {
+      return error(c, 'Invalid JSON')
+    }
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return error(c, 'Request body must be an object')
+
+    const body = value as Record<string, unknown>
+    if (Object.keys(body).some(key => key !== 'category' && key !== 'description' && key !== 'page_path')) return error(c, 'Unexpected request field')
+
+    if (typeof body.category !== 'string' || !FEEDBACK_CATEGORIES.includes(body.category as (typeof FEEDBACK_CATEGORIES)[number])) {
+      return error(c, 'category must be "bug", "usability", or "suggestion"')
+    }
+    if (typeof body.description !== 'string') return error(c, 'description must be a string')
+    const description = body.description.trim()
+    if (!description) return error(c, 'description is required')
+    if (codePointLength(description) > 10_000) return error(c, 'description must be at most 10000 code points')
+    if (typeof body.page_path !== 'string') return error(c, 'page_path must be a string')
+    if (codePointLength(body.page_path) > 4096 || !isSafeFeedbackPagePath(body.page_path)) {
+      return error(c, 'page_path must be a safe same-origin path without a fragment')
+    }
+
+    await db.createFeedback(c.env.DB, {
+      category: body.category as (typeof FEEDBACK_CATEGORIES)[number],
+      description,
+      page_path: body.page_path,
+    })
+    return c.json({ ok: true }, 201)
+  })
+
   app.post('/api/appeals', async c => {
     const auth = await requireAppealUser(c)
     if ('denied' in auth) return auth.denied
@@ -935,6 +1003,20 @@ export function registerApiRoutes(app: App): void {
     if (denied) return denied
     const reports = await db.listAbuseReports(c.env.DB)
     return c.json(reports)
+  })
+
+  // GET /api/admin/feedback — 管理端私下瀏覽匿名意見回饋。
+  app.get('/api/admin/feedback', async c => {
+    const denied = await requireAdmin(c)
+    if (denied) {
+      denied.headers.set('Cache-Control', 'private, no-store')
+      denied.headers.set('Vary', 'Cookie')
+      return denied
+    }
+    return c.json(await db.listFeedback(c.env.DB), 200, {
+      'Cache-Control': 'private, no-store',
+      Vary: 'Cookie',
+    })
   })
 
   // 誤報 → 使用者回報時停權回報者；AI 回報誤報不處置任何人；→ 清除旗標 → resolved_false

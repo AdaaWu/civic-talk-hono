@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import SignInButtons from '../components/SignInButtons.vue'
@@ -10,9 +10,9 @@ import type { MessageKey } from '../l10n/zh-TW'
 import { useAuth } from '../composables/useAuth'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { isAdminSession } from '../client/auth-session'
-import type { AbuseReport, BriefingWithAuthor, IssueListItemWithAuthor, IssueStatus, MaterialWithAuthor, ModerationAppeal, OpinionWithAuthor } from '../db/queries'
+import type { AbuseReport, BriefingWithAuthor, Feedback, IssueListItemWithAuthor, IssueStatus, MaterialWithAuthor, ModerationAppeal, OpinionWithAuthor } from '../db/queries'
 
-type AdminTab = 'issues' | 'materials' | 'opinions' | 'reports' | 'moderation'
+type AdminTab = 'issues' | 'materials' | 'opinions' | 'reports' | 'moderation' | 'feedback'
 
 const { t, locale } = useI18n()
 const toast = ref<{ show: (msg: string) => void } | null>(null)
@@ -32,7 +32,7 @@ const adminView = computed<'loading' | 'anonymous' | 'forbidden' | 'admin'>(() =
   return isAdminSession(session.value) ? 'admin' : 'forbidden'
 })
 const duplicateNameRequiresEmail = computed(() => session.value?.hasDuplicateDisplayName === true)
-const activeTab = ref<AdminTab>('reports')
+const activeTab = ref<AdminTab>('feedback')
 const stats = ref({ issues: 0, materials: 0, opinions: 0, briefings: 0 })
 // 管理端讀到的議題／素材／意見都含建立者或投稿者（#9）；一般讀取者拿到的是公開形狀
 const issues = ref<IssueListItemWithAuthor[]>([])
@@ -40,6 +40,10 @@ const materials = ref<MaterialWithAuthor[]>([])
 const opinions = ref<OpinionWithAuthor[]>([])
 const abuseReports = ref<AbuseReport[]>([])
 const moderationAppeals = ref<ModerationAppeal[]>([])
+const feedback = ref<Feedback[]>([])
+const feedbackLoading = ref(false)
+const feedbackError = ref(false)
+const feedbackLoaded = ref(false)
 const matIssueId = ref<number | ''>('')
 const opIssueId = ref<number | ''>('')
 const issueSearch = ref('')
@@ -70,8 +74,17 @@ function authHeaders(): HeadersInit {
 }
 
 onMounted(async () => {
+  syncAdminTabFromUrl()
+  window.addEventListener('popstate', syncAdminTabFromUrl)
   await ensureAuthSession()
-  if (adminView.value === 'admin') await bootstrap()
+  if (adminView.value === 'admin') {
+    await bootstrap()
+    await activateTab(activeTab.value)
+  }
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('popstate', syncAdminTabFromUrl)
 })
 
 async function bootstrap() {
@@ -122,6 +135,24 @@ async function loadAbuseReports() {
 async function loadModeration() {
   const appealsRes = await fetch('/api/admin/moderation/appeals', { headers: authHeaders() })
   if (appealsRes.ok) moderationAppeals.value = await appealsRes.json()
+}
+
+async function loadFeedback() {
+  if (feedbackLoading.value) return
+  feedbackLoading.value = true
+  feedbackError.value = false
+  try {
+    const res = await fetch('/api/admin/feedback', { headers: authHeaders() })
+    if (!res.ok) throw new Error('Failed to load feedback')
+    const data = (await res.json()) as unknown
+    if (!Array.isArray(data)) throw new Error('Invalid feedback response')
+    feedback.value = data as Feedback[]
+    feedbackLoaded.value = true
+  } catch {
+    feedbackError.value = true
+  } finally {
+    feedbackLoading.value = false
+  }
 }
 
 type LiveUserEntry = { name: string | null; email: string; role: string | null; banned: boolean; banReason: string | null }
@@ -371,6 +402,7 @@ const APPEAL_STATUS_LABELS: Record<string, MessageKey> = {
   overturned: 'adm_mod_appeal_overturned',
 }
 const tabs = computed(() => [
+  { id: 'feedback' as const, label: t('feedback_title') },
   { id: 'reports' as const, label: t('adm_tab_reports') },
   { id: 'moderation' as const, label: t('adm_tab_moderation') },
   { id: 'issues' as const, label: t('adm_tab_issues') },
@@ -378,10 +410,32 @@ const tabs = computed(() => [
   { id: 'opinions' as const, label: t('adm_tab_opinions') },
 ])
 
-async function onTabChange(id: AdminTab) {
-  activeTab.value = id
+function parseAdminTab(search: string): AdminTab {
+  const tab = new URLSearchParams(search).get('tab')
+  return ['issues', 'materials', 'opinions', 'reports', 'moderation', 'feedback'].includes(tab ?? '') ? (tab as AdminTab) : 'feedback'
+}
+
+function syncAdminTabFromUrl() {
+  const nextTab = parseAdminTab(window.location.search)
+  if (activeTab.value === nextTab) return
+  activeTab.value = nextTab
+  if (adminView.value === 'admin') void activateTab(nextTab)
+}
+
+async function activateTab(id: AdminTab) {
   if (id === 'reports' && abuseReports.value.length === 0) await loadAbuseReports()
   if (id === 'moderation' && moderationAppeals.value.length === 0) await loadModeration()
+  if (id === 'feedback' && !feedbackLoaded.value && !feedbackError.value) await loadFeedback()
+}
+
+async function onTabChange(id: AdminTab) {
+  if (activeTab.value === id) return
+  activeTab.value = id
+  const nextUrl = new URL(window.location.href)
+  if (id === 'feedback') nextUrl.searchParams.delete('tab')
+  else nextUrl.searchParams.set('tab', id)
+  window.history.pushState({}, '', `${nextUrl.pathname}${nextUrl.search}${nextUrl.hash}`)
+  await activateTab(id)
 }
 
 const filteredIssues = computed(() => {
@@ -442,6 +496,22 @@ function parseSnapshot(snapshotJSON: string): Record<string, unknown> | null {
 function snapshotSummary(snapshotJSON: string): string {
   const summary = parseSnapshot(snapshotJSON)?.summary
   return typeof summary === 'string' && summary.trim() ? summary : snapshotJSON
+}
+
+const FEEDBACK_CATEGORY_LABELS: Record<Feedback['category'], MessageKey> = {
+  bug: 'feedback_category_bug',
+  usability: 'feedback_category_usability',
+  suggestion: 'feedback_category_suggestion',
+}
+
+function isSafeFeedbackPagePath(pagePath: string): boolean {
+  if (typeof pagePath !== 'string' || !pagePath.startsWith('/') || pagePath.startsWith('//') || /[\\#\u0000-\u001f\u007f]/.test(pagePath)) return false
+  try {
+    const url = new URL(pagePath, 'https://civic-talk.invalid')
+    return url.origin === 'https://civic-talk.invalid' && !url.hash
+  } catch {
+    return false
+  }
 }
 </script>
 
@@ -882,6 +952,37 @@ function snapshotSummary(snapshotJSON: string): string {
                   </tr>
                 </tbody>
               </table>
+            </div>
+          </section>
+          <section v-show="activeTab === 'feedback'">
+            <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+              <h2 class="m-0 font-serif text-xl">{{ t('feedback_title') }}</h2>
+              <a href="https://github.com/g0v/civic-talk-hono/issues" target="_blank" rel="noopener noreferrer" class="btn btn-secondary btn-sm">
+                {{ t('feedback_github') }}
+              </a>
+            </div>
+            <div v-if="feedbackLoading" class="empty">{{ t('feedback_loading') }}</div>
+            <div v-else-if="feedbackError" class="empty">
+              <p>{{ t('feedback_load_error') }}</p>
+              <button type="button" class="btn btn-secondary btn-sm" @click="loadFeedback">
+                {{ t('feedback_retry') }}
+              </button>
+            </div>
+            <div v-else-if="!feedback.length" class="empty">{{ t('feedback_empty') }}</div>
+            <div v-else class="space-y-3">
+              <article v-for="item in feedback" :key="item.id" class="card min-w-0">
+                <div class="mb-2 flex flex-wrap items-start justify-between gap-2">
+                  <strong>{{ t(FEEDBACK_CATEGORY_LABELS[item.category]) }}</strong>
+                  <time class="text-sm text-muted" :datetime="item.created_at"> {{ t('feedback_created_at') }} · {{ formatDate(item.created_at, locale) }} </time>
+                </div>
+                <a v-if="isSafeFeedbackPagePath(item.page_path)" :href="item.page_path" target="_blank" rel="noopener noreferrer" class="mb-3 inline-block max-w-full break-words text-sm underline">
+                  {{ t('feedback_page') }}: {{ item.page_path }}
+                </a>
+                <div class="min-w-0">
+                  <strong class="text-sm">{{ t('feedback_description') }}</strong>
+                  <div class="mt-1 whitespace-pre-wrap break-words text-sm">{{ item.description }}</div>
+                </div>
+              </article>
             </div>
           </section>
         </template>

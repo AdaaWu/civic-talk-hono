@@ -8,8 +8,19 @@ export type AbuseReportSource = 'user' | 'ai'
 export type ModerationPolicyCode = 'spam' | 'sexual_content' | 'hate_speech' | 'defamation' | 'misinformation' | 'illegal'
 export type ModerationSubmissionType = 'issue' | 'material' | 'opinion' | 'briefing'
 export type AbuseReviewStatus = 'pending' | 'resolved_false' | 'resolved_abuse' | 'resolved_broken'
+
 export type ModerationAppealType = 'rejected_submission' | 'account_ban'
 export type ModerationAppealStatus = 'pending' | 'upheld' | 'overturned'
+export type FeedbackCategory = 'bug' | 'usability' | 'suggestion'
+
+/** 透過匿名意見回饋送出的內容；不包含任何使用者或請求識別資訊。 */
+export interface Feedback {
+  id: number
+  category: FeedbackCategory
+  description: string
+  page_path: string
+  created_at: string
+}
 
 export interface AuthorSnapshotInput {
   author_id: string
@@ -1027,6 +1038,17 @@ export async function listAbuseReports(db: D1Database): Promise<AbuseReport[]> {
        ORDER BY r.created_at DESC`
     )
     .all<AbuseReport>()
+  return results ?? []
+}
+
+/** 建立匿名意見回饋；只持久化表單欄位，不讀取或保存請求者識別資訊。 */
+export async function createFeedback(db: D1Database, input: Pick<Feedback, 'category' | 'description' | 'page_path'>): Promise<void> {
+  await db.prepare('INSERT INTO ct_feedback (category, description, page_path) VALUES (?, ?, ?)').bind(input.category, input.description, input.page_path).run()
+}
+
+/** 管理端按建立時間及 ID 降冪瀏覽匿名意見回饋；呼叫端必須先通過管理員守衛。 */
+export async function listFeedback(db: D1Database): Promise<Feedback[]> {
+  const { results } = await db.prepare('SELECT id, category, description, page_path, created_at FROM ct_feedback ORDER BY created_at DESC, id DESC').all<Feedback>()
   return results ?? []
 }
 

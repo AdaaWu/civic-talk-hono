@@ -28,6 +28,7 @@ const { t } = useI18n()
               <li v-html="t('privacy_s2_li2')"></li>
               <li v-html="t('privacy_s2_li3')"></li>
               <li v-html="t('privacy_s2_li4')"></li>
+              <li>{{ t('feedback_privacy_details') }}</li>
             </ul>
           </section>
 

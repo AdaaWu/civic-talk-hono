@@ -8,6 +8,7 @@ import { useViewerRole } from '../composables/useViewerRole'
 import SignInButtons from './SignInButtons.vue'
 import ViewerRoleSwitch from './ViewerRoleSwitch.vue'
 import LanguageSwitcher from './LanguageSwitcher.vue'
+import UserFeedbackModal from './UserFeedbackModal.vue'
 const darkMode = useDarkMode()
 const { initViewerRole } = useViewerRole()
 
@@ -37,6 +38,7 @@ const { authState, session, ensureAuthSession, signOutAndReload } = useAuth()
 const showLoginPanel = ref(false)
 /** 手機版漢堡選單 */
 const showMenu = ref(false)
+const showFeedback = ref(false)
 
 const displayName = computed(() => session.value?.user.name || session.value?.user.email || '')
 const hasAdminAccess = computed(() => isAdminSession(session.value))
@@ -65,6 +67,10 @@ const avatarImage = computed(() => session.value?.user.image ?? null)
 function closeMenu() {
   showMenu.value = false
 }
+function openFeedback() {
+  showFeedback.value = true
+  closeMenu()
+}
 function handleNewIssue() {
   emit('new-issue')
   closeMenu()
@@ -72,26 +78,22 @@ function handleNewIssue() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-[100] px-4 pt-3 bg-transparent">
+  <header class="sticky top-0 z-[100] bg-transparent px-2 pt-3 sm:px-4">
     <!-- ── 主列：logo ＋ 桌面 nav ＋ 手機漢堡按鈕 ── -->
     <div
-      class="mx-auto flex h-16 items-center justify-between rounded-xl border border-vt-border/75 bg-vt-bg-1/88 px-4 pl-6 shadow-md backdrop-blur-[20px]"
-      :class="isJapanese ? 'max-w-6xl max-sm:pl-4 max-sm:pr-2' : 'max-w-[980px] xl:max-w-6xl'"
+      class="mx-auto flex h-16 items-center justify-between rounded-xl border border-vt-border/75 bg-vt-bg-1/88 px-1 shadow-md backdrop-blur-[20px] sm:px-4 sm:pl-6"
+      :class="isJapanese ? 'max-w-6xl' : 'max-w-[980px] xl:max-w-6xl'"
     >
       <!-- Logo -->
       <a href="/" class="flex shrink-0 items-center no-underline" aria-label="vTaiwan Civic Talk">
-        <img src="/vtaiwan-logo.svg" alt="vTaiwan" class="w-auto dark:hidden" :class="isJapanese ? 'h-6 sm:h-7' : 'h-7'" />
-        <img src="/vtaiwan-logo-dark.svg" alt="vTaiwan" class="hidden w-auto dark:block" :class="isJapanese ? 'h-6 sm:h-7' : 'h-7'" />
+        <img src="/vtaiwan-logo.svg" alt="vTaiwan" class="h-6 w-auto dark:hidden sm:h-7" />
+        <img src="/vtaiwan-logo-dark.svg" alt="vTaiwan" class="hidden h-6 w-auto dark:block sm:h-7" />
       </a>
 
       <!-- 三語在寬桌機才展開導覽，避免平板與登入後的工具列擠版。 -->
       <nav
-        class="hidden items-center gap-0.5 xl:flex"
-        :class="
-          isJapanese
-            ? '[&_a]:text-xs [&_a>span]:text-xs [&_button]:text-xs [&_select]:text-xs [&>a]:whitespace-nowrap [&>a]:px-2 [&_button]:px-2 [&_select]:px-2'
-            : ''
-        "
+        class="hidden items-center gap-0.5 whitespace-nowrap xl:flex [&>a]:px-2 [&_button]:px-2"
+        :class="isJapanese ? '[&_a]:text-xs [&_a>span]:text-xs [&_button]:text-xs [&_select]:text-xs [&>a]:whitespace-nowrap [&>a]:px-2 [&_button]:px-2 [&_select]:px-2' : ''"
       >
         <a v-if="backHref" :href="backHref" class="rounded-pill px-3 py-1.5 text-[15px] text-vt-fg-2 no-underline hover:bg-black/5 dark:hover:bg-white/10">
           {{ backText }}
@@ -111,6 +113,19 @@ function handleNewIssue() {
         >
           {{ t('nav_about') }}
         </a>
+        <button
+          type="button"
+          class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded-pill px-3 py-1.5 text-[15px] text-vt-fg-2 hover:bg-black/5 dark:hover:bg-white/10"
+          aria-haspopup="dialog"
+          @click="showFeedback = true"
+        >
+          <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+            <path d="M12 7v5m0 4h.01" />
+          </svg>
+          {{ t('feedback_title') }}
+        </button>
+        <span class="mx-1 h-4 w-px bg-vt-border" aria-hidden="true" />
         <ViewerRoleSwitch />
         <a
           v-if="hasAdminAccess"
@@ -179,7 +194,7 @@ function handleNewIssue() {
               <img v-if="avatarImage" :src="avatarImage" :alt="displayName" referrerpolicy="no-referrer" />
               <span v-else>{{ avatarInitial }}</span>
             </div>
-            <span class="max-w-[10rem] truncate text-[14px] text-vt-fg-2">{{ displayName }}</span>
+            <span class="max-w-20 truncate text-[14px] text-vt-fg-2 2xl:max-w-40" :title="displayName">{{ displayName }}</span>
           </a>
           <button type="button" class="btn btn-ghost btn-sm" @click="signOutAndReload">
             {{ t('logout') }}
@@ -193,23 +208,34 @@ function handleNewIssue() {
         </template>
       </nav>
 
-      <!-- ── 手機右側：avatar（已登入時）＋ 漢堡按鈕 ── -->
-      <div class="flex items-center gap-1.5 xl:hidden" :class="isJapanese ? 'max-sm:[&_[role=group]_button]:px-1' : ''">
-        <!-- 角色會影響所有頁面的內容排序，手機版也固定顯示，不收進漢堡選單。 -->
-        <ViewerRoleSwitch compact />
-
-        <!-- 已登入時在 bar 右側露出小 avatar，讓使用者知道自己有登入 -->
-        <a v-if="authState === 'signed-in'" href="/profile" class="rounded-full" :title="t('profile_title')">
-          <div class="avatar" aria-hidden="true">
+      <!-- 手機單列：頭像（已登入時）、角色切換、回報、漢堡選單。 -->
+      <div class="flex shrink-0 items-center gap-0.5 max-sm:[&_[role=group]_button]:px-1 sm:gap-1.5 xl:hidden">
+        <a v-if="authState === 'signed-in'" href="/profile" class="shrink-0 rounded-full" :title="t('profile_title')">
+          <div class="avatar h-7 w-7 sm:h-8 sm:w-8" aria-hidden="true">
             <img v-if="avatarImage" :src="avatarImage" :alt="displayName" referrerpolicy="no-referrer" />
             <span v-else>{{ avatarInitial }}</span>
           </div>
         </a>
+        <ViewerRoleSwitch compact />
+        <button
+          type="button"
+          class="flex h-9 w-8 shrink-0 items-center justify-center gap-1 whitespace-nowrap rounded-lg text-vt-fg-2 hover:bg-black/5 sm:w-auto sm:px-2 sm:text-sm dark:hover:bg-white/10"
+          :aria-label="t('feedback_title')"
+          :title="t('feedback_title')"
+          aria-haspopup="dialog"
+          @click="openFeedback"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8v.5Z" />
+            <path d="M12 7v5m0 4h.01" />
+          </svg>
+          <span class="hidden sm:inline">{{ t('feedback_title') }}</span>
+        </button>
 
         <!-- 漢堡按鈕 -->
         <button
           type="button"
-          class="flex h-9 w-9 items-center justify-center rounded-lg hover:bg-black/5 dark:hover:bg-white/10"
+          class="flex h-9 w-8 shrink-0 items-center justify-center rounded-lg hover:bg-black/5 sm:w-9 dark:hover:bg-white/10"
           :aria-expanded="showMenu"
           :aria-label="t('nav_menu')"
           @click="showMenu = !showMenu"
@@ -366,12 +392,10 @@ function handleNewIssue() {
     </div>
 
     <!-- 桌面登入面板沿用導覽斷點與容器寬度。 -->
-    <div
-      v-if="authState === 'anonymous' && showLoginPanel"
-      class="mx-auto mt-2 hidden max-w-6xl rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px] xl:block"
-    >
+    <div v-if="authState === 'anonymous' && showLoginPanel" class="mx-auto mt-2 hidden max-w-6xl rounded-xl border border-vt-border/75 bg-vt-bg-1/95 p-4 shadow-md backdrop-blur-[20px] xl:block">
       <p class="mt-0 mb-3 text-sm text-muted">{{ t('login_panel_desc') }}</p>
       <SignInButtons :callback-url="loginCallbackUrl" />
     </div>
+    <UserFeedbackModal :open="showFeedback" @close="showFeedback = false" />
   </header>
 </template>

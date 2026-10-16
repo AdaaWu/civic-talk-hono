@@ -155,6 +155,7 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
   npx wrangler d1 migrations apply vtaiwan-civic-talks --remote
   ```
 - 套用後要再確認 pending 清單為空，並檢查 `sqlite_master`：本 repo 新增的業務表只能是 `ct_*`。不能只因 repo 裡已有 `0013` 就推定遠端也已套用。
+- #148 的 `0014_user_feedback.sql` 新增 `ct_feedback`，匿名回報寫入及管理端回報列表皆依賴此表。本機已套用；遠端尚未查核或套用，須沿用以上授權與 migration 先於 Worker 的順序。
 
 ---
 
@@ -186,6 +187,10 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
 | 登入後投票、改票、收回                            | 成功；投票後可見分布，收回後再次遮蔽；作者及 `abuse_flagged = 2/3` 不可投            | —          |
 | `GET /api/issues/:id/opinions?sort=responses`     | 200；按回應數排序，未投票者仍看不到分布                                              | —          |
 | `GET /api/issues/:id/opinions/comments.csv`       | 未登入 401；登入後回 pol.is 相容 CSV，且不含 Better Auth id、email 或 voter identity | —          |
+| 導覽列開啟使用者回報                              | 桌機文字／手機圖示可用，modal 不換頁；淺深色、三語與已登入長名稱不擠版              | —          |
+| 匿名 `POST /api/feedback`                         | 有效分類、描述及相對頁面路徑得到 `201 { "ok": true }`，`ct_feedback` 不含帳號或環境資料 | —       |
+| `GET /api/admin/feedback`                         | 未登入 401、一般使用者 403、管理員 200；回應 private/no-store，回報依新到舊排列       | —          |
+| `/admin?tab=feedback`                             | 管理員可瀏覽；描述保留換行但不執行 HTML，原頁面與 GitHub 連結另開分頁                | —          |
 
 > ⚠️ **`/api/auth/get-session` 回 200 不代表登入設定正確**——沒有 cookie 時它跟 callback 網址設錯或 `BETTER_AUTH_URL` 設錯的情況長得一樣。登入相關的列只能靠人工在瀏覽器實測；改網域或換金鑰後要重跑。
 

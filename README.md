@@ -35,8 +35,12 @@
 - **條款同意落庫**：三類具名投稿由伺服器端驗證同意並寫入條款版本與時間。
 - **全站登入狀態**：`AppHeader` 顯示登入者與登出，未登入時提供 Google／GitHub 登入面板。
 - **管理權限走角色**：Better Auth session 的 `admin`／`super-admin`；角色由 [`../vTaiwan-hono`](../vTaiwan-hono) 管理，本站只讀。
+- **使用者回報（#148）**：桌機以相同圖示＋「使用者回報」文字合成單一按鈕，手機頂列使用回報圖示，點擊開啟 modal、不換頁。手機 Navbar 維持單列，登入頭像位於角色切換左側，右端依序為「公民／志願者 → 回報圖示 → 漢堡選單」。三種分類與描述必填，免登入匿名送出，關閉後保留當頁回報草稿。回報只保存分類、描述、頁面路徑＋query、ID 與時間，僅管理員可瀏覽；不讀取或保存回報者帳號，也不額外收集 IP／瀏覽器資料。回報視窗與後台提供另開 GitHub issues 的連結，不自動傳送回報內容。
+  - 回報按鈕在 `sm`（640px）起就顯示圖示＋文字，不必等到桌機導覽列展開；小於 640px 僅顯示圖示。所有寬度均維持同一列與同一個按鈕。
+  - 點擊回報 modal 外圍霧面、按 Escape 或關閉鈕可收起視窗，分類與未送出描述仍保留；點擊框內內容或留白不會誤關閉。送出期間這些關閉操作皆暫停，請求結束（含失敗或 15 秒逾時）後恢復。
+  - 管理後台的「使用者回報」排在第一個分頁；`/admin` 未指定或帶無效 `tab` 時預設顯示回報。其他分頁使用明確的 `?tab=reports|moderation|issues|materials|opinions`，`?tab=feedback` 仍可直接開啟回報；切換回報時省略 `tab`，其他 query、hash 與上一頁／下一頁狀態照常保留。
 - **三語介面（#136）**：桌機標頭與手機選單可直接選擇繁體中文、English、日本語；語言偏好只在掛載後從 `localStorage.civic_lang` 恢復，SSR 維持繁中。日期與 `OPINION.md` 引導文件跟隨語言，使用者投稿的原始內容不自動翻譯。
-  - 三語 navbar 統一在 1280px 起展開桌機導覽，以下使用漢堡選單；桌機容器同步加寬，避免登入後的管理連結與使用者資訊擠版。下拉選單與桌機登入面板沿用相同斷點。日語仍以 `isJapanese` 使用較小字級，窄手機壓縮標頭水平間距，首頁排序鈕與志願者表單標籤使用較小字級；中英版不縮字，footer 正常換行。
+  - 三語 navbar 統一在 1280px 起展開桌機導覽，以下使用漢堡選單；桌機容器同步加寬、長名稱截斷並可懸停查看全文，避免登入後的管理連結與使用者資訊擠版。下拉選單與桌機登入面板沿用相同斷點。手機透過較小 logo 與水平間距維持單列；日語桌機仍以 `isJapanese` 使用較小字級，首頁排序鈕與志願者表單標籤使用較小字級；中英版不縮字，footer 正常換行。
 
 ## 開發
 
@@ -94,10 +98,19 @@ vp run dev
 
 舊網址 `/index.html`、`/issue.html?id=`、`/contribute.html?id=`、`/about.html`、`/admin.html` 會導向新路由。
 
+### 使用者回報 API
+
+- `POST /api/feedback`：免登入；JSON `{ category, description, page_path }`，`category` 為 `bug`／`usability`／`suggestion`，描述去除首尾空白後須為 1–10,000 個 Unicode code points；`page_path` 為最多 4,096 個 code points 的同源相對路徑＋query，不含 origin 或 hash。成功 `201 { "ok": true }`，無效資料 `400 { "error": "..." }`。表單送出不帶 session cookie，仍沿用全域 CSRF 防護，不開放跨來源寫入。
+- 回報表單的請求上限為 15 秒；逾時沿用失敗提示並解除送出鎖定，保留分類與完整描述，允許關閉／重開或手動重試，不自動重送。逾時僅中止瀏覽器等候，不保證伺服器尚未寫入。
+- `GET /api/admin/feedback`：需未停權的 `admin`／`super-admin`，未登入 `401`、無權限 `403`；回傳 `{ id, category, description, page_path, created_at }[]`，依時間與 ID 由新到舊排列，回應為 `private, no-store` 並帶 `Vary: Cookie`，無公開查詢端點。
+- `/admin?tab=feedback`：只供瀏覽，包含載入／錯誤重試／空清單狀態；分頁與 URL 雙向同步，保留其他 query 並支援上一頁／下一頁。描述以跳脫過的純文字呈現，保留換行，不執行 HTML。
+
+
 ## 資料
 
 - 業務資料庫：D1 `vtaiwan-civic-talks`（binding：`DB`）；業務表一律 `ct_` 前綴：`ct_issues`、`ct_materials`、`ct_briefings`、`ct_opinions`
 - `migrations/0001`–`0006`（初始 schema、作者快照、條款同意）**本機與遠端皆已套用**
+- `migrations/0014_user_feedback.sql` 新增 `ct_feedback`；本機已套用，遠端尚未套用／查核，部署相依 Worker 前須取得授權並先套用 migration。
 - 認證資料庫：D1 `vtaiwan-auth`（binding：`DB_AUTH`），schema 由 `../vTaiwan-hono` 維護——本 repo **只讀不改**，🚫 不對它跑任何 migration
 - 遠端 migration 需先取得授權：`npx wrangler d1 migrations apply vtaiwan-civic-talks --remote`
 
