@@ -72,6 +72,36 @@ describe('Issue SSR', () => {
     expect((html.match(/class="carousel__slide/g) ?? []).length).toBe(4)
     expect(html).not.toContain('class="tabs"')
   })
+  it('shows OPINION.md actions before login while keeping the opinion form gated', async () => {
+    const app = createSSRApp(IssueView, {
+      issueId: 1,
+      initialStep: 'comments',
+      initialCommentAction: 'ai_help',
+      initialDetail: {
+        issue: {
+          id: 1,
+          title: '測試議題',
+          description: '議題說明',
+          status: 'published',
+          polis_id: null,
+          created_at: '2026-08-17 00:00:00',
+          abuse_flagged: 0,
+          author_name: null,
+          author_email: null,
+        },
+        materials: [],
+        briefing: null,
+        opinions: [],
+      },
+    })
+    provideI18n(app, 'zh-TW')
+
+    const html = await renderToString(app)
+
+    expect(html).toContain('複製 OPINION.md 到剪貼簿')
+    expect(html).toContain('下載 OPINION.md')
+    expect(html).not.toContain('id="opinion-content"')
+  })
   it('renders opted-in author emails as mailto links only (#60)', async () => {
     const app = createSSRApp(IssueView, {
       issueId: 1,
