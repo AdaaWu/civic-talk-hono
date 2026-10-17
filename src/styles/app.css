@@ -684,13 +684,18 @@
     overscroll-behavior: contain;
   }
 
-  @media (max-width: 639px) {
+  @media (width < theme(--breakpoint-sm)) {
     .feedback-modal[open] {
       display: flex;
       flex-direction: column;
-      height: 90vh;
+      height: 90dvh;
+      max-height: 90dvh;
       min-height: 0;
       overflow: hidden;
+    }
+
+    .feedback-modal[open] > * {
+      flex-shrink: 0;
     }
 
     .feedback-modal[open] form,
@@ -702,9 +707,21 @@
       min-height: 0;
     }
 
+    /* 短螢幕、長網址或錯誤提示超出空間時，仍可捲到完整表單與操作按鈕。 */
+    .feedback-modal[open] form {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+
+    .feedback-modal[open] fieldset,
+    .feedback-modal[open] .feedback-description-group {
+      flex: 1 0 auto;
+    }
+
     .feedback-modal[open] .feedback-description-input {
-      flex: 1;
-      min-height: 0;
+      flex: 1 0 auto;
+      height: 0;
+      min-height: calc(2lh + var(--spacing-vt-6));
     }
   }
 

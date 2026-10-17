@@ -1307,6 +1307,12 @@
     .sm\:mt-2 {
       margin-top: calc(var(--spacing) * 2);
     }
+    .sm\:mt-4 {
+      margin-top: calc(var(--spacing) * 4);
+    }
+    .sm\:mb-4 {
+      margin-bottom: calc(var(--spacing) * 4);
+    }
     .sm\:block {
       display: block;
     }
@@ -1366,6 +1372,9 @@
     }
     .sm\:gap-4 {
       gap: calc(var(--spacing) * 4);
+    }
+    .sm\:p-5 {
+      padding: calc(var(--spacing) * 5);
     }
     .sm\:p-7 {
       padding: calc(var(--spacing) * 7);
@@ -2217,13 +2226,17 @@
     overflow-y: auto;
     overscroll-behavior: contain;
   }
-  @media (max-width: 639px) {
+  @media (width < 40rem) {
     .feedback-modal[open] {
       display: flex;
       flex-direction: column;
-      height: 90vh;
+      height: 90dvh;
+      max-height: 90dvh;
       min-height: 0;
       overflow: hidden;
+    }
+    .feedback-modal[open] > * {
+      flex-shrink: 0;
     }
     .feedback-modal[open] form, .feedback-modal[open] fieldset, .feedback-modal[open] .feedback-description-group {
       display: flex;
@@ -2231,9 +2244,17 @@
       flex-direction: column;
       min-height: 0;
     }
+    .feedback-modal[open] form {
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .feedback-modal[open] fieldset, .feedback-modal[open] .feedback-description-group {
+      flex: 1 0 auto;
+    }
     .feedback-modal[open] .feedback-description-input {
-      flex: 1;
-      min-height: 0;
+      flex: 1 0 auto;
+      height: 0;
+      min-height: calc(2lh + var(--spacing-vt-6));
     }
   }
   .prompt-box {
