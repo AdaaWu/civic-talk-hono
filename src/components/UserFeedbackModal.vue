@@ -103,7 +103,15 @@ async function submit() {
         </div>
         <div class="feedback-description-group form-group">
           <label for="feedback-description">{{ t('feedback_description') }}</label>
-          <textarea id="feedback-description" v-model="description" class="feedback-description-input" rows="5" required :placeholder="t('feedback_description_hint')" aria-describedby="feedback-limit" />
+          <textarea
+            id="feedback-description"
+            v-model="description"
+            class="feedback-description-input"
+            rows="5"
+            required
+            :placeholder="t('feedback_description_hint')"
+            aria-describedby="feedback-limit"
+          />
           <p id="feedback-limit" class="mt-2 text-sm text-vt-fg-2">{{ t('feedback_limit') }}</p>
         </div>
         <p class="mb-4 break-all text-sm text-vt-fg-2">{{ t('feedback_page') }}: {{ pagePath }}</p>

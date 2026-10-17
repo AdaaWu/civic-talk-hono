@@ -51,7 +51,7 @@ describe('語言偏好與插值', () => {
     expect(readInitialLocale()).toBe(expected)
   })
 
-  it.each([[], undefined])('瀏覽器沒有語言清單時使用 navigator.language', (languages) => {
+  it.each([[], undefined])('瀏覽器沒有語言清單時使用 navigator.language', languages => {
     vi.stubGlobal('window', { localStorage: { getItem: () => null } })
     vi.stubGlobal('navigator', { languages, language: 'ja-JP' })
     expect(readInitialLocale()).toBe('ja')
