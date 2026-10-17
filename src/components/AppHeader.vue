@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { useI18n, readStoredLocale } from '../l10n'
+import { useI18n, readInitialLocale, syncDocumentLang } from '../l10n'
 import { isAdminSession } from '../client/auth-session'
 import { useAuth } from '../composables/useAuth'
 import { useDarkMode } from '../composables/useDarkMode'
@@ -30,7 +30,7 @@ const emit = defineEmits<{
   'new-issue': []
 }>()
 
-const { t, setLocale, locale } = useI18n()
+const { t, locale } = useI18n()
 const isJapanese = computed(() => locale.value === 'ja')
 
 const { authState, session, ensureAuthSession, signOutAndReload } = useAuth()
@@ -46,9 +46,9 @@ const hasAdminAccess = computed(() => isAdminSession(session.value))
 const loginCallbackUrl = computed(() => props.callbackUrl ?? (typeof window === 'undefined' ? '/' : window.location.pathname + window.location.search))
 
 onMounted(() => {
-  // hydration 後才讀 localStorage，避免 SSR mismatch
-  const next = readStoredLocale()
-  if (next !== locale.value) setLocale(next)
+  // hydration 後才讀手動偏好／瀏覽器語言；自動選擇不寫成永久偏好。
+  locale.value = readInitialLocale()
+  syncDocumentLang(locale.value)
   darkMode.init()
   initViewerRole()
   // 登入狀態同樣是 hydration 後才知道；useAuth 會跟頁面上的表單共用同一次 /api/me

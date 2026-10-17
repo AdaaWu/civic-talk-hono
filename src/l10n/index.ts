@@ -30,13 +30,26 @@ export function normalizeLocale(raw: string | null | undefined): Locale {
   return 'zh-TW'
 }
 
-export function readStoredLocale(): Locale {
+/** 手動偏好優先；未設定時依瀏覽器語言順序選擇。SSR 一律維持繁中。 */
+export function readInitialLocale(): Locale {
   if (typeof window === 'undefined') return 'zh-TW'
   try {
-    return normalizeLocale(window.localStorage.getItem(STORAGE_KEY))
+    const stored = window.localStorage.getItem(STORAGE_KEY)
+    if (stored === 'zh' || supportedLocales.some(({ code }) => code === stored)) {
+      return normalizeLocale(stored)
+    }
   } catch {
-    return 'zh-TW'
+    // 儲存不可用時仍依瀏覽器語言選擇，不影響頁面載入。
   }
+  if (typeof navigator !== 'undefined') {
+    const languages = navigator.languages?.length ? navigator.languages : [navigator.language]
+    for (const language of languages) {
+      const base = language.toLowerCase().split('-')[0]
+      if (base === 'en' || base === 'ja') return base
+      if (base === 'zh') return 'zh-TW'
+    }
+  }
+  return 'zh-TW'
 }
 
 export function persistLocale(locale: Locale): void {

@@ -43,7 +43,7 @@ if (!page || !pages[page]) {
   console.error('[civic] unknown page for hydration:', page)
 } else {
   const app = createSSRApp(pages[page], state)
-  // 與 SSR 一致先用 zh-TW；localStorage 語言偏好在 AppHeader onMounted 再切
+  // 與 SSR 一致先用 zh-TW；手動偏好／瀏覽器語言在 AppHeader onMounted 再切
   provideI18n(app, 'zh-TW')
   app.mount('#app', true)
 }
