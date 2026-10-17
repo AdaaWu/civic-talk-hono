@@ -77,14 +77,14 @@ async function submit() {
 <template>
   <dialog
     ref="dialog"
-    class="modal m-auto max-w-[calc(100%-2rem)] border border-vt-border text-vt-fg-1 backdrop:bg-black/50"
+    class="feedback-modal modal m-auto max-w-[calc(100%-2rem)] border border-vt-border p-4 text-vt-fg-1 backdrop:bg-black/50 sm:p-5"
     aria-labelledby="feedback-title"
     aria-describedby="feedback-privacy"
     @cancel.prevent="close"
     @close="emit('close')"
     @click="closeOnBackdropClick"
   >
-    <div class="mb-4 flex items-start justify-between gap-4">
+    <div class="mb-2 flex items-start justify-between gap-4 sm:mb-4">
       <h2 id="feedback-title" class="m-0 font-vt-serif text-xl">{{ t('feedback_title') }}</h2>
       <button type="button" class="btn btn-ghost btn-sm shrink-0" :disabled="submitting" :aria-label="t('feedback_close')" @click="close">✕</button>
     </div>
@@ -101,9 +101,9 @@ async function submit() {
             <option value="suggestion">{{ t('feedback_category_suggestion') }}</option>
           </select>
         </div>
-        <div class="form-group">
+        <div class="feedback-description-group form-group">
           <label for="feedback-description">{{ t('feedback_description') }}</label>
-          <textarea id="feedback-description" v-model="description" rows="5" required :placeholder="t('feedback_description_hint')" aria-describedby="feedback-limit" />
+          <textarea id="feedback-description" v-model="description" class="feedback-description-input" rows="5" required :placeholder="t('feedback_description_hint')" aria-describedby="feedback-limit" />
           <p id="feedback-limit" class="mt-2 text-sm text-vt-fg-2">{{ t('feedback_limit') }}</p>
         </div>
         <p class="mb-4 break-all text-sm text-vt-fg-2">{{ t('feedback_page') }}: {{ pagePath }}</p>
@@ -116,6 +116,6 @@ async function submit() {
       </fieldset>
     </form>
     <button v-if="submitted" type="button" class="btn btn-secondary" @click="close">{{ t('feedback_close') }}</button>
-    <a href="https://github.com/g0v/civic-talk-hono/issues" target="_blank" rel="noopener noreferrer" class="mt-4 block text-sm">{{ t('feedback_github') }} ↗</a>
+    <a href="https://github.com/g0v/civic-talk-hono/issues" target="_blank" rel="noopener noreferrer" class="mt-2 block text-sm sm:mt-4">{{ t('feedback_github') }} ↗</a>
   </dialog>
 </template>
