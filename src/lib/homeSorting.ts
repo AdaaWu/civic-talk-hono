@@ -59,11 +59,7 @@ function filterBySearch(issues: IssueListItem[], q: string): IssueListItem[] {
   const tagQuery = query.startsWith('#') ? query.slice(1).trim() : query
   return issues.filter(issue => {
     const matchesText = (issue.title ?? '').toLowerCase().includes(query) || (issue.description ?? '').toLowerCase().includes(query)
-    const matchesTag =
-      tagQuery.length > 0 &&
-      issue.abuse_flagged !== 2 &&
-      issue.abuse_flagged !== 3 &&
-      issue.tags.some(tag => tag.toLowerCase().includes(tagQuery))
+    const matchesTag = tagQuery.length > 0 && issue.abuse_flagged !== 2 && issue.abuse_flagged !== 3 && issue.tags.some(tag => tag.toLowerCase().includes(tagQuery))
     return matchesText || matchesTag
   })
 }

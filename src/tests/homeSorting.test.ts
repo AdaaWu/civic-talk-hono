@@ -48,7 +48,20 @@ function sqliteDb(tables: Record<string, Row[]>) {
 }
 
 function issueRow(id: number, created_at: string, overrides: Partial<Row> = {}): Row {
-  return { id, title: `議題${id}`, description: '描述', status: 'collecting', polis_id: null, created_at, tags: '[]', abuse_flagged: 0, author_name: null, author_email: null, show_email: 0, ...overrides }
+  return {
+    id,
+    title: `議題${id}`,
+    description: '描述',
+    status: 'collecting',
+    polis_id: null,
+    created_at,
+    tags: '[]',
+    abuse_flagged: 0,
+    author_name: null,
+    author_email: null,
+    show_email: 0,
+    ...overrides,
+  }
 }
 
 describe('listIssues 的 last_activity_at（#77）', () => {
@@ -302,12 +315,7 @@ describe('filterAndSortHomeIssues（#77、#90）', () => {
   })
 
   it('citizen + 搜尋：保留標題／簡介比對並排除 collecting', () => {
-    const list = [
-      item(1, { title: '居住正義' }),
-      item(2, { status: 'collecting', title: '居住正義' }),
-      item(3, { title: '交通建設', description: '居住描述' }),
-      item(4, { title: '交通建設' }),
-    ]
+    const list = [item(1, { title: '居住正義' }), item(2, { status: 'collecting', title: '居住正義' }), item(3, { title: '交通建設', description: '居住描述' }), item(4, { title: '交通建設' })]
     expect(filterAndSortHomeIssues(list, 'citizen', 'newest', '居住').map(i => i.id)).toEqual([1, 3])
   })
 

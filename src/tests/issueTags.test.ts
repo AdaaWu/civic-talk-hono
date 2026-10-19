@@ -26,9 +26,7 @@ vi.mock('../auth/authorization', () => ({
 vi.mock('../auth/createAuth', () => ({ createAuth: vi.fn(() => ({ api: {} })) }))
 
 vi.mock('../moderation/service', () => ({
-  moderateSubmission: vi.fn(async () =>
-    moderationState.outcome === 'violation' ? { outcome: 'violation', policy_code: 'hate_speech', rationale: '不當內容', confidence: 1 } : { outcome: 'allow' }
-  ),
+  moderateSubmission: vi.fn(async () => (moderationState.outcome === 'violation' ? { outcome: 'violation', policy_code: 'hate_speech', rationale: '不當內容', confidence: 1 } : { outcome: 'allow' })),
   moderationReasonForPolicy: vi.fn(() => 'hate_speech'),
   moderateSubmissionWithDiagnostics: vi.fn(),
 }))
@@ -167,7 +165,7 @@ describe('issue tag persistence and API behavior', () => {
       env()
     )
     expect(updated.status).toBe(400)
-    expect(sqlite.prepare('SELECT tags FROM ct_issues WHERE id = ?').get(Number(seeded.lastInsertRowid))).toEqual({ tags: '[\"Housing\"]' })
+    expect(sqlite.prepare('SELECT tags FROM ct_issues WHERE id = ?').get(Number(seeded.lastInsertRowid))).toEqual({ tags: '["Housing"]' })
   })
 
   it('requires login to create and admin access to update', async () => {
@@ -187,11 +185,7 @@ describe('issue tag persistence and API behavior', () => {
   it('persists normalized violation snapshots and masks hidden tags on public reads', async () => {
     authState.current = user
     moderationState.outcome = 'violation'
-    const submitted = await testApp().request(
-      '/api/issues',
-      { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: issueBody({ tags: [' #Private-Tag ', 'private-tag'] }) },
-      env()
-    )
+    const submitted = await testApp().request('/api/issues', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: issueBody({ tags: [' #Private-Tag ', 'private-tag'] }) }, env())
     expect(submitted.status).toBe(201)
     const { id } = (await submitted.json()) as { id: number }
     const storedTags = sqlite.prepare('SELECT tags FROM ct_issues WHERE id = ?').get(id) as { tags: string }

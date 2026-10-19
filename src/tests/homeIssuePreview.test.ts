@@ -81,12 +81,7 @@ describe('home search query state', () => {
 
 describe('home tag suggestions', () => {
   it('deduplicates across issues ignoring case and excludes confirmed/AI-hidden issue tags', () => {
-    const issues = [
-      taggedIssue(1, ['Civic', 'Policy']),
-      taggedIssue(2, ['cIVIC', 'Community']),
-      taggedIssue(3, ['Removed'], 2),
-      taggedIssue(4, ['Pending moderation'], 3),
-    ]
+    const issues = [taggedIssue(1, ['Civic', 'Policy']), taggedIssue(2, ['cIVIC', 'Community']), taggedIssue(3, ['Removed'], 2), taggedIssue(4, ['Pending moderation'], 3)]
     expect(collectHomeTagSuggestions(issues)).toEqual(['Civic', 'Policy', 'Community'])
   })
 })

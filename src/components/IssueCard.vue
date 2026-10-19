@@ -37,7 +37,13 @@ function selectIssue(event: MouseEvent): void {
       <a :href="href" class="text-ink no-underline hover:no-underline after:absolute after:inset-0" @click="selectIssue">{{ issue.title }}</a>
     </h2>
     <div v-if="canShowTags" role="list" class="mt-2 flex min-w-0 flex-wrap gap-1 md:mt-0 md:justify-end md:self-end" :aria-label="t('issue_tags_label')">
-      <span v-for="tag in issue.tags" :key="tag.toLowerCase()" role="listitem" class="min-w-0 max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink [overflow-wrap:anywhere] dark:bg-gray-800">#{{ tag }}</span>
+      <span
+        v-for="tag in issue.tags"
+        :key="tag.toLowerCase()"
+        role="listitem"
+        class="min-w-0 max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink [overflow-wrap:anywhere] dark:bg-gray-800"
+        >#{{ tag }}</span
+      >
     </div>
   </div>
 </template>

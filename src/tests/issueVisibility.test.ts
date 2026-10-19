@@ -15,9 +15,42 @@ type IssueRow = {
 }
 
 const rows: IssueRow[] = [
-  { id: 1, title: '公開議題', description: '公開描述', status: 'collecting', polis_id: null, created_at: '2026-08-01', tags: '["public-tag"]', abuse_flagged: 0, author_name: null, author_email: null },
-  { id: 2, title: '已確認濫用', description: '不應公開', status: 'collecting', polis_id: null, created_at: '2026-08-02', tags: '["abuse-tag"]', abuse_flagged: 2, author_name: null, author_email: null },
-  { id: 3, title: '審查中議題', description: '暫時隱藏', status: 'collecting', polis_id: null, created_at: '2026-08-03', tags: '["sensitive-tag"]', abuse_flagged: 3, author_name: null, author_email: null },
+  {
+    id: 1,
+    title: '公開議題',
+    description: '公開描述',
+    status: 'collecting',
+    polis_id: null,
+    created_at: '2026-08-01',
+    tags: '["public-tag"]',
+    abuse_flagged: 0,
+    author_name: null,
+    author_email: null,
+  },
+  {
+    id: 2,
+    title: '已確認濫用',
+    description: '不應公開',
+    status: 'collecting',
+    polis_id: null,
+    created_at: '2026-08-02',
+    tags: '["abuse-tag"]',
+    abuse_flagged: 2,
+    author_name: null,
+    author_email: null,
+  },
+  {
+    id: 3,
+    title: '審查中議題',
+    description: '暫時隱藏',
+    status: 'collecting',
+    polis_id: null,
+    created_at: '2026-08-03',
+    tags: '["sensitive-tag"]',
+    abuse_flagged: 3,
+    author_name: null,
+    author_email: null,
+  },
 ]
 
 function testDb() {

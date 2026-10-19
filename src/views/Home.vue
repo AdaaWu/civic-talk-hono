@@ -256,7 +256,11 @@ async function copyRssUrl() {
           <p class="m-0 text-vt-fg-2">
             <span class="sm:hidden">{{ t('welcome_intro_mobile') }}</span>
             <span class="hidden sm:inline">{{ t('welcome_intro') }}</span>
-            <a href="/about" class="ml-1 text-vt-democratic-red underline hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vt-democratic-red dark:text-vt-fg-1 dark:focus-visible:outline-vt-fg-1">{{ t('welcome_learn_more') }}</a>
+            <a
+              href="/about"
+              class="ml-1 text-vt-democratic-red underline hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vt-democratic-red dark:text-vt-fg-1 dark:focus-visible:outline-vt-fg-1"
+              >{{ t('welcome_learn_more') }}</a
+            >
           </p>
         </div>
 
@@ -429,7 +433,10 @@ async function copyRssUrl() {
             <span id="home-issue-tag-suggestions-label" class="sr-only">{{ t('idx_tag_suggestions') }}</span>
             <label class="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-vt-fg-2">
               <span>{{ t('idx_sort_label') }}</span>
-              <select v-model="sortOrder" class="cursor-pointer rounded border border-vt-border bg-vt-bg-1 px-3 py-1.5 text-sm text-vt-fg-1 focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40">
+              <select
+                v-model="sortOrder"
+                class="cursor-pointer rounded border border-vt-border bg-vt-bg-1 px-3 py-1.5 text-sm text-vt-fg-1 focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
+              >
                 <option v-for="s in ['newest', 'most', 'least'] as const" :key="s" :value="s">
                   {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
                 </option>

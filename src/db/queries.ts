@@ -311,7 +311,9 @@ export async function listIssues(db: D1Database): Promise<IssueListItem[]> {
 
 /** 管理端專用：回傳完整作者快照。呼叫端必須先確認請求者是管理員。 */
 export async function listIssuesWithAuthor(db: D1Database): Promise<IssueListItemWithAuthor[]> {
-  const { results } = await db.prepare(`SELECT ${ISSUE_ADMIN_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues ORDER BY created_at DESC`).all<IssueRow<IssueListItemWithAuthor>>()
+  const { results } = await db
+    .prepare(`SELECT ${ISSUE_ADMIN_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues ORDER BY created_at DESC`)
+    .all<IssueRow<IssueListItemWithAuthor>>()
   return (results ?? []).map(row => issueFromRow(row))
 }
 
