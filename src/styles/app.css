@@ -872,17 +872,83 @@
     background: color-mix(in srgb, var(--color-vt-bg-2) 55%, transparent);
   }
 }
+/* 標頭、議題資訊、tabs 與授權列先佔用自然高度，輪播只取剩餘視窗空間。 */
+.issue-carousel-page {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+.issue-carousel-page > header {
+  flex: none;
+}
+
+.issue-main-carousel {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding-block: var(--spacing-vt-3);
+}
+
+.issue-container-carousel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.issue-carousel-page .issue-page-heading {
+  flex: none;
+  margin-bottom: var(--spacing-vt-2);
+}
+
+.issue-carousel-page .issue-briefing-tabs {
+  flex: none;
+  margin-bottom: var(--spacing-vt-2);
+}
+
+.issue-carousel-section {
+  flex: 1;
+  min-height: 0;
+}
+
+.issue-carousel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.issue-carousel .carousel__viewport {
+  flex: 1;
+  min-height: 0;
+}
+
+.issue-carousel .carousel__track,
+.issue-carousel .carousel__slide {
+  height: 100%;
+  min-height: 0;
+}
+
 .issue-carousel .carousel__slide {
   align-items: flex-start;
 }
 
 .issue-briefing-card {
-  max-height: 65svh;
+  max-height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
-.carousel__pagination {
+.issue-briefing-card .mobile-readable {
+  font-size: var(--text-vt-base);
+  line-height: var(--text-vt-base--line-height);
+}
+
+.issue-carousel .carousel__pagination {
+  flex: none;
   position: static;
   transform: none;
   margin-top: var(--spacing-vt-3);
@@ -975,11 +1041,6 @@ html.dark .alert-warn {
 
 /* 輪播套件與既有覆寫未分層；桌機覆寫也須保持未分層。 */
 @media (min-width: 601px) {
-  .issue-carousel .carousel__prev,
-  .issue-carousel .carousel__next {
-    inset-block-start: 30%;
-  }
-
   .issue-carousel .carousel__pagination {
     gap: var(--spacing-vt-3);
   }
@@ -997,67 +1058,6 @@ html.dark .alert-warn {
 
   .vt-hero {
     padding: 2.5rem 1rem 2rem;
-  }
-
-  .issue-carousel-page {
-    display: flex;
-    flex-direction: column;
-    height: 100svh;
-    overflow: hidden;
-  }
-
-  .issue-main-carousel {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-    padding-block: var(--spacing-vt-3);
-  }
-
-  .issue-container-carousel {
-    display: flex;
-    flex: 1;
-    flex-direction: column;
-    min-height: 0;
-  }
-
-  .issue-page-heading {
-    flex: none;
-    margin-bottom: var(--spacing-vt-3);
-  }
-
-  .issue-carousel-section {
-    flex: none;
-    max-height: 100%;
-    min-height: 0;
-  }
-
-  .issue-carousel {
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    max-height: 100%;
-    min-height: 0;
-  }
-
-  .issue-carousel .carousel__viewport,
-  .issue-carousel .carousel__track,
-  .issue-carousel .carousel__slide {
-    height: auto;
-    min-height: 0;
-  }
-
-  .issue-briefing-card {
-    max-height: 55svh;
-  }
-
-  .issue-carousel .carousel__pagination {
-    flex: none;
-    margin-top: var(--spacing-vt-2);
-  }
-
-  .issue-carousel-page > footer {
-    display: none;
   }
 }
 

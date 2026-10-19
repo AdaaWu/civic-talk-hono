@@ -38,6 +38,8 @@
 - **條款同意落庫**：三類具名投稿由伺服器端驗證同意並寫入條款版本與時間。
 - **全站登入狀態**：`AppHeader` 顯示登入者與登出，未登入時提供 Google／GitHub 登入面板。
 - **管理權限走角色**：Better Auth session 的 `admin`／`super-admin`；角色由 [`../vTaiwan-hono`](../vTaiwan-hono) 管理，本站只讀。
+- **議題說明輪播（#143）**：桌機與手機都以 `100dvh` 分配標頭、議題資訊、tabs、輪播與精簡授權列的高度，只在說明卡內捲動長文，避免頁面外層再出現捲軸。輪播不顯示狀態標籤與完整 footer，底部仍保留該建置版本的原始碼、授權與 client／Worker notices 入口；未提交版本沿用原始碼尚未發佈提示。寬螢幕說明內文維持 16px，訂閱鈕與 tabs 間距縮短。意見、素材與志願者工具保留自然捲動及完整 footer。
+  - 小於 640px 時，輪播底部與一般 footer 的軟體授權相關項目統一收進「軟體授權」按鈕；點擊後以原生 dialog 顯示著作權、軟體授權說明、原始碼下載及 client／Worker notices 連結。可用關閉鈕、Escape 或點擊外圍霧面關閉，焦點回到按鈕。一般 footer 仍保留平台介紹、投稿內容授權與一般導覽；桌機維持原有連結與說明。按鈕與彈框統一由 `AppFooter.vue` 管理，連結共用 `SourceLicenseLinks.vue`，沿用相同的建置版本與未發佈判斷。
 - **議題標籤與搜尋（#95）**：建立議題時可輸入自訂標籤，以 `, ` 分隔；去除開頭 `#` 與首尾空白，忽略空值，並忽略大小寫去重、保留第一個字樣。管理員可在既有議題編輯視窗增刪標籤，清空欄位即可全部移除。首頁議題卡於手機底部另起一排、桌機右下角顯示標籤；搜尋同時比對標題、簡介與標籤（含 `#tag` 寫法），並以所有未隱藏議題的標籤提供原生 autocomplete 建議。`?search=...` 可還原搜尋，輸入時以 `replaceState` 更新網址；議題預覽、返回清單與上一頁／下一頁保留搜尋及其他 query／hash。角色過濾與排序規則不變。
 - **使用者回報（#148）**：桌機以相同圖示＋「使用者回報」文字合成單一按鈕，手機頂列使用回報圖示，點擊開啟 modal、不換頁。手機 Navbar 維持單列，登入頭像位於角色切換左側，右端依序為「公民／志願者 → 回報圖示 → 漢堡選單」。三種分類與描述必填，免登入匿名送出，關閉後保留當頁回報草稿。回報只保存分類、描述、頁面路徑＋query、ID 與時間，僅管理員可瀏覽；不讀取或保存回報者帳號，也不額外收集 IP／瀏覽器資料。回報視窗與後台提供另開 GitHub issues 的連結，不自動傳送回報內容。
   - 回報按鈕在 `sm`（640px）起就顯示圖示＋文字，不必等到桌機導覽列展開；小於 640px 僅顯示圖示。所有寬度均維持同一列與同一個按鈕。
@@ -72,6 +74,8 @@ vp run dev
 | `vp exec wrangler types`      | 產生 Cloudflare 綁定型別                                   |
 
 開發伺服器的 `/licenses/client.txt` 與 `/licenses/worker.txt` 使用啟動前 production build 產生的 notices 快照，兩份檔案都以 UTF-8 提供；更動套件或 imports 後請重啟 `dev`／`dev:remote` 更新。頁面仍由 Vite 原始碼提供 HMR，不會切成 production bundle 執行。
+
+`vite.config.mts` 以 `optimizeDeps.include` 一起預載 `vue` 與 `vue3-carousel`，避免開發伺服器冷啟動時才發現輪播依賴、重建預載產物，讓同頁短暫混用不同 Vue runtime 而出現 `Missing ref owner context`。這只調整開發依賴預載，不改輪播模板、樣式或正式版的打包方式。驗收此設定須以 `vp dev --force` 搭配真實瀏覽器檢查首次載入及輪播切換，不能只靠 SSR 測試或檢查設定文字。
 
 依賴安全修補與 `package.json` overrides 的原因、移除條件見 [`docs/dependency-security.md`](./docs/dependency-security.md)。更新套件後也須重產授權盤點：`node scripts/licensing-dependencies.mjs`，再跑型別檢查、測試與完整 build，讓第三方 notices 對應實際產物。
 

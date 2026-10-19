@@ -455,6 +455,8 @@ export const messages = {
   footer_software: 'Software: AGPL-3.0-only. Provided without warranty; you may redistribute it under this license.',
   footer_source: 'Download source for this version',
   footer_license: 'Software license',
+  footer_license_button: 'Software license',
+  footer_license_close: 'Close',
   footer_client_licenses: 'Client-side license notices',
   footer_worker_licenses: 'Worker license notices',
   footer_source_unavailable: 'Source for this version has not been published.',

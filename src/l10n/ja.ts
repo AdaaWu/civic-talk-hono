@@ -456,6 +456,8 @@ export const messages = {
   footer_software: 'ソフトウェア：AGPL-3.0-only。ソフトウェアにはいかなる保証もありません。このライセンスに従って再配布できます。',
   footer_source: 'このバージョンのソースコードをダウンロード',
   footer_license: 'ソフトウェアのライセンス条項',
+  footer_license_button: 'ソフトウェアのライセンス',
+  footer_license_close: '閉じる',
   footer_client_licenses: 'フロントエンドパッケージのライセンス一覧',
   footer_worker_licenses: 'Worker パッケージのライセンス一覧',
   footer_source_unavailable: 'このバージョンのソースコードはまだ公開されていません。',

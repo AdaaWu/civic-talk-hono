@@ -447,6 +447,8 @@ export const messages = {
   footer_software: '軟體：AGPL-3.0-only。軟體不提供任何擔保；您可依此授權再散布。',
   footer_source: '下載本版本原始碼',
   footer_license: '軟體授權條款',
+  footer_license_button: '軟體授權',
+  footer_license_close: '關閉',
   footer_client_licenses: '前端套件授權清單',
   footer_worker_licenses: 'Worker 套件授權清單',
   footer_source_unavailable: '本版本原始碼尚未發佈。',

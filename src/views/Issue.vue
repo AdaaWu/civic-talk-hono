@@ -726,7 +726,7 @@ async function submitOpinion() {
 
         <template v-else-if="issue">
           <div class="issue-page-heading mb-6" v-show="activeStep !== 'comments'">
-            <div class="hidden sm:flex">
+            <div v-if="activeStep" class="hidden sm:flex">
               <StatusBadge :status="issue.status" />
             </div>
             <h1 class="mt-3 mb-2 font-serif text-xl font-bold">
@@ -1268,7 +1268,7 @@ async function submitOpinion() {
       </div>
     </main>
 
-    <AppFooter />
+    <AppFooter :compact="!activeStep" />
     <Toast ref="toast" />
 
     <!-- 回報濫用 Modal -->
