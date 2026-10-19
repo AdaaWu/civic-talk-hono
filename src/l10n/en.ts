@@ -98,6 +98,7 @@ export const messages = {
   issue_tags_label: 'Tags (optional)',
   issue_tags_hint: 'Create your own tags, separated by ", ". Search is case-insensitive.',
   issue_tags_placeholder: 'e.g. Housing justice, Tax reform',
+  idx_sort_label: 'Show first:',
   idx_sort_newest: 'Newest',
   idx_sort_most: 'Most attention',
   idx_sort_least: 'Least attention',

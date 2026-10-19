@@ -24,8 +24,7 @@ const props = defineProps<{
   initialSearchQuery?: string
 }>()
 
-const { t, locale } = useI18n()
-const isJapanese = computed(() => locale.value === 'ja')
+const { t } = useI18n()
 const issues = ref<IssueListItem[]>(props.initialIssues ?? [])
 const loading = ref(!props.initialIssues)
 const showForm = ref(false)
@@ -412,7 +411,7 @@ async function copyRssUrl() {
           </div>
 
           <div class="mb-4 flex flex-wrap items-center gap-3">
-            <div class="section-label shrink-0">ISSUES</div>
+            <div class="section-label hidden shrink-0 sm:block">ISSUES</div>
             <label for="home-issue-search" class="sr-only">{{ t('idx_search_label') }}</label>
             <input
               id="home-issue-search"
@@ -427,11 +426,14 @@ async function copyRssUrl() {
               <option v-for="tag in tagSuggestions" :key="tag.toLowerCase()" :value="`#${tag}`" />
             </datalist>
             <span id="home-issue-tag-suggestions-label" class="sr-only">{{ t('idx_tag_suggestions') }}</span>
-            <div class="flex gap-1 shrink-0" :class="{ 'max-sm:[&>button]:text-xs max-sm:[&>button]:px-2': isJapanese }">
-              <button v-for="s in ['newest', 'most', 'least'] as const" :key="s" type="button" class="btn btn-sm" :class="sortOrder === s ? 'btn-primary' : 'btn-secondary'" @click="sortOrder = s">
-                {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
-              </button>
-            </div>
+            <label class="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-vt-fg-2">
+              <span>{{ t('idx_sort_label') }}</span>
+              <select v-model="sortOrder" class="cursor-pointer rounded border border-vt-border bg-vt-bg-1 px-3 py-1.5 text-sm text-vt-fg-1 focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40">
+                <option v-for="s in ['newest', 'most', 'least'] as const" :key="s" :value="s">
+                  {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
+                </option>
+              </select>
+            </label>
           </div>
 
           <div v-if="loading" class="empty">

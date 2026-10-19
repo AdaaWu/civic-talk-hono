@@ -97,6 +97,7 @@ export const messages = {
   issue_tags_label: '標籤（選填）',
   issue_tags_hint: '可自訂標籤，以「, 」分隔多個標籤；大小寫不影響搜尋。',
   issue_tags_placeholder: '例：居住正義, 稅制改革',
+  idx_sort_label: '優先顯示：',
   idx_sort_newest: '最新',
   idx_sort_most: '最多關注',
   idx_sort_least: '最少關注',

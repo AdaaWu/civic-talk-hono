@@ -99,6 +99,7 @@ export const messages = {
   issue_tags_label: 'タグ（任意）',
   issue_tags_hint: '自由にタグを入力し、複数の場合は「, 」で区切ってください。検索では大文字と小文字を区別しません。',
   issue_tags_placeholder: '例：住まいの公平性, 税制改革',
+  idx_sort_label: '優先表示：',
   idx_sort_newest: '新しい順',
   idx_sort_most: '注目度の高い順',
   idx_sort_least: '注目度の低い順',
