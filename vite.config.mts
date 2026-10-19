@@ -11,6 +11,10 @@ export default defineConfig(({ mode }) => ({
     // 不讓 dev server 代替 Worker 回 CORS，確保本機與正式路由行為一致。
     cors: false,
   },
+  optimizeDeps: {
+    // 一起預載 Vue 與輪播，避免首次發現輪播時重建依賴，短暫混用不同 Vue runtime。
+    include: ['vue', 'vue3-carousel'],
+  },
   fmt: {
     semi: false,
     singleQuote: true,
