@@ -119,7 +119,7 @@ vp run dev
 - 業務資料庫：D1 `vtaiwan-civic-talks`（binding：`DB`）；業務表一律 `ct_` 前綴：`ct_issues`、`ct_materials`、`ct_briefings`、`ct_opinions`
 - `migrations/0001`–`0006`（初始 schema、作者快照、條款同意）**本機與遠端皆已套用**
 - `migrations/0014_user_feedback.sql` 新增 `ct_feedback`；本機與遠端皆已套用。2026-10-16 經使用者授權套用遠端 0014，查核 pending 清單為空、schema 與索引符合預期，新增業務表僅 `ct_feedback`； Worker已部部，正式站功能已上線。
-- `migrations/0015_issue_tags.sql` 為 `ct_issues` 新增 `tags` JSON 文字欄位，舊議題預設 `[]`、不新增資料表。已套用並核對本機 schema；**遠端尚未套用，部署前需先取得授權並套用此 migration**。
+- `migrations/0015_issue_tags.sql` 為 `ct_issues` 新增 `tags` JSON 文字欄位，舊議題預設 `[]`、不新增資料表。本機與遠端皆已套用：2026-10-20 經使用者授權套用遠端 0015，查核 pending 清單為空、資料表清單未變，16 筆既有議題的 tags 皆為 `[]`。此次未部署 Worker。
 - 認證資料庫：D1 `vtaiwan-auth`（binding：`DB_AUTH`），schema 由 `../vTaiwan-hono` 維護——本 repo **只讀不改**，🚫 不對它跑任何 migration
 - 遠端 migration 需先取得授權：`npx wrangler d1 migrations apply vtaiwan-civic-talks --remote`
 
