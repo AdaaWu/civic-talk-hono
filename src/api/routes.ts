@@ -19,6 +19,7 @@ import { hasDuplicateDisplayName, isAdminRole, tryGetAuthContext, type AuthConte
 import { createAuth } from '../auth/createAuth'
 import { TERMS_VERSION } from '../legal/terms'
 import { DUPLICATE_NAME_EMAIL_REQUIRED_CODE } from '../lib/profile-name'
+import { normalizeIssueTags } from '../lib/issueTags'
 import { moderationReasonForPolicy, moderateSubmission, moderateSubmissionWithDiagnostics, type ModerationDecision, type ModerationSubmission } from '../moderation/service'
 import type { Context } from 'hono'
 import type { ContentfulStatusCode } from 'hono/utils/http-status'
@@ -200,6 +201,10 @@ type SubmissionOptions = {
   terms_accepted?: unknown
 }
 
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every(item => typeof item === 'string')
+}
+
 export function validateSubmissionOptions(body: SubmissionOptions): Response | null {
   if (body.terms_accepted !== true) return Response.json({ error: 'terms_accepted must be true' }, { status: 400 })
   if (body.show_email !== undefined && typeof body.show_email !== 'boolean') return Response.json({ error: 'show_email must be a boolean' }, { status: 400 })
@@ -349,12 +354,14 @@ export function registerApiRoutes(app: App): void {
   app.post('/api/issues', async c => {
     const auth = await requireUser(c)
     if ('denied' in auth) return auth.denied
-    let body: { title?: string; description?: string; polis_id?: string | null } & SubmissionOptions
+    let body: { title?: string; description?: string; polis_id?: string | null; tags?: unknown } & SubmissionOptions
     try {
       body = await c.req.json()
     } catch {
       return error(c, 'Invalid JSON')
     }
+    if (body.tags !== undefined && !isStringArray(body.tags)) return error(c, 'tags must be an array of strings')
+    const tags = body.tags === undefined ? [] : normalizeIssueTags(body.tags)
     if (!body.title?.trim()) return error(c, 'title is required')
     const invalidOptions = validateSubmissionOptions(body)
     if (invalidOptions) return invalidOptions
@@ -365,6 +372,7 @@ export function registerApiRoutes(app: App): void {
       fields: {
         title: body.title.trim(),
         description: body.description ?? '',
+        tags: tags.join(', '),
       },
     })
     const duplicateNameEmail = await requireDuplicateNameEmail(c, auth.context, body.show_email)
@@ -375,6 +383,7 @@ export function registerApiRoutes(app: App): void {
         title: body.title.trim(),
         description: body.description ?? '',
         polis_id: body.polis_id ?? null,
+        tags,
         ...buildAuthorSnapshot(auth.context.user, body.show_email === true),
         terms_version: TERMS_VERSION,
       },
@@ -389,6 +398,7 @@ export function registerApiRoutes(app: App): void {
         fields: {
           title: body.title.trim(),
           description: body.description ?? '',
+          tags: tags.join(', '),
         },
       },
       moderation.decision,
@@ -435,6 +445,7 @@ export function registerApiRoutes(app: App): void {
       description?: string
       status?: IssueStatus
       polis_id?: string | null
+      tags?: unknown
     }
     try {
       body = await c.req.json()
@@ -442,11 +453,14 @@ export function registerApiRoutes(app: App): void {
       return error(c, 'Invalid JSON')
     }
     if (!body.title?.trim()) return error(c, 'title is required')
+    if (body.tags !== undefined && !isStringArray(body.tags)) return error(c, 'tags must be an array of strings')
+    const tags = body.tags === undefined ? undefined : normalizeIssueTags(body.tags)
     await db.updateIssue(c.env.DB, id, {
       title: body.title.trim(),
       description: body.description ?? '',
       status: body.status ?? 'collecting',
       polis_id: body.polis_id ?? null,
+      tags,
     })
     return c.json({ ok: true })
   })

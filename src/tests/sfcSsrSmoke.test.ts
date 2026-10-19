@@ -31,6 +31,7 @@ const issue = {
   title: '測試議題',
   description: '議題說明',
   status: 'collecting',
+  tags: [],
   polis_id: null,
   created_at: '2026-08-17 00:00:00',
   last_activity_at: '2026-08-17 00:00:00',
@@ -114,6 +115,14 @@ describe('author email disclosure (#60)', () => {
     expect(depth).toBe(0)
   })
 
+  it('escapes issue tag text in server-rendered cards', async () => {
+    const html = await render(IssueCard, {
+      issue: { ...optedIn, tags: ['<script>alert(1)</script>'] },
+    })
+    expect(html).toContain('&lt;script&gt;alert(1)&lt;/script&gt;')
+    expect(html).not.toContain('<script>alert(1)</script>')
+  })
+
   it('renders mailto links on the detail views', async () => {
     const materialHtml = await render(MaterialDetailView, {
       issueId: 1,
@@ -156,7 +165,22 @@ describe('home issue preview', () => {
     const html = await render(HomeView, { initialIssues: [previewIssue], initialPreviewIssueId: 1 })
     expect(html).toContain('議題說明')
     expect(html).toContain('進入議題')
-    expect(html).not.toContain('placeholder="搜尋議題關鍵字…"')
+    expect(html).not.toContain('id="home-issue-search"')
+  })
+
+  it('SSR initializes the home search and filters by tags without browser state', async () => {
+    const html = await render(HomeView, {
+      initialIssues: [
+        { ...previewIssue, id: 2, title: '居住議題', status: 'published', tags: ['Housing Justice'] },
+        { ...previewIssue, id: 3, title: '交通議題', status: 'published', tags: ['Transit'] },
+      ],
+      initialSearchQuery: '#housing',
+    })
+    expect(html).toContain('id="home-issue-search"')
+    expect(html).toContain('value="#housing"')
+    expect(html).toContain('value="#Housing Justice"')
+    expect(html).toContain('居住議題')
+    expect(html).not.toContain('交通議題')
   })
 })
 
