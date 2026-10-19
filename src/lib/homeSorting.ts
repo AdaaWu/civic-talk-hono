@@ -51,12 +51,21 @@ export function sortByOrder(issues: IssueListItem[], order: SortOrder): IssueLis
 }
 
 /**
- * 依關鍵字過濾（比照既有行為：比對標題或簡介，不分大小寫）；空字串不過濾。
+ * 依關鍵字過濾標題、簡介或標籤（不分大小寫）；空字串不過濾。
  */
 function filterBySearch(issues: IssueListItem[], q: string): IssueListItem[] {
   const query = q.trim().toLowerCase()
   if (!query) return issues
-  return issues.filter(issue => (issue.title ?? '').toLowerCase().includes(query) || (issue.description ?? '').toLowerCase().includes(query))
+  const tagQuery = query.startsWith('#') ? query.slice(1).trim() : query
+  return issues.filter(issue => {
+    const matchesText = (issue.title ?? '').toLowerCase().includes(query) || (issue.description ?? '').toLowerCase().includes(query)
+    const matchesTag =
+      tagQuery.length > 0 &&
+      issue.abuse_flagged !== 2 &&
+      issue.abuse_flagged !== 3 &&
+      issue.tags.some(tag => tag.toLowerCase().includes(tagQuery))
+    return matchesText || matchesTag
+  })
 }
 
 /**

@@ -13,10 +13,11 @@ const emit = defineEmits<{
   select: [issue: IssueListItem]
 }>()
 
-const { locale } = useI18n()
+const { t, locale } = useI18n()
 
 const href = computed(() => `/issues/${props.issue.id}`)
 const date = computed(() => formatDate(props.issue.created_at, locale.value))
+const canShowTags = computed(() => props.issue.tags.length > 0 && props.issue.abuse_flagged !== 2 && props.issue.abuse_flagged !== 3)
 
 function selectIssue(event: MouseEvent): void {
   // 保留另開分頁／視窗的瀏覽器原生行為；一般點擊則在首頁切成 query 驅動的預覽版面。
@@ -27,13 +28,16 @@ function selectIssue(event: MouseEvent): void {
 </script>
 
 <template>
-  <div class="card relative mb-4 transition hover:border-red/30 hover:shadow-md">
-    <div class="mb-2 flex flex-wrap items-center gap-2">
+  <div class="card relative mb-4 grid grid-cols-1 gap-y-2 transition hover:border-red/30 hover:shadow-md md:grid-cols-[minmax(0,1fr)_minmax(0,38%)] md:gap-x-4">
+    <div class="mb-2 flex flex-wrap items-center gap-2 md:col-span-2">
       <StatusBadge :status="issue.status" short />
       <span class="text-sm text-muted">{{ date }}</span>
     </div>
-    <h2 class="m-0 font-serif text-xl font-bold">
+    <h2 class="m-0 min-w-0 font-serif text-xl font-bold [overflow-wrap:anywhere]" :class="canShowTags ? '' : 'md:col-span-2'">
       <a :href="href" class="text-ink no-underline hover:no-underline after:absolute after:inset-0" @click="selectIssue">{{ issue.title }}</a>
     </h2>
+    <div v-if="canShowTags" role="list" class="mt-2 flex min-w-0 flex-wrap gap-1 md:mt-0 md:justify-end md:self-end" :aria-label="t('issue_tags_label')">
+      <span v-for="tag in issue.tags" :key="tag.toLowerCase()" role="listitem" class="min-w-0 max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink [overflow-wrap:anywhere] dark:bg-gray-800">#{{ tag }}</span>
+    </div>
   </div>
 </template>

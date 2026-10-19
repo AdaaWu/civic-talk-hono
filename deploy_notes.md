@@ -156,6 +156,7 @@ vp run deploy    # = build + 建置產物／公開原始碼檢查 + wrangler dep
   ```
 - 套用後要再確認 pending 清單為空，並檢查 `sqlite_master`：本 repo 新增的業務表只能是 `ct_*`。不能只因 repo 裡已有 `0013` 就推定遠端也已套用。
 - #148 的 `0014_user_feedback.sql` 新增 `ct_feedback`，匿名回報寫入及管理端回報列表皆依賴此表。本機與遠端皆已套用：2026-10-16 經使用者授權、確認 vTaiwan.tw 帳號後，遠端 pending 僅 0014，套用後清單為空，`sqlite_master`／欄位／分類約束與排序索引查核符合 migration；只新增 `ct_feedback` 業務表，未操作 `vtaiwan-auth`。部署 Worker已，正式站功能已上線。
+- #95 的 `0015_issue_tags.sql` 為 `ct_issues` 新增 `tags TEXT NOT NULL DEFAULT '[]'`。2026-10-20 經使用者授權，確認 Cloudflare 帳號為 vTaiwan.tw，且檔案與已合併的 `main` 一致後，執行 `npx wrangler d1 migrations apply vtaiwan-civic-talks --remote --config wrangler.jsonc`；套用前 pending 僅 0015，套用後清單為空。已核對 `sqlite_master` 資料表清單未變、欄位型別／NOT NULL／預設值正確，既有議題仍為 16 筆，tags 全為 `[]` 且無 NULL／無效 JSON；未操作 `vtaiwan-auth`，未部署 Worker。
 
 ---
 

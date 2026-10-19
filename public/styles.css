@@ -626,6 +626,9 @@
   .list-none {
     list-style-type: none;
   }
+  .grid-cols-1 {
+    grid-template-columns: repeat(1, minmax(0, 1fr));
+  }
   .grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -709,6 +712,9 @@
   }
   .gap-y-1 {
     row-gap: var(--spacing);
+  }
+  .gap-y-2 {
+    row-gap: calc(var(--spacing) * 2);
   }
   .truncate {
     overflow: hidden;
@@ -1413,8 +1419,14 @@
     }
   }
   @media (width >= 48rem) {
+    .md\:col-span-2 {
+      grid-column: span 2 / span 2;
+    }
     .md\:mx-0 {
       margin-inline: 0px;
+    }
+    .md\:mt-0 {
+      margin-top: 0px;
     }
     .md\:w-52 {
       width: calc(var(--spacing) * 52);
@@ -1422,11 +1434,23 @@
     .md\:grid-cols-4 {
       grid-template-columns: repeat(4, minmax(0, 1fr));
     }
+    .md\:grid-cols-\[minmax\(0\,1fr\)_minmax\(0\,38\%\)\] {
+      grid-template-columns: minmax(0,1fr) minmax(0,38%);
+    }
     .md\:flex-row {
       flex-direction: row;
     }
     .md\:items-center {
       align-items: center;
+    }
+    .md\:justify-end {
+      justify-content: flex-end;
+    }
+    .md\:gap-x-4 {
+      column-gap: calc(var(--spacing) * 4);
+    }
+    .md\:self-end {
+      align-self: flex-end;
     }
   }
   @media (width >= 80rem) {
@@ -1517,15 +1541,6 @@
   }
   .\[\&\>a\]\:whitespace-nowrap > a {
     white-space: nowrap;
-  }
-  @media (width < 40rem) {
-    .max-sm\:\[\&\>button\]\:px-2 > button {
-      padding-inline: calc(var(--spacing) * 2);
-    }
-    .max-sm\:\[\&\>button\]\:text-xs > button {
-      font-size: var(--text-xs);
-      line-height: var(--tw-leading, var(--text-xs--line-height));
-    }
   }
   @media (width >= 40rem) {
     .sm\:\[\&\>button\]\:py-4 > button {

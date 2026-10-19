@@ -14,7 +14,7 @@ function sqliteDb(tables: Record<string, Row[]>) {
   const sqlite = new DatabaseSync(':memory:')
   const schema: Record<string, string> = {
     ct_issues:
-      'id INTEGER PRIMARY KEY, title TEXT, description TEXT, status TEXT, polis_id TEXT, created_at TEXT, last_activity_at TEXT, abuse_flagged INTEGER, author_name TEXT, author_email TEXT, show_email INTEGER',
+      'id INTEGER PRIMARY KEY, title TEXT, description TEXT, status TEXT, polis_id TEXT, created_at TEXT, last_activity_at TEXT, tags TEXT, abuse_flagged INTEGER, author_name TEXT, author_email TEXT, show_email INTEGER',
     ct_materials: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
     ct_opinions: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
     ct_briefings: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
@@ -48,7 +48,7 @@ function sqliteDb(tables: Record<string, Row[]>) {
 }
 
 function issueRow(id: number, created_at: string, overrides: Partial<Row> = {}): Row {
-  return { id, title: `議題${id}`, description: '描述', status: 'collecting', polis_id: null, created_at, abuse_flagged: 0, author_name: null, author_email: null, show_email: 0, ...overrides }
+  return { id, title: `議題${id}`, description: '描述', status: 'collecting', polis_id: null, created_at, tags: '[]', abuse_flagged: 0, author_name: null, author_email: null, show_email: 0, ...overrides }
 }
 
 describe('listIssues 的 last_activity_at（#77）', () => {
@@ -211,6 +211,7 @@ function item(id: number, overrides: Partial<IssueListItem> = {}): IssueListItem
     material_count: 0,
     opinion_count: 0,
     last_activity_at: '2026-08-01 00:00:00',
+    tags: [],
     ...overrides,
   }
 }
@@ -300,8 +301,26 @@ describe('filterAndSortHomeIssues（#77、#90）', () => {
     expect(filterAndSortHomeIssues(list, 'citizen', 'newest').map(i => i.id)).toEqual([2, 1])
   })
 
-  it('citizen + 搜尋：先過濾 collecting 再比對標題／簡介', () => {
-    const list = [item(1, { title: '居住正義' }), item(2, { status: 'collecting', title: '居住正義' }), item(3, { title: '交通建設' })]
-    expect(filterAndSortHomeIssues(list, 'citizen', 'newest', '居住').map(i => i.id)).toEqual([1])
+  it('citizen + 搜尋：保留標題／簡介比對並排除 collecting', () => {
+    const list = [
+      item(1, { title: '居住正義' }),
+      item(2, { status: 'collecting', title: '居住正義' }),
+      item(3, { title: '交通建設', description: '居住描述' }),
+      item(4, { title: '交通建設' }),
+    ]
+    expect(filterAndSortHomeIssues(list, 'citizen', 'newest', '居住').map(i => i.id)).toEqual([1, 3])
+  })
+
+  it('tag search accepts # prefixes while preserving role filtering and status ordering', () => {
+    const list = [
+      item(1, { status: 'published', tags: ['Civic Life'], last_activity_at: '2026-08-01' }),
+      item(2, { status: 'collecting', tags: ['civic life'], last_activity_at: '2026-08-05' }),
+      item(3, { status: 'summarizing', tags: ['CIVIC LIFE'], last_activity_at: '2026-08-03' }),
+      item(4, { status: 'published', tags: ['other'] }),
+      item(5, { status: 'published', abuse_flagged: 3, tags: ['civic life'] }),
+    ]
+
+    expect(filterAndSortHomeIssues(list, 'citizen', 'newest', '#cIvIc').map(i => i.id)).toEqual([1, 3])
+    expect(filterAndSortHomeIssues(list, 'volunteer', 'newest', '#CIVIC').map(i => i.id)).toEqual([3, 2, 1])
   })
 })
