@@ -93,6 +93,7 @@ export const messages = {
   idx_submit: 'Create Issue',
   idx_empty: 'No issues yet. Be the first to create one!',
   idx_search_ph: 'Search issues…',
+  idx_sort_label: 'Show first:',
   idx_sort_newest: 'Newest',
   idx_sort_most: 'Most attention',
   idx_sort_least: 'Least attention',

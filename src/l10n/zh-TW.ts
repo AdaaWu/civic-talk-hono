@@ -92,6 +92,7 @@ export const messages = {
   idx_submit: '建立議題',
   idx_empty: '還沒有議題，成為第一個建立者吧！',
   idx_search_ph: '搜尋議題關鍵字…',
+  idx_sort_label: '優先顯示：',
   idx_sort_newest: '最新',
   idx_sort_most: '最多關注',
   idx_sort_least: '最少關注',

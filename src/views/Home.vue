@@ -21,8 +21,7 @@ const props = defineProps<{
   initialPreviewIssueId?: number | null
 }>()
 
-const { t, locale } = useI18n()
-const isJapanese = computed(() => locale.value === 'ja')
+const { t } = useI18n()
 const issues = ref<IssueListItem[]>(props.initialIssues ?? [])
 const loading = ref(!props.initialIssues)
 const showForm = ref(false)
@@ -396,11 +395,14 @@ async function copyRssUrl() {
               class="flex-1 min-w-40 rounded border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
               :placeholder="t('idx_search_ph')"
             />
-            <div class="flex gap-1 shrink-0" :class="{ 'max-sm:[&>button]:text-xs max-sm:[&>button]:px-2': isJapanese }">
-              <button v-for="s in ['newest', 'most', 'least'] as const" :key="s" type="button" class="btn btn-sm" :class="sortOrder === s ? 'btn-primary' : 'btn-secondary'" @click="sortOrder = s">
-                {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
-              </button>
-            </div>
+            <label class="flex shrink-0 items-center gap-2 whitespace-nowrap text-sm text-vt-fg-2">
+              <span>{{ t('idx_sort_label') }}</span>
+              <select v-model="sortOrder" class="cursor-pointer rounded border border-vt-border bg-vt-bg-1 px-3 py-1.5 text-sm text-vt-fg-1 focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40">
+                <option v-for="s in ['newest', 'most', 'least'] as const" :key="s" :value="s">
+                  {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}
+                </option>
+              </select>
+            </label>
           </div>
 
           <div v-if="loading" class="empty">

@@ -94,6 +94,7 @@ export const messages = {
   idx_submit: '議題を作成',
   idx_empty: 'まだ議題がありません。最初の議題を作成してみましょう！',
   idx_search_ph: '議題をキーワードで検索…',
+  idx_sort_label: '優先表示：',
   idx_sort_newest: '新しい順',
   idx_sort_most: '注目度の高い順',
   idx_sort_least: '注目度の低い順',
