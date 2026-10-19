@@ -8,15 +8,16 @@ type IssueRow = {
   status: 'collecting'
   polis_id: string | null
   created_at: string
+  tags: string
   abuse_flagged: 0 | 1 | 2 | 3
   author_name: string | null
   author_email: string | null
 }
 
 const rows: IssueRow[] = [
-  { id: 1, title: '公開議題', description: '公開描述', status: 'collecting', polis_id: null, created_at: '2026-08-01', abuse_flagged: 0, author_name: null, author_email: null },
-  { id: 2, title: '已確認濫用', description: '不應公開', status: 'collecting', polis_id: null, created_at: '2026-08-02', abuse_flagged: 2, author_name: null, author_email: null },
-  { id: 3, title: '審查中議題', description: '暫時隱藏', status: 'collecting', polis_id: null, created_at: '2026-08-03', abuse_flagged: 3, author_name: null, author_email: null },
+  { id: 1, title: '公開議題', description: '公開描述', status: 'collecting', polis_id: null, created_at: '2026-08-01', tags: '["public-tag"]', abuse_flagged: 0, author_name: null, author_email: null },
+  { id: 2, title: '已確認濫用', description: '不應公開', status: 'collecting', polis_id: null, created_at: '2026-08-02', tags: '["abuse-tag"]', abuse_flagged: 2, author_name: null, author_email: null },
+  { id: 3, title: '審查中議題', description: '暫時隱藏', status: 'collecting', polis_id: null, created_at: '2026-08-03', tags: '["sensitive-tag"]', abuse_flagged: 3, author_name: null, author_email: null },
 ]
 
 function testDb() {
@@ -47,6 +48,7 @@ function projectPublicIssue(row: IssueRow) {
     ...row,
     title: row.abuse_flagged === 3 ? null : row.title,
     description: row.abuse_flagged === 3 ? null : row.description,
+    tags: row.abuse_flagged === 3 ? '[]' : row.tags,
   }
 }
 
@@ -56,6 +58,8 @@ describe('議題公開內容遮蔽', () => {
 
     expect(result.map(issue => issue.id)).toEqual([1, 3])
     expect(result.find(issue => issue.id === 3)).toMatchObject({ abuse_flagged: 3, title: null, description: null })
+    expect(result.find(issue => issue.id === 3)?.tags).toEqual([])
+    expect(result.find(issue => issue.id === 1)?.tags).toEqual(['public-tag'])
   })
 
   it('getIssue 對已確認濫用回傳 null，審查中議題不回傳本文', async () => {

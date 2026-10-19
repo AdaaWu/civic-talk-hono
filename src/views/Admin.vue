@@ -10,6 +10,7 @@ import type { MessageKey } from '../l10n/zh-TW'
 import { useAuth } from '../composables/useAuth'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { isAdminSession } from '../client/auth-session'
+import { parseIssueTagsInput } from '../lib/issueTags'
 import type { AbuseReport, BriefingWithAuthor, Feedback, IssueListItemWithAuthor, IssueStatus, MaterialWithAuthor, ModerationAppeal, OpinionWithAuthor } from '../db/queries'
 
 type AdminTab = 'issues' | 'materials' | 'opinions' | 'reports' | 'moderation' | 'feedback'
@@ -57,6 +58,7 @@ const modalBriefing = ref(false)
 const editId = ref<number | null>(null)
 const formTitle = ref('')
 const formDesc = ref('')
+const formTags = ref('')
 const formStatus = ref<IssueStatus>('collecting')
 const formPolis = ref(false)
 const formTermsAgreed = ref(false)
@@ -235,6 +237,7 @@ async function resolveAppeal(id: number, action: 'uphold' | 'overturn') {
 function openNew() {
   formTitle.value = ''
   formDesc.value = ''
+  formTags.value = ''
   formPolis.value = false
   formTermsAgreed.value = false
   formShowEmailConfirmed.value = false
@@ -245,6 +248,7 @@ function openEdit(issue: IssueListItemWithAuthor) {
   editId.value = issue.id
   formTitle.value = issue.title ?? ''
   formDesc.value = issue.description ?? ''
+  formTags.value = issue.tags.join(', ')
   formStatus.value = issue.status
   formPolis.value = !!issue.polis_id
   modalEdit.value = true
@@ -276,6 +280,7 @@ async function createIssue() {
     {
       title: formTitle.value.trim(),
       description: formDesc.value,
+      tags: parseIssueTagsInput(formTags.value),
       polis_id: formPolis.value ? 'enabled' : null,
       show_email: formShowEmailConfirmed.value,
       terms_accepted: formTermsAgreed.value,
@@ -300,6 +305,7 @@ async function saveIssue() {
     body: JSON.stringify({
       title: formTitle.value.trim(),
       description: formDesc.value,
+      tags: parseIssueTagsInput(formTags.value),
       status: formStatus.value,
       polis_id: formPolis.value ? 'enabled' : null,
     }),
@@ -678,6 +684,9 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                     <td class="px-3 py-2">{{ issue.id }}</td>
                     <td class="px-3 py-2">
                       <a :href="`/issues/${issue.id}`">{{ issue.title }}</a>
+                      <div v-if="issue.tags.length" class="mt-1 flex flex-wrap gap-1" :aria-label="t('issue_tags_label')">
+                        <span v-for="tag in issue.tags" :key="tag" class="max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink dark:bg-gray-800">#{{ tag }}</span>
+                      </div>
                     </td>
                     <td class="px-3 py-2"><StatusBadge :status="issue.status" short /></td>
                     <td class="px-3 py-2">{{ issue.material_count }}</td>
@@ -1002,6 +1011,11 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
           <textarea v-model="formDesc" rows="3" :placeholder="t('adm_new_ph_desc')" />
         </div>
         <div class="form-group">
+          <label for="admin-new-tags">{{ t('issue_tags_label') }}</label>
+          <input id="admin-new-tags" v-model="formTags" type="text" :placeholder="t('issue_tags_placeholder')" aria-describedby="admin-new-tags-hint" />
+          <p id="admin-new-tags-hint" class="mt-1 text-sm text-muted">{{ t('issue_tags_hint') }}</p>
+        </div>
+        <div class="form-group">
           <label class="flex items-start gap-2 font-normal">
             <input v-model="formPolis" type="checkbox" class="mt-1 w-auto" />
             <span>
@@ -1040,6 +1054,11 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
         <div class="form-group">
           <label>{{ t('adm_label_desc') }}</label>
           <textarea v-model="formDesc" rows="3" />
+        </div>
+        <div class="form-group">
+          <label for="admin-edit-tags">{{ t('issue_tags_label') }}</label>
+          <input id="admin-edit-tags" v-model="formTags" type="text" :placeholder="t('issue_tags_placeholder')" aria-describedby="admin-edit-tags-hint" />
+          <p id="admin-edit-tags-hint" class="mt-1 text-sm text-muted">{{ t('issue_tags_hint') }}</p>
         </div>
         <div class="form-group">
           <label>{{ t('adm_label_status') }}</label>

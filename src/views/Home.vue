@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import IssueCard from '../components/IssueCard.vue'
@@ -15,10 +15,13 @@ import { useViewerRole, type ViewerRole } from '../composables/useViewerRole'
 import type { IssueListItem } from '../db/queries'
 import { filterAndSortHomeIssues, type SortOrder } from '../lib/homeSorting'
 import { homeIssuePreviewUrl, readHomeIssuePreviewId } from '../lib/homeIssuePreview'
+import { collectHomeTagSuggestions, homeIssueListUrl, homeSearchUrl, readHomeSearchQuery } from '../lib/homeSearch'
+import { parseIssueTagsInput } from '../lib/issueTags'
 
 const props = defineProps<{
   initialIssues?: IssueListItem[]
   initialPreviewIssueId?: number | null
+  initialSearchQuery?: string
 }>()
 
 const { t, locale } = useI18n()
@@ -28,6 +31,7 @@ const loading = ref(!props.initialIssues)
 const showForm = ref(false)
 const title = ref('')
 const description = ref('')
+const tagsText = ref('')
 const submitting = ref(false)
 const issueTosAgreed = ref(false)
 // Email 公開選項（#27）
@@ -41,7 +45,7 @@ const duplicateNameRequiresEmail = computed(() => session.value?.hasDuplicateDis
 const sessionExpired = ref(false)
 const moderationNotice = ref<{ appealType: 'rejected_submission' | 'account_ban'; reportId?: number; policyCode?: string; rationale?: string } | null>(null)
 
-const searchQuery = ref('')
+const searchQuery = ref(props.initialSearchQuery ?? '')
 const sortOrder = ref<SortOrder>('newest')
 const selectedIssueId = ref<number | null>(props.initialPreviewIssueId ?? null)
 // 全站檢視角色（#77、#90、#99）：navbar 切換後，首頁清單立即依角色更新。
@@ -93,10 +97,20 @@ const similarIssues = computed(() => {
 })
 
 const filteredAndSortedIssues = computed(() => filterAndSortHomeIssues(issues.value, viewerRole.value, sortOrder.value, searchQuery.value))
+const tagSuggestions = computed(() => collectHomeTagSuggestions(issues.value))
 const selectedIssue = computed(() => issues.value.find(issue => issue.id === selectedIssueId.value) ?? null)
 
-function syncIssuePreviewFromUrl(): void {
-  selectedIssueId.value = readHomeIssuePreviewId(new URL(window.location.href))
+watch(searchQuery, search => {
+  if (typeof window === 'undefined') return
+  const currentUrl = new URL(window.location.href)
+  if (readHomeSearchQuery(currentUrl) === search) return
+  window.history.replaceState({}, '', homeSearchUrl(currentUrl, search))
+})
+
+function syncHomeStateFromUrl(): void {
+  const currentUrl = new URL(window.location.href)
+  searchQuery.value = readHomeSearchQuery(currentUrl)
+  selectedIssueId.value = readHomeIssuePreviewId(currentUrl)
 }
 
 function showIssuePreview(issue: IssueListItem): void {
@@ -107,7 +121,7 @@ function showIssuePreview(issue: IssueListItem): void {
 
 function backToIssues(): void {
   selectedIssueId.value = null
-  window.history.pushState({}, '', '/')
+  window.history.pushState({}, '', homeIssueListUrl(new URL(window.location.href)))
   window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
@@ -129,12 +143,12 @@ onMounted(() => {
   rememberWelcomeRole.value = preferredViewerRole.value !== null
   showWelcomePrompt.value = !isWelcomePromptHidden()
   if (showWelcomePrompt.value) void nextTick(() => welcomeDialog.value?.focus())
-  syncIssuePreviewFromUrl()
-  window.addEventListener('popstate', syncIssuePreviewFromUrl)
+  syncHomeStateFromUrl()
+  window.addEventListener('popstate', syncHomeStateFromUrl)
 })
 
 onBeforeUnmount(() => {
-  if (typeof window !== 'undefined') window.removeEventListener('popstate', syncIssuePreviewFromUrl)
+  if (typeof window !== 'undefined') window.removeEventListener('popstate', syncHomeStateFromUrl)
 })
 
 async function createIssue() {
@@ -155,6 +169,7 @@ async function createIssue() {
         description: description.value,
         show_email: issueShowEmail.value,
         terms_accepted: issueTosAgreed.value,
+        tags: parseIssueTagsInput(tagsText.value),
       },
       () => window.confirm(t('duplicate_name_submission_confirm', { email: session.value?.user.email || '' }))
     )
@@ -190,6 +205,7 @@ async function createIssue() {
     showForm.value = false
     title.value = ''
     description.value = ''
+    tagsText.value = ''
     issueTosAgreed.value = false
     issueShowEmail.value = false
     setTimeout(() => {
@@ -357,6 +373,13 @@ async function copyRssUrl() {
                 <MarkdownEditor id="issue-description" v-model="description" :label="t('idx_label_desc')" :rows="3" :placeholder="t('idx_ph_desc')" mode="plain" :max-chars="100" />
               </div>
               <div class="form-group">
+                <label for="issue-tags">
+                  <span>{{ t('issue_tags_label') }}</span>
+                  <span class="label-hint">{{ t('issue_tags_hint') }}</span>
+                </label>
+                <input id="issue-tags" v-model="tagsText" type="text" :placeholder="t('issue_tags_placeholder')" />
+              </div>
+              <div class="form-group">
                 <label class="flex items-start gap-2 font-normal">
                   <input v-model="issueTosAgreed" type="checkbox" class="mt-1 w-auto" />
                   <span
@@ -390,12 +413,20 @@ async function copyRssUrl() {
 
           <div class="mb-4 flex flex-wrap items-center gap-3">
             <div class="section-label shrink-0">ISSUES</div>
+            <label for="home-issue-search" class="sr-only">{{ t('idx_search_label') }}</label>
             <input
+              id="home-issue-search"
               v-model="searchQuery"
               type="search"
+              list="home-issue-tag-suggestions"
+              aria-describedby="home-issue-tag-suggestions-label"
               class="flex-1 min-w-40 rounded border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
               :placeholder="t('idx_search_ph')"
             />
+            <datalist id="home-issue-tag-suggestions" aria-labelledby="home-issue-tag-suggestions-label">
+              <option v-for="tag in tagSuggestions" :key="tag.toLowerCase()" :value="`#${tag}`" />
+            </datalist>
+            <span id="home-issue-tag-suggestions-label" class="sr-only">{{ t('idx_tag_suggestions') }}</span>
             <div class="flex gap-1 shrink-0" :class="{ 'max-sm:[&>button]:text-xs max-sm:[&>button]:px-2': isJapanese }">
               <button v-for="s in ['newest', 'most', 'least'] as const" :key="s" type="button" class="btn btn-sm" :class="sortOrder === s ? 'btn-primary' : 'btn-secondary'" @click="sortOrder = s">
                 {{ t(s === 'newest' ? 'idx_sort_newest' : s === 'most' ? 'idx_sort_most' : 'idx_sort_least') }}

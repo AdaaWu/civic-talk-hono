@@ -33,6 +33,7 @@ import TermsView from './views/Terms.vue'
 import ProfileView from './views/Profile.vue'
 import AppealsView from './views/Appeals.vue'
 import { readHomeIssuePreviewId } from './lib/homeIssuePreview'
+import { readHomeSearchQuery } from './lib/homeSearch'
 import { parseIssueBriefingSlide, parseIssueCommentAction, parseIssueStep } from './lib/issueNavigation'
 
 const app = new Hono<{ Bindings: AppBindings }>()
@@ -84,7 +85,8 @@ app.get('/', async c => {
   const origin = requestUrl.origin
   const initialIssues = await listIssues(c.env.DB)
   const initialPreviewIssueId = readHomeIssuePreviewId(requestUrl)
-  const homeState = { initialIssues, initialPreviewIssueId }
+  const initialSearchQuery = readHomeSearchQuery(requestUrl)
+  const homeState = { initialIssues, initialPreviewIssueId, initialSearchQuery }
   const html = await renderPage(HomeView, homeState, headForHome(origin), {
     hydrate: { page: 'home', state: homeState },
   })

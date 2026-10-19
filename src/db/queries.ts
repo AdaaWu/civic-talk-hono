@@ -1,3 +1,5 @@
+import { normalizeIssueTags } from '../lib/issueTags'
+
 /** D1 查詢與資料型別 — 所有 SQL 只碰 ct_* 表 */
 
 export type IssueStatus = 'collecting' | 'summarizing' | 'published'
@@ -40,6 +42,7 @@ export interface Issue {
   status: IssueStatus
   polis_id: string | null
   created_at: string
+  tags: string[]
   abuse_flagged: 0 | 1 | 2 | 3
   /** 建立者的 OAuth 顯示名稱；#9 之前的舊資料或系統建立為 null */
   author_name: string | null
@@ -269,8 +272,8 @@ export interface AdminStats {
 const PUBLIC_AUTHOR_COLUMNS = 'author_name, CASE WHEN show_email = 1 THEN author_email ELSE NULL END AS author_email'
 const PRIVATE_AUTHOR_COLUMNS = 'author_id, author_name, author_email, show_email'
 const SUBMISSION_CONSENT_COLUMNS = 'terms_version, terms_accepted_at'
-const ISSUE_BASE_COLUMNS = 'id, title, description, status, polis_id, created_at'
-const ISSUE_PUBLIC_COLUMNS = `${ISSUE_BASE_COLUMNS.replace('title', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE title END AS title').replace('description', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE description END AS description')}, abuse_flagged, ${PUBLIC_AUTHOR_COLUMNS}`
+const ISSUE_BASE_COLUMNS = 'id, title, description, status, polis_id, created_at, tags'
+const ISSUE_PUBLIC_COLUMNS = `${ISSUE_BASE_COLUMNS.replace('title', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE title END AS title').replace('description', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE description END AS description').replace('tags', "CASE WHEN abuse_flagged = 3 THEN '[]' ELSE COALESCE(tags, '[]') END AS tags")}, abuse_flagged, ${PUBLIC_AUTHOR_COLUMNS}`
 const ISSUE_ADMIN_COLUMNS = `${ISSUE_BASE_COLUMNS}, ${PRIVATE_AUTHOR_COLUMNS}, ${SUBMISSION_CONSENT_COLUMNS}, abuse_flagged`
 
 const ISSUE_COUNT_SUBQUERIES = `
@@ -280,17 +283,36 @@ const ISSUE_COUNT_SUBQUERIES = `
 /** #77：last_activity_at 由寫入路徑維護；NULL（尚無子內容活動）在 SQL 層 fallback 到 created_at */
 const ISSUE_LAST_ACTIVITY_COLUMN = 'COALESCE(last_activity_at, created_at) AS last_activity_at'
 
+type IssueRow<T extends { tags: string[] }> = Omit<T, 'tags'> & { tags: string | null }
+
+function parseIssueTagsColumn(tags: string | null): string[] {
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(tags ?? '[]')
+  } catch {
+    return []
+  }
+
+  if (!Array.isArray(parsed) || !parsed.every(tag => typeof tag === 'string')) return []
+  return normalizeIssueTags(parsed)
+}
+
+function issueFromRow<T extends { tags: string | null }>(row: T): Omit<T, 'tags'> & { tags: string[] } {
+  const { tags, ...fields } = row
+  return { ...fields, tags: parseIssueTagsColumn(tags) }
+}
+
 export async function listIssues(db: D1Database): Promise<IssueListItem[]> {
   const { results } = await db
     .prepare(`SELECT ${ISSUE_PUBLIC_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues WHERE abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC`)
-    .all<IssueListItem>()
-  return results ?? []
+    .all<IssueRow<IssueListItem>>()
+  return (results ?? []).map(row => issueFromRow(row))
 }
 
 /** 管理端專用：回傳完整作者快照。呼叫端必須先確認請求者是管理員。 */
 export async function listIssuesWithAuthor(db: D1Database): Promise<IssueListItemWithAuthor[]> {
-  const { results } = await db.prepare(`SELECT ${ISSUE_ADMIN_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues ORDER BY created_at DESC`).all<IssueListItemWithAuthor>()
-  return results ?? []
+  const { results } = await db.prepare(`SELECT ${ISSUE_ADMIN_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues ORDER BY created_at DESC`).all<IssueRow<IssueListItemWithAuthor>>()
+  return (results ?? []).map(row => issueFromRow(row))
 }
 
 /**
@@ -298,7 +320,8 @@ export async function listIssuesWithAuthor(db: D1Database): Promise<IssueListIte
  * window.__SSR_STATE__。author_name 已在公開欄位（#27），但 author_id 仍不得洩漏。
  */
 export async function getIssue(db: D1Database, id: number): Promise<Issue | null> {
-  return db.prepare(`SELECT ${ISSUE_PUBLIC_COLUMNS} FROM ct_issues WHERE id = ? AND abuse_flagged IN (0, 1, 3)`).bind(id).first<Issue>()
+  const row = await db.prepare(`SELECT ${ISSUE_PUBLIC_COLUMNS} FROM ct_issues WHERE id = ? AND abuse_flagged IN (0, 1, 3)`).bind(id).first<IssueRow<Issue>>()
+  return row ? issueFromRow(row) : null
 }
 
 /**
@@ -317,18 +340,20 @@ export async function createIssue(
     title: string
     description?: string
     polis_id?: string | null
+    tags?: string[]
   } & AuthorSnapshotInput &
     SubmissionConsentInput,
   options: { moderationHidden?: boolean } = {}
 ): Promise<number> {
   const { meta } = await db
     .prepare(
-      'INSERT INTO ct_issues (title, description, polis_id, author_id, author_name, author_email, show_email, terms_version, terms_accepted_at, abuse_flagged) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)'
+      'INSERT INTO ct_issues (title, description, polis_id, tags, author_id, author_name, author_email, show_email, terms_version, terms_accepted_at, abuse_flagged) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, ?)'
     )
     .bind(
       input.title,
       input.description ?? '',
       input.polis_id ?? null,
+      JSON.stringify(normalizeIssueTags(input.tags ?? [])),
       input.author_id,
       input.author_name,
       input.author_email,
@@ -348,11 +373,20 @@ export async function updateIssue(
     description?: string
     status?: IssueStatus
     polis_id?: string | null
+    tags?: string[]
   }
 ): Promise<void> {
+  if (input.tags === undefined) {
+    await db
+      .prepare('UPDATE ct_issues SET title = ?, description = ?, status = ?, polis_id = ? WHERE id = ?')
+      .bind(input.title, input.description ?? '', input.status ?? 'collecting', input.polis_id ?? null, id)
+      .run()
+    return
+  }
+
   await db
-    .prepare('UPDATE ct_issues SET title = ?, description = ?, status = ?, polis_id = ? WHERE id = ?')
-    .bind(input.title, input.description ?? '', input.status ?? 'collecting', input.polis_id ?? null, id)
+    .prepare('UPDATE ct_issues SET title = ?, description = ?, status = ?, polis_id = ?, tags = ? WHERE id = ?')
+    .bind(input.title, input.description ?? '', input.status ?? 'collecting', input.polis_id ?? null, JSON.stringify(normalizeIssueTags(input.tags)), id)
     .run()
 }
 
