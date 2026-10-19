@@ -389,7 +389,7 @@ async function copyRssUrl() {
           </div>
 
           <div class="mb-4 flex flex-wrap items-center gap-3">
-            <div class="section-label shrink-0">ISSUES</div>
+            <div class="section-label hidden shrink-0 sm:block">ISSUES</div>
             <input
               v-model="searchQuery"
               type="search"
