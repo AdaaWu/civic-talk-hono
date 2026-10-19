@@ -108,6 +108,7 @@ export const messages = {
   welcome_title: 'Welcome to Civic Talk',
   welcome_intro: 'Choose how you would like to participate. We will tailor issue ordering and page priorities to your role. You can switch roles from the navbar at any time.',
   welcome_intro_mobile: 'Choose how you would like to participate.',
+  welcome_learn_more: 'Learn more',
   welcome_citizen_desc: 'Read issue briefings, join discussions, and share your perspective on public issues.',
   welcome_citizen_priority: 'Prioritizes issues with briefings that are ready for discussion.',
   welcome_volunteer_desc: 'Collect materials and use your own AI tools to organize information into a shared foundation for public discussion.',

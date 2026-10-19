@@ -107,6 +107,7 @@ export const messages = {
   welcome_title: '歡迎來到 Civic Talk',
   welcome_intro: '選擇你想參與的方式，我們會依角色調整議題排序與頁面重點。你隨時可以在上方導覽列切換角色。',
   welcome_intro_mobile: '選擇你想參與的方式',
+  welcome_learn_more: '瞭解更多',
   welcome_citizen_desc: '閱讀議題說明、參與討論，分享你對公共議題的觀點。',
   welcome_citizen_priority: '優先查看：已有說明、可參與討論的議題。',
   welcome_volunteer_desc: '協助蒐集素材，並用自己的 AI 整理資訊，建立公共討論的共同基礎。',

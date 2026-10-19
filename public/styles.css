@@ -1484,6 +1484,9 @@
   .dark\:text-amber-200:where(.dark, .dark *) {
     color: var(--color-amber-200);
   }
+  .dark\:text-vt-fg-1:where(.dark, .dark *) {
+    color: var(--color-vt-fg-1);
+  }
   @media (hover: hover) {
     .dark\:hover\:bg-white\/10:where(.dark, .dark *):hover {
       background-color: color-mix(in srgb, #fff 10%, transparent);
@@ -1493,6 +1496,9 @@
         background-color: color-mix(in oklab, var(--color-white) 10%, transparent);
       }
     }
+  }
+  .dark\:focus-visible\:outline-vt-fg-1:where(.dark, .dark *):focus-visible {
+    outline-color: var(--color-vt-fg-1);
   }
   @media (width < 40rem) {
     .max-sm\:\[\&_\[role\=group\]_button\]\:px-1 [role=group] button {

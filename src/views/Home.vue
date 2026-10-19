@@ -256,6 +256,7 @@ async function copyRssUrl() {
           <p class="m-0 text-vt-fg-2">
             <span class="sm:hidden">{{ t('welcome_intro_mobile') }}</span>
             <span class="hidden sm:inline">{{ t('welcome_intro') }}</span>
+            <a href="/about" class="ml-1 text-vt-democratic-red underline hover:opacity-80 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vt-democratic-red dark:text-vt-fg-1 dark:focus-visible:outline-vt-fg-1">{{ t('welcome_learn_more') }}</a>
           </p>
         </div>
 

@@ -109,6 +109,7 @@ export const messages = {
   welcome_title: 'Civic Talk へようこそ',
   welcome_intro: '参加したい方法を選んでください。役割に応じて、議題の表示順やページで重点的に表示する内容を調整します。上部のナビゲーションバーから、いつでも役割を切り替えられます。',
   welcome_intro_mobile: '参加したい方法を選んでください',
+  welcome_learn_more: '詳しく見る',
   welcome_citizen_desc: '議題の解説を読み、討論に参加して、公共議題に対するあなたの考えを共有します。',
   welcome_citizen_priority: '優先表示：解説があり、討論に参加できる議題。',
   welcome_volunteer_desc: '資料の収集を手伝い、自分の AI で情報を整理して、公共の討論の共通の土台を作ります。',
