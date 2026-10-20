@@ -369,6 +369,9 @@
   .mx-auto {
     margin-inline: auto;
   }
+  .my-1 {
+    margin-block: var(--spacing);
+  }
   .my-auto {
     margin-block: auto;
   }
@@ -491,6 +494,9 @@
   }
   .h-px {
     height: 1px;
+  }
+  .max-h-24 {
+    max-height: calc(var(--spacing) * 24);
   }
   .max-h-48 {
     max-height: calc(var(--spacing) * 48);

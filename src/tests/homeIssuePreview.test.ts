@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vite-plus/test'
+import { homeLifecycleUrl, readHomeLifecycleTab } from '../lib/homeLifecycle'
 import { HOME_ISSUE_PREVIEW_ACTION, homeIssuePreviewUrl, readHomeIssuePreviewId } from '../lib/homeIssuePreview'
 import { collectHomeTagSuggestions, homeIssueListUrl, homeSearchUrl, readHomeSearchQuery } from '../lib/homeSearch'
 import type { IssueListItem } from '../db/queries'
@@ -18,6 +19,9 @@ function taggedIssue(id: number, tags: string[], abuse_flagged: IssueListItem['a
     material_count: 0,
     opinion_count: 0,
     last_activity_at: '2026-08-01 00:00:00',
+    is_closed: 0,
+    closure_reason: null,
+    closure_changed_at: null,
   }
 }
 
@@ -40,6 +44,13 @@ describe('home issue preview query state', () => {
     expect(next.searchParams.get('action')).toBe(HOME_ISSUE_PREVIEW_ACTION)
     expect(next.searchParams.get('issue')).toBe('7')
     expect(next.hash).toBe('#issues')
+  })
+
+  it('uses open as the default for missing, open, or invalid tab queries', () => {
+    expect(readHomeLifecycleTab(new URL('https://example.com/'))).toBe('open')
+    expect(readHomeLifecycleTab(new URL('https://example.com/?tab=open'))).toBe('open')
+    expect(readHomeLifecycleTab(new URL('https://example.com/?tab=other'))).toBe('open')
+    expect(readHomeLifecycleTab(new URL('https://example.com/?tab=closed'))).toBe('closed')
   })
 })
 
@@ -66,6 +77,37 @@ describe('home search query state', () => {
     expect(returned.searchParams.has('action')).toBe(false)
     expect(returned.searchParams.has('issue')).toBe(false)
     expect(returned.hash).toBe('#list')
+  })
+
+  it('keeps lifecycle, search, and hash state through tab changes and preview/back URLs', () => {
+    const start = new URL('https://example.com/?search=climate#issues')
+    const closedTab = homeLifecycleUrl(start, 'closed')
+    expect(closedTab.searchParams.get('tab')).toBe('closed')
+    expect(closedTab.searchParams.get('search')).toBe('climate')
+    expect(closedTab.hash).toBe('#issues')
+
+    const searched = homeSearchUrl(closedTab, 'housing')
+    expect(readHomeSearchQuery(searched)).toBe('housing')
+    expect(readHomeLifecycleTab(searched)).toBe('closed')
+    expect(searched.hash).toBe('#issues')
+
+    const preview = homeIssuePreviewUrl(searched, 7)
+    expect(readHomeIssuePreviewId(preview)).toBe(7)
+    expect(readHomeSearchQuery(preview)).toBe('housing')
+    expect(readHomeLifecycleTab(preview)).toBe('closed')
+    expect(preview.hash).toBe('#issues')
+
+    const backToList = homeIssueListUrl(preview)
+    expect(readHomeIssuePreviewId(backToList)).toBeNull()
+    expect(readHomeSearchQuery(backToList)).toBe('housing')
+    expect(readHomeLifecycleTab(backToList)).toBe('closed')
+    expect(backToList.hash).toBe('#issues')
+
+    const openTab = homeLifecycleUrl(backToList, 'open')
+    expect(openTab.searchParams.has('tab')).toBe(false)
+    expect(readHomeLifecycleTab(openTab)).toBe('open')
+    expect(openTab.searchParams.get('search')).toBe('housing')
+    expect(openTab.hash).toBe('#issues')
   })
 
   it('restores search and preview values from a browser-history URL', () => {

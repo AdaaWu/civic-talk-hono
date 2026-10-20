@@ -43,6 +43,9 @@ export interface Issue {
   polis_id: string | null
   created_at: string
   tags: string[]
+  is_closed: 0 | 1
+  closure_reason: string | null
+  closure_changed_at: string | null
   abuse_flagged: 0 | 1 | 2 | 3
   /** 建立者的 OAuth 顯示名稱；#9 之前的舊資料或系統建立為 null */
   author_name: string | null
@@ -273,12 +276,12 @@ const PUBLIC_AUTHOR_COLUMNS = 'author_name, CASE WHEN show_email = 1 THEN author
 const PRIVATE_AUTHOR_COLUMNS = 'author_id, author_name, author_email, show_email'
 const SUBMISSION_CONSENT_COLUMNS = 'terms_version, terms_accepted_at'
 const ISSUE_BASE_COLUMNS = 'id, title, description, status, polis_id, created_at, tags'
-const ISSUE_PUBLIC_COLUMNS = `${ISSUE_BASE_COLUMNS.replace('title', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE title END AS title').replace('description', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE description END AS description').replace('tags', "CASE WHEN abuse_flagged = 3 THEN '[]' ELSE COALESCE(tags, '[]') END AS tags")}, abuse_flagged, ${PUBLIC_AUTHOR_COLUMNS}`
-const ISSUE_ADMIN_COLUMNS = `${ISSUE_BASE_COLUMNS}, ${PRIVATE_AUTHOR_COLUMNS}, ${SUBMISSION_CONSENT_COLUMNS}, abuse_flagged`
-
+const ISSUE_PUBLIC_COLUMNS = `${ISSUE_BASE_COLUMNS.replace('title', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE title END AS title').replace('description', 'CASE WHEN abuse_flagged = 3 THEN NULL ELSE description END AS description').replace('tags', "CASE WHEN abuse_flagged = 3 THEN '[]' ELSE COALESCE(tags, '[]') END AS tags")}, is_closed, CASE WHEN abuse_flagged = 3 THEN NULL ELSE closure_reason END AS closure_reason, closure_changed_at, abuse_flagged, ${PUBLIC_AUTHOR_COLUMNS}`
+const ISSUE_ADMIN_COLUMNS = `${ISSUE_BASE_COLUMNS}, is_closed, closure_reason, closure_changed_at, ${PRIVATE_AUTHOR_COLUMNS}, ${SUBMISSION_CONSENT_COLUMNS}, abuse_flagged`
 const ISSUE_COUNT_SUBQUERIES = `
   (SELECT COUNT(*) FROM ct_materials WHERE issue_id = ct_issues.id AND abuse_flagged IN (0, 1)) AS material_count,
   (SELECT COUNT(*) FROM ct_opinions  WHERE issue_id = ct_issues.id AND abuse_flagged IN (0, 1)) AS opinion_count`
+
 
 /** #77：last_activity_at 由寫入路徑維護；NULL（尚無子內容活動）在 SQL 層 fallback 到 created_at */
 const ISSUE_LAST_ACTIVITY_COLUMN = 'COALESCE(last_activity_at, created_at) AS last_activity_at'
@@ -390,6 +393,18 @@ export async function updateIssue(
     .prepare('UPDATE ct_issues SET title = ?, description = ?, status = ?, polis_id = ?, tags = ? WHERE id = ?')
     .bind(input.title, input.description ?? '', input.status ?? 'collecting', input.polis_id ?? null, JSON.stringify(normalizeIssueTags(input.tags)), id)
     .run()
+}
+
+/** 原子更新最近一次結案／重開理由，不改變內容處理狀態或活動時間。 */
+export async function transitionIssueClosure(db: D1Database, id: number, closed: boolean, reason: string): Promise<'updated' | 'missing' | 'conflict'> {
+  const result = await db
+    .prepare('UPDATE ct_issues SET is_closed = ?, closure_reason = ?, closure_changed_at = CURRENT_TIMESTAMP WHERE id = ? AND is_closed = ?')
+    .bind(closed ? 1 : 0, reason, id, closed ? 0 : 1)
+    .run()
+  if (result.meta.changes > 0) return 'updated'
+
+  const existing = await db.prepare('SELECT id FROM ct_issues WHERE id = ?').bind(id).first<{ id: number }>()
+  return existing ? 'conflict' : 'missing'
 }
 
 export async function deleteIssueCascade(db: D1Database, id: number): Promise<void> {
