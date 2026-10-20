@@ -439,7 +439,6 @@ onMounted(() => {
   if (!props.initialDetail) void loadIssue()
   window.addEventListener('popstate', handlePopState)
   void refreshViewerOpinions()
-  void nextTick(() => renderPolis())
 })
 
 onBeforeUnmount(() => {
@@ -447,13 +446,6 @@ onBeforeUnmount(() => {
   clearCarouselDragEndListeners()
   if (carouselDragEndFrame !== null) window.cancelAnimationFrame(carouselDragEndFrame)
 })
-
-watch(
-  () => [issue.value?.polis_id, issue.value?.id, activeStep.value, locale.value] as const,
-  () => {
-    if (!activeStep.value) void nextTick(() => renderPolis())
-  }
-)
 
 watch(activeStep, () => {
   if (typeof window !== 'undefined') window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
@@ -489,35 +481,6 @@ watch(viewerRole, role => {
     })
   }
 })
-
-function renderPolis() {
-  if (typeof document === 'undefined') return
-  const el = document.getElementById('polis-section')
-  if (!el) return
-  const iss = issue.value
-  if (!iss?.polis_id) {
-    el.style.display = 'none'
-    el.innerHTML = ''
-    return
-  }
-  el.style.display = 'block'
-  el.innerHTML = `
-    <div class="divider"></div>
-    <h2 style="font-size:1.1rem;font-weight:700;margin-bottom:8px;">📊 ${t('polis_title')}</h2>
-    <p style="color:var(--color-muted);font-size:0.9rem;margin-bottom:16px;">${t('polis_desc')}</p>
-    <div class="polis" data-page_id="civic-talk-issue-${iss.id}" data-site_id="polis_site_id_rdf0tsbfxaRo35qf1P"></div>
-    <p style="font-size:0.8rem;color:var(--color-muted);margin-top:8px;">
-      ${t('polis_powered')} <a href="https://polis.tw" target="_blank" rel="noopener noreferrer">polis.tw</a>
-    </p>
-  `
-  if (!document.getElementById('polis-embed-script')) {
-    const script = document.createElement('script')
-    script.id = 'polis-embed-script'
-    script.async = true
-    script.src = 'https://polis.tw/embed.js'
-    document.head.appendChild(script)
-  }
-}
 
 async function loadPrompt(type: 'summarize' | 'narrative' | 'synthesis') {
   const res = await fetch(`/api/issues/${props.issueId}/prompt?type=${type}`)
@@ -794,7 +757,6 @@ async function submitOpinion() {
                   <template v-else>
                     <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('brief_overview') }}</h2>
                     <div class="markdown-content mobile-readable" v-html="renderedBriefing?.narrative ?? ''" />
-                    <div id="polis-section" class="my-8" style="display: none" />
                   </template>
                 </article>
               </Slide>

@@ -1,10 +1,15 @@
 import { readFileSync, readdirSync } from 'node:fs'
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite'
 import { Hono } from 'hono'
+import { renderToString } from '@vue/server-renderer'
+import { createSSRApp } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vite-plus/test'
 import { registerApiRoutes } from '../api/routes'
 import { createIssue } from '../db/queries'
 import { normalizeIssueTags, parseIssueTagsInput } from '../lib/issueTags'
+import type { IssueListItemWithAuthor } from '../db/queries'
+import { provideI18n } from '../l10n'
+import AdminView from '../views/Admin.vue'
 
 const authState = vi.hoisted(() => ({
   current: null as null | {
@@ -128,6 +133,45 @@ describe('issue tag persistence and API behavior', () => {
     expect((await update([])).status).toBe(200)
     const detailAfterClear = await testApp().request(`/api/issues/${id}`, undefined, env())
     await expect(detailAfterClear.json()).resolves.toMatchObject({ issue: { tags: [] } })
+  })
+
+  it.each(['legacy-conversation-42', null])('preserves the original Polis value %s when an admin edits an issue', async polisId => {
+    const seeded = sqlite.prepare('INSERT INTO ct_issues (title, description, polis_id) VALUES (?, ?, ?)').run('原議題', '原簡介', polisId)
+    const id = Number(seeded.lastInsertRowid)
+    authState.current = admin
+    const app = testApp()
+    const response = await app.request('/api/issues', undefined, env())
+    const issues = (await response.json()) as IssueListItemWithAuthor[]
+    const issue = issues.find(issue => issue.id === id)!
+
+    let editor!: {
+      issues: IssueListItemWithAuthor[]
+      formTitle: string
+      openEdit: (issue: IssueListItemWithAuthor) => void
+      saveIssue: () => Promise<void>
+    }
+    const view = createSSRApp(AdminView)
+    provideI18n(view, 'zh-TW')
+    view.mixin({
+      created() {
+        if (this.$.parent !== null) return
+        // Vue 的公開型別未列出 setupState；讀取實際元件操作，避免為測試新增產品 API。
+        const instance = this.$ as unknown as { setupState: typeof editor }
+        editor = instance.setupState
+      },
+    })
+    await renderToString(view)
+    editor.issues = issues
+    editor.openEdit(issue)
+    editor.formTitle = '修改後的議題'
+
+    vi.stubGlobal('fetch', (input: string, init?: RequestInit) => app.request(input, init, env()))
+    try {
+      await editor.saveIssue()
+      expect(sqlite.prepare('SELECT title, polis_id FROM ct_issues WHERE id = ?').get(id)).toEqual({ title: '修改後的議題', polis_id: polisId })
+    } finally {
+      vi.unstubAllGlobals()
+    }
   })
 
   it('stores an empty array when the API and legacy create callers omit tags', async () => {

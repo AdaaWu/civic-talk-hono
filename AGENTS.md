@@ -107,7 +107,7 @@ Civic Talk 已以 **每頁 `renderPage` + 單一 client bundle hydration** 跑�
 
 ### 渲染：vue-router 全站 hydration
 
-**改用 `vue-router` + 全站 hydration**（而非現況的每頁 opt-in）。理由：Civic Talk 幾乎每頁都要互動——素材投稿表單、意見投稿、Admin CRUD、語言切換、Polis embed——每頁各自開一個 rollup input 會讓 `vite.client.config.mts` 無限膨脹，也拿不到 client-side 換頁。
+**改用 `vue-router` + 全站 hydration**（而非現況的每頁 opt-in）。理由：Civic Talk 幾乎每頁都要互動——素材投稿表單、意見投稿與投票、Admin CRUD、語言切換——每頁各自開一個 rollup input 會讓 `vite.client.config.mts` 無限膨脹，也拿不到 client-side 換頁。
 
 - 共用工廠 `createVueApp(url)`：每請求新建 app／router（／i18n），SSR 用 `createMemoryHistory`、client 用 `createWebHistory`。
 - **路由元件一律靜態 import**——lazy import 會造成 hydration mismatch，SSR 打包也需要靜態表。
@@ -120,6 +120,8 @@ Civic Talk 已以 **每頁 `renderPage` + 單一 client bundle hydration** 跑�
 - `migrations/0001_init.sql` 建 `ct_issues`、`ct_materials`、`ct_briefings`、`ct_opinions`（含 FK、索引、`polis_id`、狀態／立場約束與示範資料）。**注意：舊 `schema.sql` 沒有任何 `CHECK` 約束**，這些約束是新增的——加之前先確認不會擋掉舊站允許的狀態轉換。
 - `src/db/queries.ts` 集中所有 D1 查詢與資料型別；SQL 不散落在路由裡。
 - 首屏由 Worker 查 D1 後 SSR，互動資料在 hydration 後由 client 打 `/api/*`。
+
+**舊版 polis.tw 整合已移除（2026-10-21 使用者裁示）**：移除後台啟用開關、前台外部 `embed.js` 與相關三語文案；本站投票及 `comments.csv` 匯出保留。`polis_id` 欄位與既有 API 契約仍保留，後台編輯沿用舊值，不需 migration。根據本站投票產生分群與跨群共識已另列 issue，本次不實作，不得順手串接新版 Pocket Polis。
 
 ### 身分驗證與權限：Better Auth（issue #5，已完成）
 
@@ -356,7 +358,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 **任何在 SSR 期間執行的程式碼都不得碰瀏覽器專屬 API**（`window`、`document`、`localStorage`、`navigator`）。
 
 - 需要瀏覽器 API 時，用 `if (typeof window === 'undefined') return` 守衛，或放到 `onMounted` / client-only 流程。
-- 語言偏好（`localStorage.civic_lang`）、Polis embed、檔案下載等一律屬於 client-only。
+- 語言偏好（`localStorage.civic_lang`）、檔案下載等一律屬於 client-only。
 - **登入 session 是例外中的正例**：session 從請求的 `Cookie` 標頭讀（`auth.api.getSession({ headers })`），屬伺服器端 API，**SSR 期間可以用、也應該用**，不要拿 `typeof window` 去「守衛」它。真正 client-only 的是「按下登入按鈕」這類互動（`authClient.signIn.social(...)`）。
 - **每請求要用獨立實例**，避免 SSR 跨請求狀態污染。
 - SSR 出去的 props 要做安全 escaping，避免使用者投稿內容（素材、意見）造成 XSS 或破壞 HTML 殼。
@@ -399,7 +401,7 @@ npx wrangler d1 migrations apply vtaiwan-civic-talks --remote   # 🚫 需先取
 3. `vp run build` — server + client 都能成功建置。
 4. 本機 `vp run dev` 目視（UI 改動必做；其他改動僅互動 session）：
    - hydration **無 mismatch 警告**（開 devtools console 檢查）
-   - 中英日切換、桌機／手機排版、Polis 條件載入、`OPINION.md` 下載
+   - 中英日切換、桌機／手機排版、本站意見投票、`OPINION.md`／`comments.csv` 下載
    - UI 改動必須檢查淺色／深色模式，兩種模式都要確認桌機／手機版面沒有明顯視覺問題（不限互動 session）
    - 舊網址導向確實生效
 

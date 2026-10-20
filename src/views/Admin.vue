@@ -60,7 +60,6 @@ const formTitle = ref('')
 const formDesc = ref('')
 const formTags = ref('')
 const formStatus = ref<IssueStatus>('collecting')
-const formPolis = ref(false)
 const formTermsAgreed = ref(false)
 const formShowEmailConfirmed = ref(false)
 const briefConsensus = ref('')
@@ -238,7 +237,6 @@ function openNew() {
   formTitle.value = ''
   formDesc.value = ''
   formTags.value = ''
-  formPolis.value = false
   formTermsAgreed.value = false
   formShowEmailConfirmed.value = false
   modalNew.value = true
@@ -250,7 +248,6 @@ function openEdit(issue: IssueListItemWithAuthor) {
   formDesc.value = issue.description ?? ''
   formTags.value = issue.tags.join(', ')
   formStatus.value = issue.status
-  formPolis.value = !!issue.polis_id
   modalEdit.value = true
 }
 
@@ -281,7 +278,6 @@ async function createIssue() {
       title: formTitle.value.trim(),
       description: formDesc.value,
       tags: parseIssueTagsInput(formTags.value),
-      polis_id: formPolis.value ? 'enabled' : null,
       show_email: formShowEmailConfirmed.value,
       terms_accepted: formTermsAgreed.value,
     },
@@ -307,7 +303,7 @@ async function saveIssue() {
       description: formDesc.value,
       tags: parseIssueTagsInput(formTags.value),
       status: formStatus.value,
-      polis_id: formPolis.value ? 'enabled' : null,
+      polis_id: issues.value.find(issue => issue.id === editId.value)?.polis_id ?? null,
     }),
   })
   if (!res.ok) return
@@ -1017,15 +1013,6 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
         </div>
         <div class="form-group">
           <label class="flex items-start gap-2 font-normal">
-            <input v-model="formPolis" type="checkbox" class="mt-1 w-auto" />
-            <span>
-              <strong>{{ t('adm_polis_label') }}</strong>
-              <span class="mt-1 block text-sm text-muted">{{ t('adm_polis_hint_new') }}</span>
-            </span>
-          </label>
-        </div>
-        <div class="form-group">
-          <label class="flex items-start gap-2 font-normal">
             <input v-model="formTermsAgreed" type="checkbox" class="mt-1 w-auto" />
             <span
               >{{ t('tos_agree_prefix') }}<a href="/terms" target="_blank" class="underline">{{ t('tos_terms_link') }}</a
@@ -1067,15 +1054,6 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
             <option value="summarizing">{{ t('status_summarizing') }}</option>
             <option value="published">{{ t('status_published') }}</option>
           </select>
-        </div>
-        <div class="form-group">
-          <label class="flex items-start gap-2 font-normal">
-            <input v-model="formPolis" type="checkbox" class="mt-1 w-auto" />
-            <span>
-              <strong>{{ t('adm_polis_label') }}</strong>
-              <span class="mt-1 block text-sm text-muted">{{ t('adm_polis_hint') }}</span>
-            </span>
-          </label>
         </div>
         <div class="flex gap-2">
           <button type="button" class="btn btn-primary" @click="saveIssue">{{ t('adm_btn_save') }}</button>

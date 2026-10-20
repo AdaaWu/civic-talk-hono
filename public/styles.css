@@ -369,9 +369,6 @@
   .mx-auto {
     margin-inline: auto;
   }
-  .my-8 {
-    margin-block: calc(var(--spacing) * 8);
-  }
   .my-auto {
     margin-block: auto;
   }
