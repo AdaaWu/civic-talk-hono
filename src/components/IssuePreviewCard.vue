@@ -14,7 +14,7 @@ const date = computed(() => formatDate(props.issue.created_at, locale.value))
 </script>
 
 <template>
-  <article class="card flex flex-col">
+  <article class="card mx-auto flex w-full max-w-5xl flex-col">
     <div class="mb-3 flex flex-wrap items-center gap-2">
       <StatusBadge :status="issue.status" short />
       <span class="text-sm text-muted">{{ date }}</span>

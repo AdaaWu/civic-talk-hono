@@ -899,6 +899,14 @@
   min-height: 0;
 }
 
+/* 寬螢幕限制輪播閱讀寬度；手機、平板與非輪播版面沿用原有容器。 */
+@media (width >= theme(--breakpoint-lg)) {
+  .issue-container-carousel {
+    max-width: var(--container-5xl);
+    padding-inline: var(--spacing-vt-12);
+  }
+}
+
 .issue-carousel-page .issue-page-heading {
   flex: none;
   margin-bottom: var(--spacing-vt-2);
