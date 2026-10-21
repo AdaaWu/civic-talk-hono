@@ -7,7 +7,8 @@ const noticeAssetPath = target => `licenses/${target}.txt`
 
 function moduleFilePath(id, root) {
   if (typeof id !== 'string') return null
-  let file = id.replace(/^\0+/, '')
+  let file = id
+  while (file.charCodeAt(0) === 0) file = file.slice(1)
   if (file.startsWith('file://')) {
     try {
       const parsed = new URL(file)
