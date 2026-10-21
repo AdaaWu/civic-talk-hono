@@ -15,7 +15,7 @@ import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
 import { useSubmitGuard } from '../composables/useSubmitGuard'
 import { useViewerRole } from '../composables/useViewerRole'
-import type { Briefing, Issue, Material, Opinion } from '../db/queries'
+import type { Briefing, Issue, Material, Opinion, OpinionVoteState } from '../db/queries'
 import { formatDate, useI18n } from '../l10n'
 import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 import {
@@ -421,7 +421,7 @@ async function loadOpinions(sort: 'recent' | 'responses' = opinionSort.value) {
   }
 }
 
-function updateOpinionVote(id: number, state: Record<string, unknown>) {
+function updateOpinionVote(id: number, state: OpinionVoteState) {
   opinions.value = opinions.value.map(opinion => (opinion.id === id ? { ...opinion, ...state } : opinion))
 }
 
@@ -879,7 +879,7 @@ async function submitOpinion() {
                   <span class="text-sm" :class="stanceClass(m.stance)">{{ stanceLabel(m.stance) }}</span>
                   <a v-if="m.source_url" :href="m.source_url" target="_blank" rel="noopener noreferrer" class="text-sm">{{ t('mat_link') }}</a>
                 </div>
-                <LongTextContent :text="m.content" :content-id="`material-content-${m.id}`" content-class="markdown-content mobile-readable" render-markdown />
+                <LongTextContent :text="m.content ?? ''" :content-id="`material-content-${m.id}`" content-class="markdown-content mobile-readable" render-markdown />
               </template>
               <!-- metadata（已確認或 AI 審查違規時不顯示） -->
               <p v-if="m.abuse_flagged !== 2 && m.abuse_flagged !== 3" class="mt-2 mb-0 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted">

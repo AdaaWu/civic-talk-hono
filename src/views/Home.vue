@@ -232,7 +232,7 @@ async function copyRssUrl() {
   <div>
     <AppHeader current="home" show-new-issue @new-issue="showForm = true" />
 
-    <div v-if="showWelcomePrompt" class="fixed inset-0 z-[1000] flex items-center justify-center overflow-y-auto bg-black/55 p-4" @click.self="skipWelcomePrompt" @keydown.esc="skipWelcomePrompt">
+    <div v-if="showWelcomePrompt" class="fixed inset-0 z-1000 flex items-center justify-center overflow-y-auto bg-black/55 p-4" @click.self="skipWelcomePrompt" @keydown.esc="skipWelcomePrompt">
       <section
         ref="welcomeDialog"
         role="dialog"
