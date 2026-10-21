@@ -249,7 +249,7 @@ describe('公開 release branch 查核', () => {
     expect(await verifyPublishedSource(clean, fetcher)).toBe(clean.sourceUrl)
   })
 
-  it.each(['release branch', revision, revision.slice(0, 7), 'someone:main', 'someone:'.concat(revision), 'refs/pull/131/head', 'refs/tags/v0.2.0'])(
+  it.each(['release branch', 'release\u001fbranch', 'release\u007fbranch', revision, revision.slice(0, 7), 'someone:main', 'someone:'.concat(revision), 'refs/pull/131/head', 'refs/tags/v0.2.0'])(
     '不讓 SHA、他人 fork 或非分支 ref 冒充發布分支：%s',
     async branch => {
       const fetcher = vi.fn<typeof fetch>().mockResolvedValue(compareResponse('identical'))
@@ -259,6 +259,12 @@ describe('公開 release branch 查核', () => {
       expect(fetcher).not.toHaveBeenCalled()
     }
   )
+
+  it('拒絕直接傳入含 NUL 的發布分支', async () => {
+    const fetcher = vi.fn<typeof fetch>().mockResolvedValue(compareResponse('identical'))
+    await expect(verifyPublishedSource(clean, fetcher, 'release\u0000branch')).rejects.toThrow('CIVIC_SOURCE_BRANCH')
+    expect(fetcher).not.toHaveBeenCalled()
+  })
 
   it('不把 repository 的 tag 或 fork-network commit 可讀當成存在 heads 分支', async () => {
     const fetcher = vi.fn<typeof fetch>().mockImplementation(async input => (requestUrl(input).includes('/git/ref/heads/') ? new Response(null, { status: 404 }) : compareResponse('identical')))
