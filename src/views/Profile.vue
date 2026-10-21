@@ -106,7 +106,7 @@ async function saveName() {
             <dl class="grid gap-4 sm:grid-cols-2">
               <div class="rounded-lg border border-border bg-gray-50 dark:bg-gray-800 p-4">
                 <dt class="mb-1 text-sm font-medium text-muted">{{ t('profile_name_label') }}</dt>
-                <dd class="m-0 break-words font-medium">{{ displayName }}</dd>
+                <dd class="m-0 wrap-break-word font-medium">{{ displayName }}</dd>
               </div>
               <div class="rounded-lg border border-border bg-gray-50 dark:bg-gray-800 p-4">
                 <dt class="mb-1 text-sm font-medium text-muted">{{ t('profile_email_label') }}</dt>

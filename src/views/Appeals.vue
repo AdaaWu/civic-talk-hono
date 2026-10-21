@@ -152,7 +152,7 @@ onMounted(async () => {
                 <dl class="m-0 space-y-3">
                   <div v-for="field in snapshotFields(report.content_snapshot)" :key="field.key">
                     <dt class="text-xs font-semibold text-muted">{{ field.label }}</dt>
-                    <dd class="m-0 whitespace-pre-wrap break-words text-sm">{{ field.value }}</dd>
+                    <dd class="m-0 whitespace-pre-wrap wrap-break-word text-sm">{{ field.value }}</dd>
                   </div>
                 </dl>
               </div>

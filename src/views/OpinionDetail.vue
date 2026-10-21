@@ -7,7 +7,7 @@ import OpinionVote from '../components/OpinionVote.vue'
 import StatusBadge from '../components/StatusBadge.vue'
 import { formatDate, useI18n } from '../l10n'
 import { useAuth } from '../composables/useAuth'
-import type { Issue, Opinion } from '../db/queries'
+import type { Issue, Opinion, OpinionVoteState } from '../db/queries'
 import { renderSafeMarkdown } from '../markdown/renderSafeMarkdown'
 
 const props = defineProps<{
@@ -28,6 +28,7 @@ const renderedSummary = computed(() => (opinion.value?.abuse_flagged === 3 ? '' 
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)
+const shareUrl = ref('')
 
 async function load() {
   loading.value = true
@@ -62,11 +63,12 @@ async function loadViewerOpinion() {
   if (found) opinion.value = found
 }
 
-function updateOpinionVote(state: Record<string, unknown>) {
+function updateOpinionVote(state: OpinionVoteState) {
   if (opinion.value) opinion.value = { ...opinion.value, ...state }
 }
 
 onMounted(async () => {
+  shareUrl.value = window.location.href
   if (!props.initialData) await load()
   await ensureAuthSession()
   if (authState.value === 'signed-in') await loadViewerOpinion()
@@ -75,7 +77,7 @@ onMounted(async () => {
 async function copyLink() {
   if (typeof navigator === 'undefined') return
   try {
-    await navigator.clipboard.writeText(window.location.href)
+    await navigator.clipboard.writeText(shareUrl.value)
     linkCopied.value = true
     setTimeout(() => {
       linkCopied.value = false
@@ -138,7 +140,7 @@ async function copyLink() {
             <p class="mt-0 mb-2 text-sm text-muted">{{ t('op_detail_share_hint') }}</p>
             <div class="flex flex-wrap items-center gap-2">
               <code class="flex-1 truncate rounded bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-xs text-muted">
-                {{ typeof window !== 'undefined' ? window.location.href : '' }}
+                {{ shareUrl }}
               </code>
               <button type="button" class="btn btn-secondary btn-sm shrink-0" @click="copyLink">
                 {{ linkCopied ? t('op_detail_link_copied') : t('op_detail_copy_link') }}

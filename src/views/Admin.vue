@@ -507,7 +507,11 @@ const FEEDBACK_CATEGORY_LABELS: Record<Feedback['category'], MessageKey> = {
 }
 
 function isSafeFeedbackPagePath(pagePath: string): boolean {
-  if (typeof pagePath !== 'string' || !pagePath.startsWith('/') || pagePath.startsWith('//') || /[\\#\u0000-\u001f\u007f]/.test(pagePath)) return false
+  if (typeof pagePath !== 'string' || !pagePath.startsWith('/') || pagePath.startsWith('//') || /[\\#]/.test(pagePath)) return false
+  for (const char of pagePath) {
+    const code = char.charCodeAt(0)
+    if (code <= 0x1f || code === 0x7f) return false
+  }
   try {
     const url = new URL(pagePath, 'https://civic-talk.invalid')
     return url.origin === 'https://civic-talk.invalid' && !url.hash
@@ -681,7 +685,7 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                     <td class="px-3 py-2">
                       <a :href="`/issues/${issue.id}`">{{ issue.title }}</a>
                       <div v-if="issue.tags.length" class="mt-1 flex flex-wrap gap-1" :aria-label="t('issue_tags_label')">
-                        <span v-for="tag in issue.tags" :key="tag" class="max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink dark:bg-gray-800">#{{ tag }}</span>
+                        <span v-for="tag in issue.tags" :key="tag" class="max-w-full wrap-break-word rounded bg-gray-100 px-2 py-1 text-xs text-ink dark:bg-gray-800">#{{ tag }}</span>
                       </div>
                     </td>
                     <td class="px-3 py-2"><StatusBadge :status="issue.status" short /></td>
@@ -745,7 +749,7 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                 <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <strong>{{ m.source_name || t('adm_mat_source_unknown') }}</strong>
                   <button type="button" class="btn btn-ghost btn-sm text-red" @click="deleteMaterial(m.id)">
-                    {{ t('delete') }}
+                    {{ t('adm_btn_delete') }}
                   </button>
                 </div>
                 <a v-if="m.source_url" :href="m.source_url" target="_blank" rel="noopener noreferrer" class="text-sm">{{ t('adm_mat_link') }}</a>
@@ -789,7 +793,7 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                 <div class="mb-2 flex items-center justify-between gap-2">
                   <span class="text-sm text-muted">{{ formatDate(o.created_at, locale) }}</span>
                   <button type="button" class="btn btn-ghost btn-sm text-red" @click="deleteOpinion(o.id)">
-                    {{ t('delete') }}
+                    {{ t('adm_btn_delete') }}
                   </button>
                 </div>
                 <div class="whitespace-pre-wrap text-sm">{{ o.summary }}</div>
@@ -980,12 +984,18 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                   <strong>{{ t(FEEDBACK_CATEGORY_LABELS[item.category]) }}</strong>
                   <time class="text-sm text-muted" :datetime="item.created_at"> {{ t('feedback_created_at') }} · {{ formatDate(item.created_at, locale) }} </time>
                 </div>
-                <a v-if="isSafeFeedbackPagePath(item.page_path)" :href="item.page_path" target="_blank" rel="noopener noreferrer" class="mb-3 inline-block max-w-full break-words text-sm underline">
+                <a
+                  v-if="isSafeFeedbackPagePath(item.page_path)"
+                  :href="item.page_path"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mb-3 inline-block max-w-full wrap-break-word text-sm underline"
+                >
                   {{ t('feedback_page') }}: {{ item.page_path }}
                 </a>
                 <div class="min-w-0">
                   <strong class="text-sm">{{ t('feedback_description') }}</strong>
-                  <div class="mt-1 whitespace-pre-wrap break-words text-sm">{{ item.description }}</div>
+                  <div class="mt-1 whitespace-pre-wrap wrap-break-word text-sm">{{ item.description }}</div>
                 </div>
               </article>
             </div>
