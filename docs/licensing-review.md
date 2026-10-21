@@ -79,7 +79,7 @@ Git history 另含 Cursor、Codex 與 Claude 的 co-author／session 標記；�
 | Apache-2.0 AND LGPL-3.0-or-later         |       3 |
 | CC0-1.0                                  |       1 |
 | 0BSD                                     |       2 |
-| Python-2.0                               |       1 |
+| PSF-2.0                                  |       1 |
 | BSD-2-Clause                             |       2 |
 | ISC                                      |       4 |
 | MPL-2.0                                  |      12 |

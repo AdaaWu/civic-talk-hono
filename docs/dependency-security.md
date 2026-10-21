@@ -14,3 +14,5 @@
 安裝後原有 lockfile 已更新 Hono 至 4.13.13。新版 [CSRF middleware 豁免 OPTIONS](https://github.com/honojs/hono/commit/eea9735)，讓未註冊的跨來源 preflight 從 403 變為 API fallback 的 JSON 404。使用者同意採用新版行為；測試確認回 `{ error: 'Not found' }`、沒有 CORS 放行標頭且不觸發核心 Worker。實際 POST 的登入／CSRF 防護維持原有流程；404 本身不能取代這些防護。
 
 套件升級也更新 [`licensing-dependencies.tsv`](./licensing-dependencies.tsv)、[`licensing-review.md`](./licensing-review.md) 的數量與根目錄 [`THIRD-PARTY-NOTICES.md`](../THIRD-PARTY-NOTICES.md) 的直接依賴版本。直接 runtime 套件的 LICENSE 全文已逐字核對，內容未變；整體 AGPL-3.0-only、歷史 MIT attribution 與第三方授權維持原有範圍。實際 client／Worker notices 由完整 build 重新產生，不能手改生成物。
+
+2026-10-21 的 lockfile 修訂（`1daeb33`）更新 `markdown-it` 15.0.2 → 15.0.3、`argparse` 3.0.0 → 3.0.3 與其下的 `entities` 8.0.0 → 8.1.0，但未同步授權盤點，導致 main CI 在 `Check dependency license inventory` 失敗，測試與 build 尚未執行。本次依同一份 lockfile 重產 TSV，將 `argparse` 的 license metadata 由 `Python-2.0` 同步為 `PSF-2.0`，並更新直接依賴 notices 版本；`markdown-it` 15.0.3 的 LICENSE 與原保存全文一致。套件總數不變，不移除或放寬 CI 查核。

@@ -143,9 +143,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 ```
 
-### markdown-it 15.0.2
+### markdown-it 15.0.3
 
-來源：安裝套件 `markdown-it@15.0.2` 的 `LICENSE`；npm package [`markdown-it`](https://www.npmjs.com/package/markdown-it/v/15.0.2)。
+來源：安裝套件 `markdown-it@15.0.3` 的 `LICENSE`；npm package [`markdown-it`](https://www.npmjs.com/package/markdown-it/v/15.0.3)。
 
 ```text
 Copyright (c) 2014 Vitaly Puzrin, Alex Kocharin.
