@@ -80,6 +80,8 @@ vp run dev
 
 `vite.config.mts` 以 `optimizeDeps.include` 一起預載 `vue` 與 `vue3-carousel`，避免開發伺服器冷啟動時才發現輪播依賴、重建預載產物，讓同頁短暫混用不同 Vue runtime 而出現 `Missing ref owner context`。這只調整開發依賴預載，不改輪播模板、樣式或正式版的打包方式。驗收此設定須以 `vp dev --force` 搭配真實瀏覽器檢查首次載入及輪播切換，不能只靠 SSR 測試或檢查設定文字。
 
+分享網址回歸可單獨執行 `vp test src/tests/detailShareSsr.test.ts`：使用既有 Vue compiler 與 Vitest，分別渲染素材／意見詳情的 SSR 模板和 client 模板，確認分享欄在掛載前同為空白、沒有 Vue 警告，且不提前讀取 `window.location`。此測試不提供 DOM，也不執行真正的 hydration；掛載後的網址與複製行為仍須在真實瀏覽器檢查兩種詳情頁，確認含 query／hash 的完整網址顯示與剪貼簿一致，且 console 沒有 hydration mismatch。
+
 依賴安全修補與 `package.json` overrides 的原因、移除條件見 [`docs/dependency-security.md`](./docs/dependency-security.md)。更新套件後也須重產授權盤點：`node scripts/licensing-dependencies.mjs`，再跑型別檢查、測試與完整 build，讓第三方 notices 對應實際產物。
 
 樣式 token 以 `vtaiwan-design-system/project/colors_and_type.css` 為穩定來源，透過 Tailwind v4 的 `vt-*` utilities 使用，例如 `text-vt-democratic-red`、`bg-vt-bg-2`、`font-vt-serif`。
