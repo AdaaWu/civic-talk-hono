@@ -2,6 +2,8 @@
 
 公共議題審議平台，**受原始版 [Civic Talk](https://github.com/v-taiwan/civic-talk) 啟發**，由該版靜態站移植而來：**Hono + Vue 3 SSR/hydration + Tailwind v4 + Cloudflare Workers / D1**。
 
+本站受[ronnywang](https://www.github.com/ronnywang)提出的原始構想 (https://ronnywang.github.io/civic-notes/civic-talk/)的啟發。
+
 內容生成仍由志願者使用自己的 AI token 完成，平台只產生 prompt 並收回結果；例外是投稿安全審查會呼叫外部 moderation 服務，素材事實查核則由 Civic Talk Worker 透過 Cloudflare Service Binding 呼叫不公開的 `fact-check-core` Worker。
 
 ## 軟體授權
