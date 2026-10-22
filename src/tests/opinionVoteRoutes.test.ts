@@ -11,7 +11,7 @@ vi.mock('../auth/authorization', () => ({
   tryGetAuthContext: vi.fn(async () => authContext.current),
 }))
 
-function appWithDb(db: D1Database) {
+function appWithDb() {
   const app = new Hono<{ Bindings: { DB: D1Database; DB_AUTH: D1Database } }>()
   registerApiRoutes(app as never)
   return app
@@ -50,13 +50,13 @@ describe('opinion vote routes', () => {
   it('returns 401 for anonymous vote writes but allows authenticated CSV access for banned sessions', async () => {
     const db = fakeDb()
     authContext.current = null
-    const anonymous = await appWithDb(db).request('/api/opinions/1/vote', { method: 'POST', body: JSON.stringify({ value: 1 }) }, { ...env, DB: db })
+    const anonymous = await appWithDb().request('/api/opinions/1/vote', { method: 'POST', body: JSON.stringify({ value: 1 }) }, { ...env, DB: db })
     expect(anonymous.status).toBe(401)
 
     authContext.current = { user: { id: 'banned-user', name: 'Banned', email: 'banned@example.com', image: null }, role: 'user', banned: true, nameChangeCooldownDays: null }
-    const bannedWrite = await appWithDb(db).request('/api/opinions/1/vote', { method: 'POST', body: JSON.stringify({ value: 1 }) }, { ...env, DB: db })
+    const bannedWrite = await appWithDb().request('/api/opinions/1/vote', { method: 'POST', body: JSON.stringify({ value: 1 }) }, { ...env, DB: db })
     expect(bannedWrite.status).toBe(403)
-    const csv = await appWithDb(db).request('/api/issues/2/opinions/comments.csv', undefined, { ...env, DB: db })
+    const csv = await appWithDb().request('/api/issues/2/opinions/comments.csv', undefined, { ...env, DB: db })
     expect(csv.status).toBe(200)
     expect(csv.headers.get('content-type')).toContain('text/csv')
     expect(csv.headers.get('content-disposition')).toContain('civic-talk-issue-2-comments.csv')
@@ -64,7 +64,7 @@ describe('opinion vote routes', () => {
 
   it('rejects unknown sort values before querying', async () => {
     authContext.current = null
-    const response = await appWithDb(fakeDb()).request('/api/issues/2/opinions?sort=popular', undefined, { ...env, DB: fakeDb() })
+    const response = await appWithDb().request('/api/issues/2/opinions?sort=popular', undefined, { ...env, DB: fakeDb() })
     expect(response.status).toBe(400)
     expect(await response.json()).toEqual({ error: 'sort must be "recent" or "responses"' })
   })

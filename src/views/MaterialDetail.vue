@@ -27,6 +27,7 @@ const renderedContent = computed(() => (material.value?.abuse_flagged === 3 ? ''
 const loading = ref(!props.initialData)
 const notFound = ref(false)
 const linkCopied = ref(false)
+const shareUrl = ref('')
 
 async function load() {
   loading.value = true
@@ -54,6 +55,7 @@ async function load() {
 }
 
 onMounted(() => {
+  shareUrl.value = window.location.href
   if (!props.initialData) void load()
   void ensureAuthSession()
 })
@@ -75,7 +77,7 @@ function stanceClass(s: string) {
 async function copyLink() {
   if (typeof navigator === 'undefined') return
   try {
-    await navigator.clipboard.writeText(window.location.href)
+    await navigator.clipboard.writeText(shareUrl.value)
     linkCopied.value = true
     setTimeout(() => {
       linkCopied.value = false
@@ -156,7 +158,7 @@ async function copyLink() {
             <p class="mt-0 mb-2 text-sm text-muted">{{ t('src_share_hint') }}</p>
             <div class="flex flex-wrap items-center gap-2">
               <code class="flex-1 truncate rounded bg-gray-100 dark:bg-gray-800 px-3 py-1.5 text-xs text-muted">
-                {{ typeof window !== 'undefined' ? window.location.href : '' }}
+                {{ shareUrl }}
               </code>
               <button type="button" class="btn btn-secondary btn-sm shrink-0" @click="copyLink">
                 {{ linkCopied ? t('src_link_copied') : t('src_copy_link') }}
