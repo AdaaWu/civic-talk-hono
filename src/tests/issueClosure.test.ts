@@ -209,7 +209,7 @@ describe('independent issue closure lifecycle', () => {
     })
   })
 
-  it('preserves the reason across a real conflict and cancel/reopen using the latest server state', async () => {
+  it('blocks cancellation and duplicate submission while pending, then preserves the reason across conflict and cancel/reopen', async () => {
     const id = seedIssue('published')
     authState.current = admin
     const app = testApp()
@@ -243,13 +243,27 @@ describe('independent issue closure lifecycle', () => {
     // 另一位管理員先結案；本機表單仍持有開啟視窗時的進行中狀態。
     expect((await send(app, id, true, '另一位管理員先完成結案')).status).toBe(200)
     const statuses: number[] = []
+    let releaseRequest!: () => void
+    // 專案的 TypeScript lib 尚未提供 ES2024 Promise.withResolvers。
+    const requestGate = new Promise<void>(resolve => {
+      releaseRequest = resolve
+    })
     vi.stubGlobal('fetch', async (input: string, init?: RequestInit) => {
+      if (init?.method === 'PATCH') await requestGate
       const result = await app.request(input, init, env())
       if (init?.method === 'PATCH') statuses.push(result.status)
       return result
     })
     try {
+      const saving = editor.saveClosure()
+      // Escape、取消鈕與霧面都走相同的關閉守門，送出中不得丟失議題與草稿。
+      editor.closeClosure()
       await editor.saveClosure()
+      expect(editor.closureIssue?.id).toBe(id)
+      expect(editor.closureReason).toBe('仍有補充資料需要討論')
+      expect(statuses).toEqual([])
+      releaseRequest()
+      await saving
       expect(statuses).toEqual([409])
       expect(sqlite.prepare('SELECT is_closed, closure_reason FROM ct_issues WHERE id = ?').get(id)).toEqual({ is_closed: 1, closure_reason: '另一位管理員先完成結案' })
 
@@ -265,6 +279,7 @@ describe('independent issue closure lifecycle', () => {
       expect(editor.closureReason).toBe('')
     } finally {
       vi.unstubAllGlobals()
+      releaseRequest()
     }
   })
 

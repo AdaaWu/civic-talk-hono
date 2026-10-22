@@ -59,6 +59,7 @@ const closureIssue = ref<IssueListItemWithAuthor | null>(null)
 const closureReason = ref('')
 const closurePending = ref(false)
 const closureError = ref('')
+const closureDialog = ref<HTMLDialogElement | null>(null)
 const closureReasonInput = ref<HTMLTextAreaElement | null>(null)
 let closureTrigger: HTMLElement | null = null
 let closureDraft: { issueId: number; reason: string } | null = null
@@ -324,14 +325,25 @@ function openClosure(issue: IssueListItemWithAuthor, event: MouseEvent) {
   closureReason.value = closureDraft?.issueId === issue.id ? closureDraft.reason : ''
   closureError.value = ''
   closureTrigger = event.currentTarget as HTMLElement | null
-  void nextTick(() => closureReasonInput.value?.focus())
+  void nextTick(() => {
+    closureDialog.value?.showModal()
+    closureReasonInput.value?.focus()
+  })
 }
 
 function closeClosure() {
   if (closurePending.value) return
   if (closureIssue.value) closureDraft = { issueId: closureIssue.value.id, reason: closureReason.value }
+  closureDialog.value?.close()
   closureIssue.value = null
   void nextTick(() => closureTrigger?.focus())
+}
+
+function closeClosureOnBackdropClick(event: MouseEvent) {
+  const element = closureDialog.value
+  if (!element || event.target !== element) return
+  const bounds = element.getBoundingClientRect()
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeClosure()
 }
 
 async function saveClosure() {
@@ -1066,8 +1078,15 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
     </main>
 
     <!-- Modals -->
-    <div v-if="closureIssue" class="modal-overlay" @click.self="closeClosure" @keydown.esc.prevent="closeClosure">
-      <form class="modal" role="dialog" aria-modal="true" aria-labelledby="closure-title" :aria-busy="closurePending" @submit.prevent="saveClosure">
+    <dialog
+      v-if="closureIssue"
+      ref="closureDialog"
+      class="modal m-auto max-h-[90dvh] max-w-[calc(100%-2rem)] border border-vt-border text-vt-fg-1 backdrop:bg-black/50"
+      aria-labelledby="closure-title"
+      @cancel.prevent="closeClosure"
+      @click="closeClosureOnBackdropClick"
+    >
+      <form :aria-busy="closurePending" @submit.prevent="saveClosure">
         <h2 id="closure-title" class="mt-0 mb-4 font-serif text-xl">{{ t(closureIssue.is_closed === 1 ? 'adm_issue_reopen' : 'adm_issue_close') }}</h2>
         <p class="break-words font-medium">{{ closureIssue.title }}</p>
         <p class="text-sm text-muted">{{ t('adm_closure_hint') }}</p>
@@ -1092,7 +1111,7 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
           <button type="button" class="btn btn-secondary" :disabled="closurePending" @click="closeClosure">{{ t('adm_btn_cancel') }}</button>
         </div>
       </form>
-    </div>
+    </dialog>
 
     <div v-if="modalNew" class="modal-overlay" @click.self="modalNew = false">
       <div class="modal">
