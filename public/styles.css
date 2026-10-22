@@ -1095,6 +1095,9 @@
   .text-ellipsis {
     text-overflow: ellipsis;
   }
+  .whitespace-normal {
+    white-space: normal;
+  }
   .whitespace-nowrap {
     white-space: nowrap;
   }
@@ -1133,6 +1136,9 @@
   }
   .text-teal {
     color: var(--color-teal);
+  }
+  .text-vt-black {
+    color: var(--color-vt-black);
   }
   .text-vt-democratic-red {
     color: var(--color-vt-democratic-red);

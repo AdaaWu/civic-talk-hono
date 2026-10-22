@@ -12,6 +12,7 @@ import Toast from '../components/Toast.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
+import { copyTextWhenReady } from '../client/clipboard'
 import { useAuth } from '../composables/useAuth'
 import { useSubmitGuard } from '../composables/useSubmitGuard'
 import { useViewerRole } from '../composables/useViewerRole'
@@ -110,6 +111,7 @@ const narrative = ref('')
 const opinionInput = ref('')
 // 送出防重入（#97）：意見送出請求進行中，重複點擊直接忽略
 const { pending: opinionSubmitting, run: runOpinionSubmit } = useSubmitGuard()
+const { pending: summarySubmitting, run: runSummarySubmit } = useSubmitGuard()
 // ToS 同意 checkbox（#27）
 const opinionTosAgreed = ref(false)
 // Email 公開選項（#27）
@@ -482,21 +484,22 @@ watch(viewerRole, role => {
   }
 })
 
-async function loadPrompt(type: 'summarize' | 'narrative' | 'synthesis') {
+async function loadPrompt(type: 'summarize' | 'narrative' | 'synthesis', notifyError = true): Promise<string | null> {
   const res = await fetch(`/api/issues/${props.issueId}/prompt?type=${type}`)
   if (res.status === 401) {
     volunteerSessionExpired.value = true
-    toast.value?.show(t('login_expired_toast'))
-    return
+    if (notifyError) toast.value?.show(t('login_expired_toast'))
+    return null
   }
   if (!res.ok) {
     const e = await res.json().catch(() => ({}))
-    toast.value?.show((e as { error?: string }).error || t('vol_toast_load_fail'))
-    return
+    if (notifyError) toast.value?.show((e as { error?: string }).error || t('vol_toast_load_fail'))
+    return null
   }
   const data = (await res.json()) as { prompt: string }
   promptText.value[type] = data.prompt
   promptVisible.value[type] = true
+  return data.prompt
 }
 
 async function copyPrompt(type: string) {
@@ -520,31 +523,62 @@ async function copyRssUrl() {
   }
 }
 
-async function submitSummarize() {
-  const body = {
-    consensus: consensus.value.trim(),
-    disputes: disputes.value.trim(),
-    positions: positions.value.trim(),
-  }
-  if (!body.consensus && !body.disputes && !body.positions) {
-    toast.value?.show(t('vol_toast_fill_one'))
-    return
-  }
-  const res = await postIssueSubmission(`/api/issues/${props.issueId}/briefing`, {
-    ...body,
-    show_email: volunteerShowEmail.value,
+async function submitSummarize(copyNarrative = false) {
+  await runSummarySubmit(async () => {
+    const body = {
+      consensus: consensus.value.trim(),
+      disputes: disputes.value.trim(),
+      positions: positions.value.trim(),
+    }
+    if (!body.consensus && !body.disputes && !body.positions) {
+      toast.value?.show(t('vol_toast_fill_one'))
+      return
+    }
+    let saved = false
+    const preparePrompt = async (): Promise<string | null> => {
+      try {
+        const res = await postIssueSubmission(`/api/issues/${props.issueId}/briefing`, {
+          ...body,
+          show_email: volunteerShowEmail.value,
+        })
+        if (!res) return null
+        if (res.status === 401) {
+          volunteerSessionExpired.value = true
+          toast.value?.show(t('login_expired_toast'))
+          return null
+        }
+        if (await handleModerationResult(res, 'volunteer')) return null
+        if (!res.ok) {
+          toast.value?.show(t('vol_toast_save_fail'))
+          return null
+        }
+        saved = true
+        return copyNarrative ? await loadPrompt('narrative', false) : null
+      } catch {
+        if (!saved) toast.value?.show(t('vol_toast_save_fail'))
+        return null
+      }
+    }
+    // ClipboardItem 在點擊的同一個 call stack 建立，內容等儲存與取得 prompt 後才寫入。
+    const prompt = preparePrompt()
+    const copying = copyNarrative ? copyTextWhenReady(prompt) : null
+    const text = await prompt
+    const copied = copying ? await copying : false
+    if (!saved) return
+    const message = !copyNarrative
+      ? t('vol_toast_summarize_ok')
+      : !text
+        ? t('vol_toast_summarize_prompt_fail')
+        : copied
+          ? t('vol_toast_summarize_copied')
+          : t('vol_toast_summarize_copy_fail')
+    try {
+      await loadIssue()
+      toast.value?.show(message)
+    } catch {
+      toast.value?.show(`${message} ${t('vol_toast_load_fail')}`)
+    }
   })
-  if (!res) return
-  if (res.status === 401) {
-    volunteerSessionExpired.value = true
-    toast.value?.show(t('login_expired_toast'))
-    return
-  }
-  if (await handleModerationResult(res, 'volunteer')) return
-  if (res.ok) {
-    toast.value?.show(t('vol_toast_summarize_ok'))
-    await loadIssue()
-  } else toast.value?.show(t('vol_toast_save_fail'))
 }
 
 async function submitSynthesis() {
@@ -964,9 +998,14 @@ async function submitOpinion() {
                   <label for="briefing-positions">{{ t('vol_label_positions') }}</label>
                   <MarkdownEditor id="briefing-positions" v-model="positions" :label="t('vol_label_positions')" :rows="4" :placeholder="t('vol_ph_positions')" />
                 </div>
-                <button type="button" class="btn btn-primary" @click="submitSummarize">
-                  {{ t('vol_submit_summarize') }}
-                </button>
+                <div class="flex flex-col gap-3 sm:flex-row sm:flex-wrap" :aria-busy="summarySubmitting">
+                  <button type="button" class="btn btn-primary" :disabled="summarySubmitting" @click="submitSummarize()">
+                    {{ summarySubmitting ? t('submitting_pending') : t('vol_submit_summarize') }}
+                  </button>
+                  <button type="button" class="btn btn-wheat-yellow whitespace-normal text-vt-black" :disabled="summarySubmitting" @click="submitSummarize(true)">
+                    {{ summarySubmitting ? t('submitting_pending') : t('vol_submit_summarize_copy') }}
+                  </button>
+                </div>
               </div>
 
               <div class="card mb-4">
