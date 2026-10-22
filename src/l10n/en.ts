@@ -784,11 +784,15 @@ Then, based on my responses:
 1. Help me identify the deeper values behind my instinct
 2. Raise perspectives I might not have considered
 3. Don't take sides — help me clarify what I actually think
-At the end of our conversation, please summarize my views in 100–300 words, covering:
+4. Explore feasible solutions, ways to reconcile differences, or ways to reduce conflict around the disputes I care about, including their conditions, trade-offs, and limitations; do not force consensus
+When I am ready to end the conversation or ask for a summary, first review the entire conversation for constructive conclusions I endorse, rather than merely restating my initial stance. If you are unsure whether I endorse a proposal, ask me to confirm.
+Then produce a 100–300 word "Civic Opinion Summary" that I can paste directly back into Civic Talk, covering:
 - What aspects I care most about
 - My general stance or perspective
-- Any remaining questions or uncertainties
-This summary can be submitted back to Civic Talk as a public opinion contribution.
+- Solutions, ways to reconcile differences or reduce conflict, or concrete next steps that I proposed or explicitly endorsed during our conversation, with important conditions and trade-offs (if any)
+- Disagreements, questions, or uncertainties I still have
+Condense background and repetition to retain the constructive conclusions we discussed; do not drop solutions just to meet the word limit. Distinguish ideas I endorse from suggestions made only by the AI that I have not endorsed; do not present the latter as my stance. If no proposal has emerged, honestly retain the unresolved questions instead of inventing a solution or consensus.
+If we continue discussing and develop new proposals or conclusions after the summary, update and provide the complete "Civic Opinion Summary" using the same principles, so the version I paste back includes them without another reminder from me.
 ---
 *Generated {date} | civic.vtaiwan.tw*
 `,
