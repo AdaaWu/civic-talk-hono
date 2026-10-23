@@ -442,8 +442,8 @@ async function copyRssUrl() {
             </template>
           </div>
 
-          <div class="mb-4 flex flex-wrap items-center gap-3">
-            <div class="section-label hidden shrink-0 sm:block">ISSUES</div>
+          <div class="mb-4 flex flex-wrap flex-col sm:flex-row items-center gap-3">
+            <div class="section-label hidden shrink-0 md:block">ISSUES</div>
             <div role="tablist" :aria-label="t('idx_lifecycle_tabs_aria')" class="flex shrink-0 border-b border-vt-border">
               <button
                 id="home-tab-open"
@@ -477,15 +477,17 @@ async function copyRssUrl() {
               </button>
             </div>
             <label for="home-issue-search" class="sr-only">{{ t('idx_search_label') }}</label>
-            <input
-              id="home-issue-search"
-              v-model="searchQuery"
-              type="search"
-              list="home-issue-tag-suggestions"
-              aria-describedby="home-issue-tag-suggestions-label"
-              class="flex-1 min-w-40 rounded border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
-              :placeholder="t('idx_search_ph')"
-            />
+            <div class="w-full min-w-0 sm:min-w-80 sm:flex-1 lg:w-1/2 lg:flex-none">
+              <input
+                id="home-issue-search"
+                v-model="searchQuery"
+                type="search"
+                list="home-issue-tag-suggestions"
+                aria-describedby="home-issue-tag-suggestions-label"
+                class="block w-full min-w-0 rounded border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
+                :placeholder="t('idx_search_ph')"
+              />
+            </div>
             <datalist id="home-issue-tag-suggestions" aria-labelledby="home-issue-tag-suggestions-label">
               <option v-for="tag in tagSuggestions" :key="tag.toLowerCase()" :value="`#${tag}`" />
             </datalist>
