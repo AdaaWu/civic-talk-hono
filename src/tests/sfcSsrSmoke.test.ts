@@ -150,6 +150,20 @@ describe('author email disclosure (#60)', () => {
   })
 })
 
+describe('home issue card opinion count', () => {
+  it('keeps tags but omits the opinion indicator when there are no opinions', async () => {
+    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 0, tags: ['能源'] } })
+    expect(html).toContain('#能源')
+    expect(html).not.toContain('role="img"')
+  })
+
+  it('shows the opinion count even when there are no tags', async () => {
+    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 2 } })
+    const indicator = html.match(/<span role="img"[\s\S]*?<\/span>/)?.[0]
+    expect(indicator?.replace(/<[^>]*>/g, '').trim()).toBe('2')
+  })
+})
+
 describe('home issue preview', () => {
   const previewIssue = { ...issue, material_count: 3, opinion_count: 5, author_name: '建立者', author_email: null }
 

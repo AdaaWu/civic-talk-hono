@@ -18,6 +18,7 @@ const { t, locale } = useI18n()
 const href = computed(() => `/issues/${props.issue.id}`)
 const date = computed(() => formatDate(props.issue.created_at, locale.value))
 const canShowTags = computed(() => props.issue.tags.length > 0 && props.issue.abuse_flagged !== 2 && props.issue.abuse_flagged !== 3)
+const opinionCountLabel = computed(() => `${props.issue.opinion_count} ${t('idx_opinions_unit')}`)
 
 function selectIssue(event: MouseEvent): void {
   // 保留另開分頁／視窗的瀏覽器原生行為；一般點擊則在首頁切成 query 驅動的預覽版面。
@@ -33,17 +34,26 @@ function selectIssue(event: MouseEvent): void {
       <StatusBadge :status="issue.status" short />
       <span class="text-sm text-muted">{{ date }}</span>
     </div>
-    <h2 class="m-0 min-w-0 font-serif text-xl font-bold [overflow-wrap:anywhere]" :class="canShowTags ? '' : 'md:col-span-2'">
+    <h2 class="m-0 min-w-0 font-serif text-xl font-bold [overflow-wrap:anywhere]" :class="canShowTags || issue.opinion_count > 0 ? '' : 'md:col-span-2'">
       <a :href="href" class="text-ink no-underline hover:no-underline after:absolute after:inset-0" @click="selectIssue">{{ issue.title }}</a>
     </h2>
-    <div v-if="canShowTags" role="list" class="mt-2 flex min-w-0 flex-wrap gap-1 md:mt-0 md:justify-end md:self-end" :aria-label="t('issue_tags_label')">
-      <span
-        v-for="tag in issue.tags"
-        :key="tag.toLowerCase()"
-        role="listitem"
-        class="min-w-0 max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink [overflow-wrap:anywhere] dark:bg-gray-800"
-        >#{{ tag }}</span
-      >
+    <div v-if="canShowTags || issue.opinion_count > 0" class="mt-2 flex min-w-0 items-end justify-end gap-2 md:mt-0 md:self-end">
+      <div v-if="canShowTags" role="list" class="flex min-w-0 flex-1 flex-wrap gap-1 md:justify-end" :aria-label="t('issue_tags_label')">
+        <span
+          v-for="tag in issue.tags"
+          :key="tag.toLowerCase()"
+          role="listitem"
+          class="min-w-0 max-w-full break-words rounded bg-gray-100 px-2 py-1 text-xs text-ink [overflow-wrap:anywhere] dark:bg-gray-800"
+          >#{{ tag }}</span
+        >
+      </div>
+      <span v-if="issue.opinion_count > 0" role="img" :aria-label="opinionCountLabel" :title="opinionCountLabel" class="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm text-muted">
+        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M4 21v-2a8 8 0 0 1 16 0v2" />
+        </svg>
+        {{ issue.opinion_count }}
+      </span>
     </div>
   </div>
 </template>
