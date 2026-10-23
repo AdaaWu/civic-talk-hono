@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite'
 import { describe, expect, it } from 'vite-plus/test'
 import { createBriefing, createMaterial, createOpinion, listIssues, updateLatestBriefing, type IssueListItem, type IssueStatus } from '../db/queries'
+import { filterHomeIssuesByLifecycle } from '../lib/homeLifecycle'
 import { filterAndSortHomeIssues, filterByRole, sortByOrder } from '../lib/homeSorting'
 
 // ── listIssues 的 last_activity_at（#77）───────────────────────────────────
@@ -14,7 +15,7 @@ function sqliteDb(tables: Record<string, Row[]>) {
   const sqlite = new DatabaseSync(':memory:')
   const schema: Record<string, string> = {
     ct_issues:
-      'id INTEGER PRIMARY KEY, title TEXT, description TEXT, status TEXT, polis_id TEXT, created_at TEXT, last_activity_at TEXT, tags TEXT, abuse_flagged INTEGER, author_name TEXT, author_email TEXT, show_email INTEGER',
+      'id INTEGER PRIMARY KEY, title TEXT, description TEXT, status TEXT, polis_id TEXT, created_at TEXT, last_activity_at TEXT, is_closed INTEGER NOT NULL DEFAULT 0, closure_reason TEXT, closure_changed_at TEXT, tags TEXT, abuse_flagged INTEGER, author_name TEXT, author_email TEXT, show_email INTEGER',
     ct_materials: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
     ct_opinions: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
     ct_briefings: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
@@ -55,6 +56,9 @@ function issueRow(id: number, created_at: string, overrides: Partial<Row> = {}):
     status: 'collecting',
     polis_id: null,
     created_at,
+    is_closed: 0,
+    closure_reason: null,
+    closure_changed_at: null,
     tags: '[]',
     abuse_flagged: 0,
     author_name: null,
@@ -224,6 +228,9 @@ function item(id: number, overrides: Partial<IssueListItem> = {}): IssueListItem
     material_count: 0,
     opinion_count: 0,
     last_activity_at: '2026-08-01 00:00:00',
+    is_closed: 0,
+    closure_reason: null,
+    closure_changed_at: null,
     tags: [],
     ...overrides,
   }
@@ -330,5 +337,23 @@ describe('filterAndSortHomeIssues（#77、#90）', () => {
 
     expect(filterAndSortHomeIssues(list, 'citizen', 'newest', '#cIvIc').map(i => i.id)).toEqual([1, 3])
     expect(filterAndSortHomeIssues(list, 'volunteer', 'newest', '#CIVIC').map(i => i.id)).toEqual([3, 2, 1])
+  })
+})
+
+describe('homepage lifecycle filtering', () => {
+  const list = [
+    item(1, { title: 'Housing open', status: 'published' }),
+    item(2, { title: 'Housing closed', status: 'published', is_closed: 1 }),
+    item(3, { title: 'Housing closed collecting', status: 'collecting', is_closed: 1 }),
+    item(4, { title: 'Housing open collecting', status: 'collecting' }),
+  ]
+
+  it('defaults to open issues and filters closed issues before role, search, and sort', () => {
+    expect(filterHomeIssuesByLifecycle(list, 'open').map(issue => issue.id)).toEqual([1, 4])
+    expect(filterAndSortHomeIssues(filterHomeIssuesByLifecycle(list, 'open'), 'citizen', 'newest', 'housing').map(issue => issue.id)).toEqual([1])
+    expect(filterAndSortHomeIssues(filterHomeIssuesByLifecycle(list, 'open'), 'volunteer', 'newest', 'housing').map(issue => issue.id)).toEqual([4, 1])
+    expect(filterHomeIssuesByLifecycle(list, 'closed').map(issue => issue.id)).toEqual([2, 3])
+    expect(filterAndSortHomeIssues(filterHomeIssuesByLifecycle(list, 'closed'), 'citizen', 'newest', 'housing').map(issue => issue.id)).toEqual([2])
+    expect(filterAndSortHomeIssues(filterHomeIssuesByLifecycle(list, 'closed'), 'volunteer', 'newest', 'housing').map(issue => issue.id)).toEqual([3, 2])
   })
 })

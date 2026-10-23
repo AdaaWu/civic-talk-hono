@@ -32,6 +32,7 @@ import PrivacyView from './views/Privacy.vue'
 import TermsView from './views/Terms.vue'
 import ProfileView from './views/Profile.vue'
 import AppealsView from './views/Appeals.vue'
+import { readHomeLifecycleTab } from './lib/homeLifecycle'
 import { readHomeIssuePreviewId } from './lib/homeIssuePreview'
 import { readHomeSearchQuery } from './lib/homeSearch'
 import { parseIssueBriefingSlide, parseIssueCommentAction, parseIssueStep } from './lib/issueNavigation'
@@ -86,7 +87,8 @@ app.get('/', async c => {
   const initialIssues = await listIssues(c.env.DB)
   const initialPreviewIssueId = readHomeIssuePreviewId(requestUrl)
   const initialSearchQuery = readHomeSearchQuery(requestUrl)
-  const homeState = { initialIssues, initialPreviewIssueId, initialSearchQuery }
+  const initialLifecycleTab = readHomeLifecycleTab(requestUrl)
+  const homeState = { initialIssues, initialPreviewIssueId, initialSearchQuery, initialLifecycleTab }
   const html = await renderPage(HomeView, homeState, headForHome(origin), {
     hydrate: { page: 'home', state: homeState },
   })

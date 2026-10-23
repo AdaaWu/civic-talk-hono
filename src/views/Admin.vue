@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import AppFooter from '../components/AppFooter.vue'
 import SignInButtons from '../components/SignInButtons.vue'
@@ -55,6 +55,14 @@ const reportSearch = ref('')
 const modalEdit = ref(false)
 const modalNew = ref(false)
 const modalBriefing = ref(false)
+const closureIssue = ref<IssueListItemWithAuthor | null>(null)
+const closureReason = ref('')
+const closurePending = ref(false)
+const closureError = ref('')
+const closureDialog = ref<HTMLDialogElement | null>(null)
+const closureReasonInput = ref<HTMLTextAreaElement | null>(null)
+let closureTrigger: HTMLElement | null = null
+let closureDraft: { issueId: number; reason: string } | null = null
 const editId = ref<number | null>(null)
 const formTitle = ref('')
 const formDesc = ref('')
@@ -310,6 +318,65 @@ async function saveIssue() {
   toast.value?.show(t('adm_toast_save'))
   modalEdit.value = false
   await bootstrap()
+}
+
+function openClosure(issue: IssueListItemWithAuthor, event: MouseEvent) {
+  closureIssue.value = issue
+  closureReason.value = closureDraft?.issueId === issue.id ? closureDraft.reason : ''
+  closureError.value = ''
+  closureTrigger = event.currentTarget as HTMLElement | null
+  void nextTick(() => {
+    closureDialog.value?.showModal()
+    closureReasonInput.value?.focus()
+  })
+}
+
+function closeClosure() {
+  if (closurePending.value) return
+  if (closureIssue.value) closureDraft = { issueId: closureIssue.value.id, reason: closureReason.value }
+  closureDialog.value?.close()
+  closureIssue.value = null
+  void nextTick(() => closureTrigger?.focus())
+}
+
+function closeClosureOnBackdropClick(event: MouseEvent) {
+  const element = closureDialog.value
+  if (!element || event.target !== element) return
+  const bounds = element.getBoundingClientRect()
+  if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) closeClosure()
+}
+
+async function saveClosure() {
+  if (!closureIssue.value || closurePending.value) return
+  const reason = closureReason.value.trim()
+  if (!reason || [...reason].length > 1000) {
+    closureError.value = t('adm_closure_reason_invalid')
+    return
+  }
+  const closed = closureIssue.value.is_closed !== 1
+  closurePending.value = true
+  closureError.value = ''
+  try {
+    const res = await fetch(`/api/issues/${closureIssue.value.id}/closure`, {
+      method: 'PATCH',
+      headers: authHeaders(),
+      body: JSON.stringify({ closed, reason }),
+    })
+    if (!res.ok) {
+      closureError.value = t(res.status === 409 ? 'adm_closure_conflict' : 'adm_closure_failed')
+      if (res.status === 409) await loadIssues()
+      return
+    }
+    await loadIssues()
+    toast.value?.show(t(closed ? 'adm_closure_closed' : 'adm_closure_reopened'))
+    closurePending.value = false
+    closeClosure()
+    closureDraft = null
+  } catch {
+    closureError.value = t('adm_closure_failed')
+  } finally {
+    closurePending.value = false
+  }
 }
 
 async function deleteIssue(issue: IssueListItemWithAuthor) {
@@ -688,7 +755,10 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                         <span v-for="tag in issue.tags" :key="tag" class="max-w-full wrap-break-word rounded bg-gray-100 px-2 py-1 text-xs text-ink dark:bg-gray-800">#{{ tag }}</span>
                       </div>
                     </td>
-                    <td class="px-3 py-2"><StatusBadge :status="issue.status" short /></td>
+                    <td class="px-3 py-2">
+                      <StatusBadge :status="issue.status" short />
+                      <span class="mt-1 block text-xs text-muted">{{ t(issue.is_closed === 1 ? 'idx_tab_closed' : 'idx_tab_open') }}</span>
+                    </td>
                     <td class="px-3 py-2">{{ issue.material_count }}</td>
                     <td class="px-3 py-2">
                       <div>{{ issue.author_name || t('adm_author_unknown') }}</div>
@@ -706,6 +776,9 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
                         </button>
                         <button type="button" class="btn btn-ghost btn-sm" @click="openBriefing(issue)">
                           {{ t('adm_btn_briefing') }}
+                        </button>
+                        <button type="button" class="btn btn-ghost btn-sm" @click="openClosure(issue, $event)">
+                          {{ t(issue.is_closed === 1 ? 'adm_issue_reopen' : 'adm_issue_close') }}
                         </button>
                         <button type="button" class="btn btn-ghost btn-sm text-red" @click="deleteIssue(issue)">
                           {{ t('adm_btn_delete') }}
@@ -1005,6 +1078,41 @@ function isSafeFeedbackPagePath(pagePath: string): boolean {
     </main>
 
     <!-- Modals -->
+    <dialog
+      v-if="closureIssue"
+      ref="closureDialog"
+      class="modal m-auto max-h-[90dvh] max-w-[calc(100%-2rem)] border border-vt-border text-vt-fg-1 backdrop:bg-black/50"
+      aria-labelledby="closure-title"
+      @cancel.prevent="closeClosure"
+      @click="closeClosureOnBackdropClick"
+    >
+      <form :aria-busy="closurePending" @submit.prevent="saveClosure">
+        <h2 id="closure-title" class="mt-0 mb-4 font-serif text-xl">{{ t(closureIssue.is_closed === 1 ? 'adm_issue_reopen' : 'adm_issue_close') }}</h2>
+        <p class="break-words font-medium">{{ closureIssue.title }}</p>
+        <p class="text-sm text-muted">{{ t('adm_closure_hint') }}</p>
+        <div class="form-group">
+          <label for="closure-reason">{{ t('adm_closure_reason') }}</label>
+          <textarea
+            id="closure-reason"
+            ref="closureReasonInput"
+            v-model="closureReason"
+            rows="4"
+            required
+            :readonly="closurePending"
+            aria-describedby="closure-reason-hint closure-error"
+          />
+          <p id="closure-reason-hint" class="mt-1 text-sm text-muted">{{ t('adm_closure_reason_hint') }}</p>
+        </div>
+        <p id="closure-error" class="text-sm text-red" role="alert">{{ closureError }}</p>
+        <div class="flex flex-wrap gap-2">
+          <button type="submit" class="btn btn-primary" :disabled="closurePending">
+            {{ t(closurePending ? 'submitting_pending' : closureIssue.is_closed === 1 ? 'adm_issue_reopen' : 'adm_issue_close') }}
+          </button>
+          <button type="button" class="btn btn-secondary" :disabled="closurePending" @click="closeClosure">{{ t('adm_btn_cancel') }}</button>
+        </div>
+      </form>
+    </dialog>
+
     <div v-if="modalNew" class="modal-overlay" @click.self="modalNew = false">
       <div class="modal">
         <h2 class="mt-0 mb-4 font-serif text-xl">{{ t('adm_modal_new_title') }}</h2>

@@ -13,6 +13,7 @@ import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
 import { useViewerRole, type ViewerRole } from '../composables/useViewerRole'
 import type { IssueListItem } from '../db/queries'
+import { filterHomeIssuesByLifecycle, homeLifecycleUrl, readHomeLifecycleTab, type HomeLifecycleTab } from '../lib/homeLifecycle'
 import { filterAndSortHomeIssues, type SortOrder } from '../lib/homeSorting'
 import { homeIssuePreviewUrl, readHomeIssuePreviewId } from '../lib/homeIssuePreview'
 import { collectHomeTagSuggestions, homeIssueListUrl, homeSearchUrl, readHomeSearchQuery } from '../lib/homeSearch'
@@ -22,6 +23,7 @@ const props = defineProps<{
   initialIssues?: IssueListItem[]
   initialPreviewIssueId?: number | null
   initialSearchQuery?: string
+  initialLifecycleTab?: HomeLifecycleTab
 }>()
 
 const { t } = useI18n()
@@ -47,6 +49,9 @@ const moderationNotice = ref<{ appealType: 'rejected_submission' | 'account_ban'
 const searchQuery = ref(props.initialSearchQuery ?? '')
 const sortOrder = ref<SortOrder>('newest')
 const selectedIssueId = ref<number | null>(props.initialPreviewIssueId ?? null)
+const lifecycleTab = ref<HomeLifecycleTab>(props.initialLifecycleTab ?? 'open')
+const openLifecycleTab = ref<HTMLButtonElement | null>(null)
+const closedLifecycleTab = ref<HTMLButtonElement | null>(null)
 // 全站檢視角色（#77、#90、#99）：navbar 切換後，首頁清單立即依角色更新。
 const { viewerRole, preferredViewerRole, initViewerRole, setViewerRole } = useViewerRole()
 
@@ -95,7 +100,9 @@ const similarIssues = computed(() => {
   return issues.value.filter(i => (i.title ?? '').toLowerCase().includes(q)).slice(0, 5)
 })
 
-const filteredAndSortedIssues = computed(() => filterAndSortHomeIssues(issues.value, viewerRole.value, sortOrder.value, searchQuery.value))
+const filteredAndSortedIssues = computed(() =>
+  filterAndSortHomeIssues(filterHomeIssuesByLifecycle(issues.value, lifecycleTab.value), viewerRole.value, sortOrder.value, searchQuery.value)
+)
 const tagSuggestions = computed(() => collectHomeTagSuggestions(issues.value))
 const selectedIssue = computed(() => issues.value.find(issue => issue.id === selectedIssueId.value) ?? null)
 
@@ -110,6 +117,26 @@ function syncHomeStateFromUrl(): void {
   const currentUrl = new URL(window.location.href)
   searchQuery.value = readHomeSearchQuery(currentUrl)
   selectedIssueId.value = readHomeIssuePreviewId(currentUrl)
+  lifecycleTab.value = readHomeLifecycleTab(currentUrl)
+}
+
+function activateLifecycleTab(tab: HomeLifecycleTab, moveFocus = false): void {
+  if (lifecycleTab.value !== tab) {
+    lifecycleTab.value = tab
+    window.history.pushState({}, '', homeLifecycleUrl(new URL(window.location.href), tab))
+  }
+  if (moveFocus) void nextTick(() => (tab === 'open' ? openLifecycleTab.value : closedLifecycleTab.value)?.focus())
+}
+
+function onLifecycleTabKeydown(event: KeyboardEvent, currentTab: HomeLifecycleTab): void {
+  let nextTab: HomeLifecycleTab | undefined
+  if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') nextTab = currentTab === 'open' ? 'closed' : 'open'
+  else if (event.key === 'Home') nextTab = 'open'
+  else if (event.key === 'End') nextTab = 'closed'
+  if (nextTab) {
+    event.preventDefault()
+    activateLifecycleTab(nextTab, true)
+  }
 }
 
 function showIssuePreview(issue: IssueListItem): void {
@@ -417,6 +444,38 @@ async function copyRssUrl() {
 
           <div class="mb-4 flex flex-wrap items-center gap-3">
             <div class="section-label hidden shrink-0 sm:block">ISSUES</div>
+            <div role="tablist" :aria-label="t('idx_lifecycle_tabs_aria')" class="flex shrink-0 border-b border-vt-border">
+              <button
+                id="home-tab-open"
+                ref="openLifecycleTab"
+                type="button"
+                role="tab"
+                aria-controls="home-issues-panel"
+                :aria-selected="lifecycleTab === 'open'"
+                :tabindex="lifecycleTab === 'open' ? 0 : -1"
+                class="btn btn-ghost btn-sm rounded-b-none"
+                :class="lifecycleTab === 'open' ? 'border-b-2 border-teal font-semibold text-teal' : 'text-muted'"
+                @click="activateLifecycleTab('open')"
+                @keydown="onLifecycleTabKeydown($event, 'open')"
+              >
+                {{ t('idx_tab_open') }}
+              </button>
+              <button
+                id="home-tab-closed"
+                ref="closedLifecycleTab"
+                type="button"
+                role="tab"
+                aria-controls="home-issues-panel"
+                :aria-selected="lifecycleTab === 'closed'"
+                :tabindex="lifecycleTab === 'closed' ? 0 : -1"
+                class="btn btn-ghost btn-sm rounded-b-none"
+                :class="lifecycleTab === 'closed' ? 'border-b-2 border-teal font-semibold text-teal' : 'text-muted'"
+                @click="activateLifecycleTab('closed')"
+                @keydown="onLifecycleTabKeydown($event, 'closed')"
+              >
+                {{ t('idx_tab_closed') }}
+              </button>
+            </div>
             <label for="home-issue-search" class="sr-only">{{ t('idx_search_label') }}</label>
             <input
               id="home-issue-search"
@@ -444,20 +503,27 @@ async function copyRssUrl() {
             </label>
           </div>
 
-          <div v-if="loading" class="empty">
-            <div class="empty-icon">⏳</div>
-            {{ t('loading') }}
-          </div>
-          <div v-else-if="!issues.length" class="empty">
-            <div class="empty-icon">🌱</div>
-            {{ t('idx_empty') }}
-          </div>
-          <div v-else-if="!filteredAndSortedIssues.length" class="empty">
-            <div class="empty-icon">🔍</div>
-            {{ t('idx_search_no_result', { keyword: searchQuery.trim() }) }}
-          </div>
-          <div v-else>
-            <IssueCard v-for="issue in filteredAndSortedIssues" :key="issue.id" :issue="issue" @select="showIssuePreview" />
+          <div
+            id="home-issues-panel"
+            role="tabpanel"
+            tabindex="0"
+            :aria-labelledby="lifecycleTab === 'open' ? 'home-tab-open' : 'home-tab-closed'"
+          >
+            <div v-if="loading" class="empty">
+              <div class="empty-icon">⏳</div>
+              {{ t('loading') }}
+            </div>
+            <div v-else-if="!issues.length" class="empty">
+              <div class="empty-icon">🌱</div>
+              {{ t('idx_empty') }}
+            </div>
+            <div v-else-if="!filteredAndSortedIssues.length" class="empty">
+              <div class="empty-icon">🔍</div>
+              {{ t('idx_search_no_result', { keyword: searchQuery.trim() }) }}
+            </div>
+            <div v-else>
+              <IssueCard v-for="issue in filteredAndSortedIssues" :key="issue.id" :issue="issue" @select="showIssuePreview" />
+            </div>
           </div>
         </template>
       </div>

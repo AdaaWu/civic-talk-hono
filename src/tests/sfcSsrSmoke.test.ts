@@ -35,6 +35,9 @@ const issue = {
   polis_id: null,
   created_at: '2026-08-17 00:00:00',
   last_activity_at: '2026-08-17 00:00:00',
+  is_closed: 0,
+  closure_reason: null,
+  closure_changed_at: null,
   abuse_flagged: 0,
   author_name: null,
   author_email: null,
@@ -181,6 +184,33 @@ describe('home issue preview', () => {
     expect(html).toContain('value="#Housing Justice"')
     expect(html).toContain('居住議題')
     expect(html).not.toContain('交通議題')
+  })
+
+  it('SSR defaults to the open tab and excludes closed issues', async () => {
+    const html = await render(HomeView, {
+      initialIssues: [
+        { ...previewIssue, id: 2, title: 'Open issue', status: 'published', is_closed: 0 },
+        { ...previewIssue, id: 3, title: 'Closed issue', status: 'published', is_closed: 1 },
+      ],
+    })
+    expect(html).toContain('aria-labelledby="home-tab-open"')
+    expect(html).toContain('Open issue')
+    expect(html).not.toContain('Closed issue')
+  })
+
+  it('SSR renders the closed lifecycle tab from initial state without showing open issues', async () => {
+    const html = await render(HomeView, {
+      initialIssues: [
+        { ...previewIssue, id: 2, title: 'Open issue', status: 'published', is_closed: 0 },
+        { ...previewIssue, id: 3, title: 'Closed issue', status: 'published', is_closed: 1 },
+      ],
+      initialLifecycleTab: 'closed',
+    })
+    expect(html).toContain('id="home-tab-closed"')
+    expect(html).toContain('aria-selected="true"')
+    expect(html).toContain('aria-labelledby="home-tab-closed"')
+    expect(html).toContain('Closed issue')
+    expect(html).not.toContain('Open issue')
   })
 })
 

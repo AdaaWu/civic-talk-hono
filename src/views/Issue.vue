@@ -722,6 +722,14 @@ async function submitOpinion() {
         </div>
 
         <template v-else-if="issue">
+          <section v-if="issue.closure_reason" class="mb-2 shrink-0 rounded-lg border border-border bg-vt-bg-2 px-3 py-2 text-sm" :aria-label="t('issue_closure_label')">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <strong>{{ t(issue.is_closed === 1 ? 'idx_tab_closed' : 'issue_reopened') }}</strong>
+              <time v-if="issue.closure_changed_at" class="text-muted" :datetime="issue.closure_changed_at">{{ formatDate(issue.closure_changed_at, locale) }}</time>
+            </div>
+            <p class="my-1 max-h-24 overflow-y-auto whitespace-pre-wrap break-words">{{ issue.closure_reason }}</p>
+            <p class="m-0 text-muted">{{ t('issue_closure_participation_hint') }}</p>
+          </section>
           <div class="issue-page-heading mb-6" v-show="activeStep !== 'comments'">
             <div v-if="activeStep" class="hidden sm:flex">
               <StatusBadge :status="issue.status" />

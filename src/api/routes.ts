@@ -465,6 +465,32 @@ export function registerApiRoutes(app: App): void {
     return c.json({ ok: true })
   })
 
+  app.patch('/api/issues/:id/closure', async c => {
+    const denied = await requireAdmin(c)
+    if (denied) return denied
+    const id = parseId(c.req.param('id'))
+    if (!id) return error(c, 'Invalid id')
+
+    let value: unknown
+    try {
+      value = await c.req.json()
+    } catch {
+      return error(c, 'Invalid JSON')
+    }
+    if (typeof value !== 'object' || value === null || Array.isArray(value)) return error(c, 'Request body must be an object')
+    const body = value as { closed?: unknown; reason?: unknown }
+    if (typeof body.closed !== 'boolean') return error(c, 'closed must be a boolean')
+    if (typeof body.reason !== 'string') return error(c, 'reason must be a string')
+    const reason = body.reason.trim()
+    if (!reason) return error(c, 'reason is required')
+    if (codePointLength(reason) > 1000) return error(c, 'reason must be at most 1000 code points')
+
+    const result = await db.transitionIssueClosure(c.env.DB, id, body.closed, reason)
+    if (result === 'missing') return error(c, 'Issue not found', 404)
+    if (result === 'conflict') return error(c, 'Issue closure state conflict', 409)
+    return c.json({ ok: true })
+  })
+
   app.delete('/api/issues/:id', async c => {
     const denied = await requireAdmin(c)
     if (denied) return denied
