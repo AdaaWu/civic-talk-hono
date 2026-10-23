@@ -220,7 +220,7 @@ export const messages = {
   op_start_desc: "Share your thoughts on this issue — an AI tool can help you organize and refine your thinking. You can also browse others' opinions and vote on them.",
   op_start_continue: 'Continue',
   op_start_commit: 'Share your opinion',
-  op_start_browse: 'Browse opinions',
+  op_start_browse: 'Browse opinions ({count})',
   op_back_to_issue: 'Back to issue',
   op_back_to_start: 'Back to topic',
   op_commit_title: 'Share your opinion',

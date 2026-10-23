@@ -1083,7 +1083,7 @@ async function submitOpinion() {
                     <span class="hidden sm:inline">{{ t('op_start_commit') }}</span>
                   </button>
                   <button type="button" class="btn btn-wheat-yellow hidden sm:inline-flex" @click="setIssueCommentAction('ai_help')">{{ t('op_ai_help_title') }}</button>
-                  <button type="button" class="btn btn-jade-green" @click="setIssueCommentAction('browse')">{{ t('op_start_browse') }}</button>
+                  <button type="button" class="btn btn-jade-green" @click="setIssueCommentAction('browse')">{{ t('op_start_browse', { count: opinions.length }) }}</button>
                   <button type="button" class="btn btn-ghost" @click="setIssueStep(null)">{{ t('op_back_to_issue') }}</button>
                 </div>
               </div>

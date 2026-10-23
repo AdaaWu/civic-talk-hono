@@ -80,6 +80,47 @@ describe('Issue SSR', () => {
     expect((html.match(/class="carousel__slide/g) ?? []).length).toBe(4)
     expect(html).not.toContain('class="tabs"')
   })
+  it.each([0, 2])('shows the total opinion count (%i) before browsing, independent of search', async count => {
+    const app = createSSRApp(IssueView, {
+      issueId: 1,
+      initialStep: 'comments',
+      initialCommentSearch: '沒有符合的搜尋結果',
+      initialDetail: {
+        issue: {
+          id: 1,
+          title: '測試議題',
+          description: '議題說明',
+          status: 'published',
+          polis_id: null,
+          created_at: '2026-08-17 00:00:00',
+          tags: [],
+          is_closed: 0,
+          closure_reason: null,
+          closure_changed_at: null,
+          abuse_flagged: 0,
+          author_name: null,
+          author_email: null,
+        },
+        materials: [],
+        briefing: null,
+        opinions: Array.from({ length: count }, (_, index) => ({
+          id: index + 1,
+          issue_id: 1,
+          summary: `公民意見 ${index + 1}`,
+          created_at: '2026-08-17 00:00:00',
+          author_name: null,
+          author_email: null,
+          abuse_flagged: 0,
+        })),
+      },
+    })
+    provideI18n(app, 'zh-TW')
+
+    const html = await renderToString(app)
+    const browseButton = html.match(/<button\b[^>]*class="[^"]*\bbtn-jade-green\b[^"]*"[^>]*>([\s\S]*?)<\/button>/)?.[1]
+    const displayedCount = browseButton?.match(/\((\d+)\)/)?.[1]
+    expect(displayedCount).toBe(String(count))
+  })
   it('shows OPINION.md actions before login while keeping the opinion form gated', async () => {
     const app = createSSRApp(IssueView, {
       issueId: 1,

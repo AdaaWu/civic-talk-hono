@@ -222,7 +222,7 @@ export const messages = {
   op_start_desc: 'この議題についての考えを共有してください。AI に考えを整理してもらい、討論を進める手助けをしてもらうこともできます。ほかの人の意見を読み、投票することもできます。',
   op_start_continue: '続ける',
   op_start_commit: '意見を投稿',
-  op_start_browse: '意見を見る',
+  op_start_browse: '意見を見る（{count}）',
   op_back_to_issue: '議題に戻る',
   op_back_to_start: '議題に戻る',
   op_commit_title: 'あなたの意見を投稿',
