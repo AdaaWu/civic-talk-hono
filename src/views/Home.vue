@@ -360,7 +360,7 @@ async function copyRssUrl() {
     </div>
 
     <main class="relative isolate pt-0 pb-4 sm:pt-2 sm:pb-4">
-      <HomeNatureBackdrop v-if="!selectedIssue" placement="issues" />
+      <HomeNatureBackdrop placement="issues" />
       <div class="container">
         <IssuePreviewCard v-if="selectedIssue" :issue="selectedIssue" />
 

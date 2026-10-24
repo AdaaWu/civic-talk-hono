@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // 純裝飾背景放在父層的隔離堆疊內，不增加高度，也不覆蓋內容或接收操作。
 // 日夜切換只用 dark utilities，SSR 不讀取瀏覽器的主題偏好。
-// 清單背景延伸至一般 AppFooter 既有的 mt-16 留白，不另外撐高頁面。
+// 首頁清單與預覽的背景延伸至一般 AppFooter 既有的 mt-16 留白，不另外撐高頁面。
 defineProps<{
   placement: 'welcome' | 'issues'
 }>()
