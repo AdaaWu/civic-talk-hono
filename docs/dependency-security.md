@@ -1,6 +1,6 @@
 # 依賴安全修補
 
-2026-10-11（Asia/Taipei）安裝後的 npm audit 列出 13 個受影響套件（4 moderate、6 high、3 critical，包含間接影響），以下採同系列修補版本，保留 Vite+／Vite core 0.2.4 與既有應用架構。
+2026-10-11（Asia/Taipei）安裝後的 npm audit 列出 13 個受影響套件（4 moderate、6 high、3 critical，包含間接影響），當時採同系列修補版本，保留 Vite+／Vite core 0.2.4 與既有應用架構。下表是當時的修補紀錄；2026-10-25 已遷移至 Vite+ 1.4.0，Vitest override 的移除見下節。
 
 | 依賴                            | 修補方式                                      | 原因                                                                                                                                                                            |
 | ------------------------------- | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -16,3 +16,13 @@
 套件升級也更新 [`licensing-dependencies.tsv`](./licensing-dependencies.tsv)、[`licensing-review.md`](./licensing-review.md) 的數量與根目錄 [`THIRD-PARTY-NOTICES.md`](../THIRD-PARTY-NOTICES.md) 的直接依賴版本。直接 runtime 套件的 LICENSE 全文已逐字核對，內容未變；整體 AGPL-3.0-only、歷史 MIT attribution 與第三方授權維持原有範圍。實際 client／Worker notices 由完整 build 重新產生，不能手改生成物。
 
 2026-10-21 的 lockfile 修訂（`1daeb33`）更新 `markdown-it` 15.0.2 → 15.0.3、`argparse` 3.0.0 → 3.0.3 與其下的 `entities` 8.0.0 → 8.1.0，但未同步授權盤點，導致 main CI 在 `Check dependency license inventory` 失敗，測試與 build 尚未執行。本次依同一份 lockfile 重產 TSV，將 `argparse` 的 license metadata 由 `Python-2.0` 同步為 `PSF-2.0`，並更新直接依賴 notices 版本；`markdown-it` 15.0.3 的 LICENSE 與原保存全文一致。套件總數不變，不移除或放寬 CI 查核。
+
+## 2026-10-25：Vite+ 1.4.0 遷移後的 CI 修復
+
+`vp migrate` 更新 lockfile 後，CI 在授權清單一致性檢查失敗，尚未執行測試與 build。重新產生 `licensing-dependencies.tsv`，並同步 `licensing-review.md` 的統計；維持原有 CI 查核，不略過授權盤點。
+
+乾淨安裝另揭露舊的 `overrides.vite-plus` 仍將 Vitest 家族固定為 4.1.11，與 Vite+ 1.4.0 的 Vitest 5 整合不相容，`vp test` 啟動時出現 `Cannot read properties of undefined (reading 'cacheDir')`。移除這組舊安全修補 override，使用 Vite+ 內建的 Vitest 5.0.5；lockfile 中已無 Vitest 4.1.x。其餘 overrides 不變，不回退工具鏈或修改應用邏輯。
+
+專案 `devEngines.packageManager` 現在要求 npm `^12.0.1`。本機若仍優先使用 npm 11，可用 `vp env exec --package-manager npm@12.0.1 npm install` 安裝，不需改系統預設或降低專案版本要求。
+
+此次 `npm audit` 仍回報 5 個受影響套件（3 moderate、2 high），涉及 Wrangler／Miniflare 的 `undici` 依賴鏈及 `zod`；沒有 Vitest 項目。這不是原 CI 的失敗步驟，本次不以 `audit fix --force` 回退 Cloudflare 工具，也不擴大升級範圍；不能將本次 CI 修復視為 audit 零告警。

@@ -92,7 +92,7 @@ vp run dev
 
 分享網址回歸可單獨執行 `vp test src/tests/detailShareSsr.test.ts`：使用既有 Vue compiler 與 Vitest，分別渲染素材／意見詳情的 SSR 模板和 client 模板，確認分享欄在掛載前同為空白、沒有 Vue 警告，且不提前讀取 `window.location`。此測試不提供 DOM，也不執行真正的 hydration；掛載後的網址與複製行為仍須在真實瀏覽器檢查兩種詳情頁，確認含 query／hash 的完整網址顯示與剪貼簿一致，且 console 沒有 hydration mismatch。
 
-依賴安全修補與 `package.json` overrides 的原因、移除條件見 [`docs/dependency-security.md`](./docs/dependency-security.md)。更新套件後也須重產授權盤點：`node scripts/licensing-dependencies.mjs`，再跑型別檢查、測試與完整 build，讓第三方 notices 對應實際產物。
+依賴安全修補與 `package.json` overrides 的原因、移除條件見 [`docs/dependency-security.md`](./docs/dependency-security.md)。更新套件或執行 `vp migrate` 後，只要 `package-lock.json` 有變動，就須執行 `node scripts/licensing-dependencies.mjs` 重產授權盤點，並將 `docs/licensing-dependencies.tsv` 一起提交；用 `node scripts/licensing-dependencies.mjs --check` 確認與 lockfile 一致（CI 也會檢查）。同步更新 [`docs/licensing-review.md`](./docs/licensing-review.md) 的依賴統計，再跑型別檢查、測試與完整 build，讓第三方 notices 對應實際產物。
 
 樣式 token 以 `vtaiwan-design-system/project/colors_and_type.css` 為穩定來源，透過 Tailwind v4 的 `vt-*` utilities 使用，例如 `text-vt-democratic-red`、`bg-vt-bg-2`、`font-vt-serif`。
 
