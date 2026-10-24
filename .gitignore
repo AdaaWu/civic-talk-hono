@@ -22,3 +22,4 @@ wrangler.personal.jsonc
 
 # 本機動畫與音檔工作目錄
 /mv/
+.vitest/

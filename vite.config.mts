@@ -32,6 +32,11 @@ export default defineConfig(({ mode }) => ({
     options: { typeAware: true, typeCheck: true },
   },
   test: {
+    // Vitest v4 compatibility: preserve mock call history.
+    // Remove after tests no longer rely on calls from setup or earlier tests.
+    // https://viteplus.dev/guide/vitest-v5#remove-unneeded-compatibility-settings
+    // https://vitest.dev/guide/migration/#clearmocks-is-enabled-by-default
+    clearMocks: false,
     // SSR 煙霧測試與 l10n key 同步：`npm run test` 執行，不依賴瀏覽器
     include: ['src/tests/**/*.test.ts'],
     environment: 'node',
