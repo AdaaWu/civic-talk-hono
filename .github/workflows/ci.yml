@@ -28,6 +28,8 @@ jobs:
         uses: voidzero-dev/setup-vp@e1609b468742ba9232ce5e12b3a77bdf14495277
         with:
           cache: true
+          # 僅由下方 frozen 安裝步驟安裝，避免預設 vp install 改寫 lockfile。
+          run-install: false
 
       - name: Install dependencies (frozen lockfile)
         run: vp install --frozen-lockfile

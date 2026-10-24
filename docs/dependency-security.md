@@ -26,3 +26,13 @@
 專案 `devEngines.packageManager` 現在要求 npm `^12.0.1`。本機若仍優先使用 npm 11，可用 `vp env exec --package-manager npm@12.0.1 npm install` 安裝，不需改系統預設或降低專案版本要求。
 
 此次 `npm audit` 仍回報 5 個受影響套件（3 moderate、2 high），涉及 Wrangler／Miniflare 的 `undici` 依賴鏈及 `zod`；沒有 Vitest 項目。這不是原 CI 的失敗步驟，本次不以 `audit fix --force` 回退 Cloudflare 工具，也不擴大升級範圍；不能將本次 CI 修復視為 audit 零告警。
+
+### 同日補修：setup action 在 frozen 安裝前改寫 lockfile
+
+修復版本 `1db2836` 的 [CI run](https://github.com/g0v/civic-talk-hono/actions/runs/40138469273) 仍在授權清單檢查失敗。該版本的 lockfile 與 TSV 原本一致，但 `setup-vp` 的 `run-install` 預設為 `true`，會在明確的 `vp install --frozen-lockfile` 步驟前先執行一般 `vp install`；之後的 frozen 安裝不能還原已改寫的 lockfile。前次本機驗證只跑明確的 frozen 安裝，未包含 setup action 的這次隱含安裝。
+
+以 npm 12.0.1、`CI=true`、Linux／x64 安裝目標，在沒有 `node_modules` 的隔離目錄執行一般 `vp install`，觀察到 78 個 lockfile entries 改變，包括 `devOptional`／`dev` 標記，並使原有 TSV 檢查失敗。這是 macOS 上指定 Linux 目標的安裝煙霧測試，不是 Linux runtime 或 GitHub Actions 已通過的證明。
+
+`.github/workflows/ci.yml` 明確設定 `run-install: false`，只保留後續 frozen 安裝；不在 CI 重產 TSV，也不略過一致性檢查。另一個全新的隔離目錄只執行 frozen 安裝後，lockfile 的 bytes／SHA-256 完全不變，授權清單檢查通過。
+
+另以僅含 tracked 來源與本次修正的全新目錄（無 `node_modules`、無 `.dev.vars`），在 `CI=true` 下依序執行 frozen 安裝、Cloudflare typegen、型別檢查、授權清單檢查、39 檔／344 項測試與完整 build，全部通過。此驗證仍在本機 macOS 執行；修正後的 GitHub Ubuntu workflow 尚須於發布本次變更後驗證。
