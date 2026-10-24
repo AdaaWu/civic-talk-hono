@@ -379,6 +379,42 @@
     box-shadow: var(--shadow-sm);
   }
 
+  /* 首頁議題卡：以低彩度表面與細邊框增加面板層次，不使用霓虹或位移。 */
+  .issue-list-card {
+    border-color: transparent;
+    background:
+      linear-gradient(120deg, var(--color-vt-bg-1) 25%, color-mix(in srgb, var(--color-vt-jade-green) 4%, var(--color-vt-bg-1))) padding-box,
+      linear-gradient(
+          110deg,
+          color-mix(in srgb, var(--color-vt-jade-green) 30%, var(--color-vt-border)),
+          var(--color-vt-border) 52%,
+          color-mix(in srgb, var(--color-vt-wheat-yellow) 20%, var(--color-vt-border))
+        )
+        border-box;
+    box-shadow: var(--shadow-vt-md);
+    transition:
+      border-color var(--duration-vt-fast) var(--ease-vt),
+      box-shadow var(--duration-vt-fast) var(--ease-vt);
+  }
+
+  @media (hover: hover) {
+    .issue-list-card:hover {
+      border-color: color-mix(in srgb, var(--color-vt-jade-green) 45%, var(--color-vt-border));
+      box-shadow: var(--shadow-vt-lg);
+    }
+  }
+
+  .issue-list-card:focus-within {
+    outline: var(--spacing-vt-0_5) solid var(--color-vt-jade-green);
+    outline-offset: var(--spacing-vt-1);
+    box-shadow: var(--shadow-vt-lg);
+  }
+
+  /* stretched link 的焦點由整張卡片呈現，避免標題再疊一層不同色外框。 */
+  .issue-list-card h2 a:focus-visible {
+    outline: none;
+  }
+
   .form-group {
     margin-bottom: 0.25rem;
   }

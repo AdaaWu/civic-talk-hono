@@ -8,6 +8,8 @@ import SignInButtons from '../components/SignInButtons.vue'
 import Toast from '../components/Toast.vue'
 import ModerationAppealNotice from '../components/ModerationAppealNotice.vue'
 import MarkdownEditor from '../components/MarkdownEditor.vue'
+import HomeGrowthIllustration from '../components/HomeGrowthIllustration.vue'
+import HomeNatureBackdrop from '../components/HomeNatureBackdrop.vue'
 import { useI18n } from '../l10n'
 import { postSubmissionWithDuplicateNameCheck } from '../client/submission'
 import { useAuth } from '../composables/useAuth'
@@ -266,8 +268,9 @@ async function copyRssUrl() {
         aria-modal="true"
         aria-labelledby="welcome-title"
         tabindex="-1"
-        class="relative my-auto max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-y-auto rounded-xl border border-vt-border bg-vt-bg-1 p-5 shadow-xl outline-none sm:p-7"
+        class="relative isolate my-auto max-h-[calc(100vh-2rem)] w-full max-w-3xl overflow-y-auto rounded-xl border border-vt-border bg-vt-bg-1 p-5 shadow-xl outline-none sm:p-7"
       >
+        <HomeNatureBackdrop placement="welcome" />
         <button
           type="button"
           class="absolute top-3 right-3 flex h-9 w-9 items-center justify-center rounded-full text-2xl leading-none text-vt-fg-2 hover:bg-black/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-vt-democratic-red dark:hover:bg-white/10"
@@ -278,7 +281,10 @@ async function copyRssUrl() {
         </button>
 
         <div class="mb-5 pr-10">
-          <div class="section-label mb-2">WELCOME</div>
+          <div class="section-label mb-2 flex items-center gap-2">
+            <HomeGrowthIllustration variant="seedling" class="h-6 w-8 shrink-0" />
+            <span>WELCOME</span>
+          </div>
           <h2 id="welcome-title" class="mt-0 mb-2 font-serif text-2xl font-bold text-vt-fg-1">{{ t('welcome_title') }}</h2>
           <p class="m-0 text-vt-fg-2">
             <span class="sm:hidden">{{ t('welcome_intro_mobile') }}</span>
@@ -299,7 +305,7 @@ async function copyRssUrl() {
             :class="welcomeRole === role ? 'border-vt-democratic-red bg-vt-democratic-red/5' : 'border-vt-border bg-vt-bg-1 hover:border-vt-democratic-red/50'"
           >
             <input v-model="welcomeRole" type="radio" name="welcome-role" :value="role" class="sr-only" />
-            <span class="mb-2 block text-2xl" aria-hidden="true">{{ role === 'citizen' ? '💬' : '🤝' }}</span>
+            <HomeGrowthIllustration :variant="role === 'citizen' ? 'seedling' : 'tending'" class="mb-2 h-8 w-11" />
             <span class="mb-1 block font-serif text-lg font-bold text-vt-fg-1">{{ t(role === 'citizen' ? 'idx_role_citizen' : 'idx_role_volunteer') }}</span>
             <span class="hidden text-sm leading-relaxed text-vt-fg-2 sm:block">{{ t(role === 'citizen' ? 'welcome_citizen_desc' : 'welcome_volunteer_desc') }}</span>
             <span class="mt-2 block text-sm font-medium text-vt-democratic-red">{{ t(role === 'citizen' ? 'welcome_citizen_priority' : 'welcome_volunteer_priority') }}</span>
@@ -331,8 +337,12 @@ async function copyRssUrl() {
     </div>
 
     <div class="vt-hero" v-if="!selectedIssue">
-      <div class="vt-hero-inner">
-        <div class="hero-tag">{{ t('site_tagline') }}</div>
+      <div class="vt-hero-inner relative sm:pr-40 lg:pr-56">
+        <HomeGrowthIllustration variant="garden" class="absolute right-0 bottom-0 hidden w-36 sm:block lg:w-48" />
+        <div class="hero-tag flex items-center gap-2">
+          <HomeGrowthIllustration variant="seedling" class="h-6 w-8 shrink-0 sm:hidden" />
+          <span>{{ t('site_tagline') }}</span>
+        </div>
         <h1 class="hero-title">{{ t('idx_page_title') }}</h1>
         <p class="hero-desc hidden sm:inline">{{ t('idx_page_subtitle') }}</p>
         <div class="hero-btns hidden sm:flex sm:flex-wrap sm:gap-2 p-2">
@@ -349,7 +359,8 @@ async function copyRssUrl() {
       </button>
     </div>
 
-    <main class="pt-0 pb-4 sm:pt-2 sm:pb-4">
+    <main class="relative isolate pt-0 pb-4 sm:pt-2 sm:pb-4">
+      <HomeNatureBackdrop v-if="!selectedIssue" placement="issues" />
       <div class="container">
         <IssuePreviewCard v-if="selectedIssue" :issue="selectedIssue" />
 
