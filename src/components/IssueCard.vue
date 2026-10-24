@@ -29,7 +29,7 @@ function selectIssue(event: MouseEvent): void {
 </script>
 
 <template>
-  <div class="card relative mb-4 grid grid-cols-1 gap-y-2 transition hover:border-red/30 hover:shadow-md md:grid-cols-[minmax(0,1fr)_minmax(0,38%)] md:gap-x-4">
+  <div class="card issue-list-card relative mb-4 grid grid-cols-1 gap-y-2 md:grid-cols-[minmax(0,1fr)_minmax(0,38%)] md:gap-x-4">
     <div class="mb-2 flex flex-wrap items-center gap-2 md:col-span-2">
       <StatusBadge :status="issue.status" short />
       <span class="text-sm text-muted">{{ date }}</span>
