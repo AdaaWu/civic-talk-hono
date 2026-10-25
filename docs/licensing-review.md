@@ -67,13 +67,13 @@ Git history 另含 Cursor、Codex 與 Claude 的 co-author／session 標記；�
 
 ## npm 依賴
 
-[`licensing-dependencies.tsv`](./licensing-dependencies.tsv) 逐筆記錄 lockfile 的 **351** 個非 root entries（2026-10-25，Vite+ 1.4.0 遷移與移除 Vitest 4 overrides 後同步）：路徑、版本、license metadata、dev／devOptional／optional 標記及 resolved URL（lockfile 未提供時記為 `UNSPECIFIED`）。使用 `node scripts/licensing-dependencies.mjs` 重產，`node scripts/licensing-dependencies.mjs --check` 驗證；CI 執行一致性查核。這是 metadata 盤點，**不是逐一檢查完整著作權 notices 或所有發布產物的法律清單**，也不依 flags 就宣稱某個套件不會進入部署。
+[`licensing-dependencies.tsv`](./licensing-dependencies.tsv) 逐筆記錄 lockfile 的 **357** 個非 root entries（2026-10-25，Vite+ 1.4.0 遷移、Zod／Undici 安全修補與 Miniflare workerd 相容性修補後同步；workerd 的 scoped override 另加入 6 個 Apache-2.0 entries）：路徑、版本、license metadata、dev／devOptional／optional 標記及 resolved URL（lockfile 未提供時記為 `UNSPECIFIED`）。使用 `node scripts/licensing-dependencies.mjs` 重產，`node scripts/licensing-dependencies.mjs --check` 驗證；CI 執行一致性查核。這是 metadata 盤點，**不是逐一檢查完整著作權 notices 或所有發布產物的法律清單**，也不依 flags 就宣稱某個套件不會進入部署。
 
 | License metadata（原樣保留）             | Entries |
 | ---------------------------------------- | ------: |
 | MIT                                      |     274 |
 | MIT OR Apache-2.0                        |       4 |
-| Apache-2.0                               |      24 |
+| Apache-2.0                               |      30 |
 | LGPL-3.0-or-later                        |      10 |
 | Apache-2.0 AND LGPL-3.0-or-later AND MIT |       1 |
 | Apache-2.0 AND LGPL-3.0-or-later         |       3 |
