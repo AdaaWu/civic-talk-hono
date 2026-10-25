@@ -1,0 +1,24 @@
+import type { SortOrder } from './homeSorting'
+
+const STORAGE_KEY = 'civic_home_sort_order'
+
+/** SSR 固定最新；只在 hydration 後恢復合法的首頁排序偏好。 */
+export function readHomeSortPreference(): SortOrder {
+  if (typeof window === 'undefined') return 'newest'
+  try {
+    const saved = window.localStorage.getItem(STORAGE_KEY)
+    return saved === 'most' || saved === 'least' || saved === 'newest' ? saved : 'newest'
+  } catch {
+    return 'newest'
+  }
+}
+
+/** 儲存失敗不影響目前頁面已選取的排序。 */
+export function saveHomeSortPreference(order: SortOrder): void {
+  if (typeof window === 'undefined') return
+  try {
+    window.localStorage.setItem(STORAGE_KEY, order)
+  } catch {
+    /* 瀏覽器可能封鎖 localStorage，仍允許使用者在本頁切換排序。 */
+  }
+}

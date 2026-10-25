@@ -131,6 +131,7 @@ export const messages = {
   idx_similar_hint: 'タイトルの似た既存の議題が見つかりました。先に確認することも、この案内を無視してそのまま送信することもできます：',
   idx_materials_unit: '件の資料',
   idx_opinions_unit: '件の意見',
+  issue_vote_count_label: '累計投票数：{count}票（人数ではありません）',
   issue_preview_enter: '議題を開く',
   idx_toast_title_required: '議題のタイトルを入力してください',
   idx_toast_create_ok: '議題を作成しました！',

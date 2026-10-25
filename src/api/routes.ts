@@ -345,7 +345,7 @@ export function registerApiRoutes(app: App): void {
   // 一般讀取只拿公開作者投影；管理員另拿完整快照與條款同意記錄。
   app.get('/api/issues', async c => {
     const context = await tryGetAuthContext(c.env, c.req.raw.headers)
-    const issues: IssueListItem[] | IssueListItemWithAuthor[] = canReadAdminSnapshots(context) ? await db.listIssuesWithAuthor(c.env.DB) : await db.listIssues(c.env.DB)
+    const issues: IssueListItem[] | IssueListItemWithAuthor[] = canReadAdminSnapshots(context) ? await db.listIssuesWithAuthor(c.env.DB, c.req.url) : await db.listIssues(c.env.DB, c.req.url)
     return publicJson(c, issues)
   })
 
