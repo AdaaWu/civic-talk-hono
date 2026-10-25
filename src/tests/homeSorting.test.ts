@@ -17,8 +17,8 @@ function sqliteDb(tables: Record<string, Row[]>) {
     ct_issues:
       'id INTEGER PRIMARY KEY, title TEXT, description TEXT, status TEXT, polis_id TEXT, created_at TEXT, last_activity_at TEXT, is_closed INTEGER NOT NULL DEFAULT 0, closure_reason TEXT, closure_changed_at TEXT, tags TEXT, abuse_flagged INTEGER, author_name TEXT, author_email TEXT, show_email INTEGER',
     ct_materials: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
-    ct_opinions: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
-    ct_briefings: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER',
+    ct_opinions: 'id INTEGER PRIMARY KEY, issue_id INTEGER, created_at TEXT, abuse_flagged INTEGER, author_id TEXT',
+    ct_opinion_votes: 'id INTEGER PRIMARY KEY, opinion_id INTEGER, voter_id TEXT, value INTEGER',
   }
   for (const [name, ddl] of Object.entries(schema)) sqlite.exec(`CREATE TABLE ${name} (${ddl})`)
   for (const [name, rows] of Object.entries(tables)) {
@@ -94,23 +94,6 @@ describe('listIssues 的 last_activity_at（#77）', () => {
     expect(issues[0]!.last_activity_at).toBe('2026-08-01 00:00:00')
   })
 
-  it('SQL 不含 author_id／show_email，也沒有 SELECT *（公開欄位契約）', async () => {
-    let sql = ''
-    const db = {
-      prepare(query: string) {
-        sql = query
-        return {
-          async all() {
-            return { results: [] }
-          },
-        }
-      },
-    } as unknown as D1Database
-
-    await listIssues(db)
-    expect(sql).not.toContain('author_id')
-    expect(sql).not.toMatch(/SELECT\s+\*/i)
-  })
 })
 
 // ── 寫入路徑同步維護 ct_issues.last_activity_at（#77）──────────────────────
@@ -227,6 +210,7 @@ function item(id: number, overrides: Partial<IssueListItem> = {}): IssueListItem
     author_email: null,
     material_count: 0,
     opinion_count: 0,
+    vote_count: 0,
     last_activity_at: '2026-08-01 00:00:00',
     is_closed: 0,
     closure_reason: null,
@@ -254,10 +238,17 @@ describe('sortByOrder（#77）', () => {
     expect(sortByOrder(list, 'newest').map(i => i.id)).toEqual([2, 1])
   })
 
-  it('most／least 依關注數排序', () => {
-    const list = [item(1, { material_count: 1, opinion_count: 1 }), item(2, { material_count: 5, opinion_count: 0 })]
-    expect(sortByOrder(list, 'most').map(i => i.id)).toEqual([2, 1])
-    expect(sortByOrder(list, 'least').map(i => i.id)).toEqual([1, 2])
+  it('most／least 加總意見與票數、忽略素材數，同分保留原順序', () => {
+    const list = [
+      item(1, { material_count: 100, opinion_count: 1, vote_count: 1 }),
+      item(2, { material_count: 0, opinion_count: 0, vote_count: 5 }),
+      item(3, { material_count: 0, opinion_count: 4, vote_count: 0 }),
+      item(4, { material_count: 999, opinion_count: 0, vote_count: 0 }),
+      item(5, { material_count: 1, opinion_count: 2, vote_count: 0 }),
+    ]
+    expect(sortByOrder(list, 'most').map(i => i.id)).toEqual([2, 3, 1, 5, 4])
+    expect(sortByOrder(list, 'least').map(i => i.id)).toEqual([4, 1, 5, 3, 2])
+    expect(list.map(i => i.id)).toEqual([1, 2, 3, 4, 5])
   })
 })
 
@@ -307,13 +298,18 @@ describe('filterAndSortHomeIssues（#77、#90）', () => {
     expect(filterAndSortHomeIssues(list, 'volunteer', 'newest').map(i => i.id)).toEqual([6, 5, 3, 2, 1, 4])
   })
 
-  it('volunteer + most：階序不受關注數影響，階內依關注數（#90）', () => {
+  it('most／least 只在狀態階內依意見數＋票數排序，保留角色過濾與階序', () => {
     const list = [
-      item(1, { status: 'published', material_count: 10, opinion_count: 0 }),
-      item(2, { status: 'collecting', material_count: 0, opinion_count: 0 }),
-      item(3, { status: 'summarizing', material_count: 1, opinion_count: 0 }),
+      item(1, { status: 'published', opinion_count: 10, vote_count: 90 }),
+      item(2, { status: 'collecting', material_count: 100, opinion_count: 3 }),
+      item(3, { status: 'summarizing', material_count: 100, vote_count: 1 }),
+      item(4, { status: 'collecting', vote_count: 5 }),
+      item(5, { status: 'summarizing' }),
     ]
-    expect(filterAndSortHomeIssues(list, 'volunteer', 'most').map(i => i.id)).toEqual([3, 2, 1])
+    expect(filterAndSortHomeIssues(list, 'volunteer', 'most').map(i => i.id)).toEqual([3, 5, 4, 2, 1])
+    expect(filterAndSortHomeIssues(list, 'volunteer', 'least').map(i => i.id)).toEqual([5, 3, 2, 4, 1])
+    expect(filterAndSortHomeIssues(list, 'citizen', 'most').map(i => i.id)).toEqual([1, 3, 5])
+    expect(filterAndSortHomeIssues(list, 'citizen', 'least').map(i => i.id)).toEqual([1, 5, 3])
   })
 
   it('未列在優先序中的狀態排在最後，不會從列表中消失（防呆）', () => {

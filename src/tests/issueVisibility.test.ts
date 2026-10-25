@@ -74,6 +74,7 @@ function testDb() {
           return statement
         },
         async all() {
+          if (query.includes('FROM ct_opinion_votes')) return { results: [] }
           const visible = rows.filter(row => query.includes('WHERE abuse_flagged IN (0, 1, 3)') && [0, 1, 3].includes(row.abuse_flagged))
           return { results: visible.map(projectPublicIssue) }
         },

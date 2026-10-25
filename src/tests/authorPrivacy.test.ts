@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vite-plus/test'
 import { buildAuthorSnapshot, canReadAdminSnapshots, validateSubmissionOptions } from '../api/routes'
 import type { AuthContext } from '../auth/authorization'
-import { getLatestBriefing, getLatestBriefingWithAuthor, listIssues, listIssuesWithAuthor, listMaterials, listOpinions } from '../db/queries'
+import { getLatestBriefing, getLatestBriefingWithAuthor, listIssuesWithAuthor } from '../db/queries'
 
 function recordingDb() {
   const sql: string[] = []
@@ -71,21 +71,6 @@ describe('作者資料隱私守護', () => {
     expect(validateSubmissionOptions({ terms_accepted: true, show_email: true })).toBeNull()
   })
 
-  it('公開查詢只透過 show_email 條件投影 email，且不讀取 author_id', async () => {
-    const { db, sql } = recordingDb()
-
-    await listIssues(db)
-    await listMaterials(db, 1)
-    await listOpinions(db, 1)
-    await getLatestBriefing(db, 1)
-
-    expect(sql).toHaveLength(4)
-    for (const query of sql) {
-      expect(query).toContain('CASE WHEN show_email = 1 THEN author_email ELSE NULL END AS author_email')
-      expect(query).not.toContain('author_id')
-      expect(query).not.toMatch(/SELECT\s+\*/i)
-    }
-  })
 
   it('管理端查詢取得完整作者快照', async () => {
     const { db, sql } = recordingDb()

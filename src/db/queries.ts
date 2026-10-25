@@ -1,4 +1,5 @@
 import { normalizeIssueTags } from '../lib/issueTags'
+import { getPublicIssueVoteCounts } from './issueVoteCountCache'
 
 /** D1 查詢與資料型別 — 所有 SQL 只碰 ct_* 表 */
 
@@ -56,6 +57,7 @@ export interface Issue {
 export interface IssueListItem extends Issue {
   material_count: number
   opinion_count: number
+  vote_count: number
   /** 最新活動時間：由寫入路徑維護的 ct_issues 欄位；NULL 表示尚無子內容活動，讀取層 fallback 到 created_at（#77） */
   last_activity_at: string | null
 }
@@ -305,19 +307,23 @@ function issueFromRow<T extends { tags: string | null }>(row: T): Omit<T, 'tags'
   return { ...fields, tags: parseIssueTagsColumn(tags) }
 }
 
-export async function listIssues(db: D1Database): Promise<IssueListItem[]> {
+export async function listIssues(db: D1Database, requestUrl?: string | URL): Promise<IssueListItem[]> {
   const { results } = await db
     .prepare(`SELECT ${ISSUE_PUBLIC_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues WHERE abuse_flagged IN (0, 1, 3) ORDER BY created_at DESC`)
-    .all<IssueRow<IssueListItem>>()
-  return (results ?? []).map(row => issueFromRow(row))
+    .all<IssueRow<Omit<IssueListItem, 'vote_count'>>>()
+  if (!results?.length) return []
+  const voteCounts = await getPublicIssueVoteCounts(db, requestUrl)
+  return (results ?? []).map(row => ({ ...issueFromRow(row), vote_count: voteCounts.get(row.id) ?? 0 }))
 }
 
 /** 管理端專用：回傳完整作者快照。呼叫端必須先確認請求者是管理員。 */
-export async function listIssuesWithAuthor(db: D1Database): Promise<IssueListItemWithAuthor[]> {
+export async function listIssuesWithAuthor(db: D1Database, requestUrl?: string | URL): Promise<IssueListItemWithAuthor[]> {
   const { results } = await db
     .prepare(`SELECT ${ISSUE_ADMIN_COLUMNS}, ${ISSUE_COUNT_SUBQUERIES}, ${ISSUE_LAST_ACTIVITY_COLUMN} FROM ct_issues ORDER BY created_at DESC`)
-    .all<IssueRow<IssueListItemWithAuthor>>()
-  return (results ?? []).map(row => issueFromRow(row))
+    .all<IssueRow<Omit<IssueListItemWithAuthor, 'vote_count'>>>()
+  if (!results?.length) return []
+  const voteCounts = await getPublicIssueVoteCounts(db, requestUrl)
+  return (results ?? []).map(row => ({ ...issueFromRow(row), vote_count: voteCounts.get(row.id) ?? 0 }))
 }
 
 /**

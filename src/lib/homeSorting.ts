@@ -30,13 +30,14 @@ export function filterByRole(issues: IssueListItem[], role: ViewerRole): IssueLi
 
 /**
  * 依使用者選擇排序。newest 以「最新活動日期」為準（#77），不再用議題建立日期。
+ * most／least 以意見數＋累計票數為關注數，不計素材數（#178）。
  */
 export function sortByOrder(issues: IssueListItem[], order: SortOrder): IssueListItem[] {
   const result = [...issues]
   if (order === 'most') {
-    result.sort((a, b) => b.material_count + b.opinion_count - (a.material_count + a.opinion_count))
+    result.sort((a, b) => b.opinion_count + b.vote_count - (a.opinion_count + a.vote_count))
   } else if (order === 'least') {
-    result.sort((a, b) => a.material_count + a.opinion_count - (b.material_count + b.opinion_count))
+    result.sort((a, b) => a.opinion_count + a.vote_count - (b.opinion_count + b.vote_count))
   } else {
     // newest: last_activity_at DESC（穩定排序，維持 API 既有順序作為同值 fallback）。
     // last_activity_at 為 NULL（尚無子內容活動）時 fallback 到 created_at（#77）。

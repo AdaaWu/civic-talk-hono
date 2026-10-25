@@ -41,6 +41,7 @@ const issue = {
   abuse_flagged: 0,
   author_name: null,
   author_email: null,
+  vote_count: 0,
 } as const
 
 const material = {
@@ -150,17 +151,23 @@ describe('author email disclosure (#60)', () => {
   })
 })
 
-describe('home issue card opinion count', () => {
-  it('keeps tags but omits the opinion indicator when there are no opinions', async () => {
-    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 0, tags: ['能源'] } })
+describe('home issue card counters', () => {
+  it('keeps tags but omits both counters when there are no opinions or votes', async () => {
+    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 0, vote_count: 0, tags: ['能源'] } })
     expect(html).toContain('#能源')
     expect(html).not.toContain('role="img"')
   })
 
   it('shows the opinion count even when there are no tags', async () => {
-    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 2 } })
+    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 2, vote_count: 0 } })
     const indicator = html.match(/<span role="img"[\s\S]*?<\/span>/)?.[0]
     expect(indicator?.replace(/<[^>]*>/g, '').trim()).toBe('2')
+  })
+
+  it('shows cached cumulative votes even when the live opinion count is zero', async () => {
+    const html = await render(IssueCard, { issue: { ...issue, material_count: 0, opinion_count: 0, vote_count: 3 } })
+    const indicators = [...html.matchAll(/<span role="img"[\s\S]*?<\/span>/g)].map(match => match[0].replace(/<[^>]*>/g, '').trim())
+    expect(indicators).toEqual(['3'])
   })
 })
 

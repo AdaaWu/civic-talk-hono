@@ -17,6 +17,7 @@ import { useViewerRole, type ViewerRole } from '../composables/useViewerRole'
 import type { IssueListItem } from '../db/queries'
 import { filterHomeIssuesByLifecycle, homeLifecycleUrl, readHomeLifecycleTab, type HomeLifecycleTab } from '../lib/homeLifecycle'
 import { filterAndSortHomeIssues, type SortOrder } from '../lib/homeSorting'
+import { readHomeSortPreference, saveHomeSortPreference } from '../lib/homeSortPreference'
 import { homeIssuePreviewUrl, readHomeIssuePreviewId } from '../lib/homeIssuePreview'
 import { collectHomeTagSuggestions, homeIssueListUrl, homeSearchUrl, readHomeSearchQuery } from '../lib/homeSearch'
 import { parseIssueTagsInput } from '../lib/issueTags'
@@ -164,6 +165,7 @@ async function loadIssues() {
 }
 
 onMounted(() => {
+  sortOrder.value = readHomeSortPreference()
   if (!props.initialIssues) void loadIssues()
   void ensureAuthSession()
   initViewerRole()
@@ -507,6 +509,7 @@ async function copyRssUrl() {
               <span>{{ t('idx_sort_label') }}</span>
               <select
                 v-model="sortOrder"
+                @change="saveHomeSortPreference(sortOrder)"
                 class="cursor-pointer rounded border border-vt-border bg-vt-bg-1 px-3 py-1.5 text-sm text-vt-fg-1 focus:outline-none focus:ring-2 focus:ring-vt-democratic-red/40"
               >
                 <option v-for="s in ['newest', 'most', 'least'] as const" :key="s" :value="s">

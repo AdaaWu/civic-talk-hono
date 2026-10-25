@@ -130,6 +130,7 @@ export const messages = {
   idx_similar_hint: 'Found existing issues with similar titles — feel free to check them out, or ignore this and submit as usual:',
   idx_materials_unit: 'materials',
   idx_opinions_unit: 'opinions',
+  issue_vote_count_label: 'Cumulative votes (not unique people): {count}',
   issue_preview_enter: 'Enter',
   idx_toast_title_required: 'Please enter an issue title',
   idx_toast_create_ok: 'Issue created successfully!',

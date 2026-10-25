@@ -18,6 +18,7 @@ function taggedIssue(id: number, tags: string[], abuse_flagged: IssueListItem['a
     author_email: null,
     material_count: 0,
     opinion_count: 0,
+    vote_count: 0,
     last_activity_at: '2026-08-01 00:00:00',
     is_closed: 0,
     closure_reason: null,
