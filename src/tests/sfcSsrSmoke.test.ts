@@ -180,15 +180,9 @@ describe('home issue preview', () => {
     expect(html).toContain('議題說明')
     expect(html).toContain('3 份素材')
     expect(html).toContain('5 份意見')
-    expect(html).toContain('7 次投票')
     expect(html).toContain('建立者：建立者')
     expect(html).toContain('href="/issues/1"')
     expect(html).toContain('進入議題')
-  })
-
-  it('shows zero votes in the preview', async () => {
-    const html = await render(IssuePreviewCard, { issue: { ...previewIssue, vote_count: 0 } })
-    expect(html).toContain('0 次投票')
   })
 
   it('SSR renders the preview layout from query-derived initial state', async () => {

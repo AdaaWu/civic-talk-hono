@@ -130,7 +130,7 @@ export const messages = {
   idx_materials_unit: '份素材',
   idx_opinions_unit: '份意見',
   issue_vote_count_label: '累計投票數：{count} 票（非人數）',
-  issue_preview_vote_count: '{count} 次投票',
+  issue_preview_vote_count: '{count}票',
   issue_preview_enter: '進入議題',
   idx_toast_title_required: '請填寫議題標題',
   idx_toast_create_ok: '議題建立成功！',
