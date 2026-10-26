@@ -131,6 +131,7 @@ export const messages = {
   idx_materials_unit: 'materials',
   idx_opinions_unit: 'opinions',
   issue_vote_count_label: 'Cumulative votes (not unique people): {count}',
+  issue_preview_vote_count: '{count} votes',
   issue_preview_enter: 'Enter',
   idx_toast_title_required: 'Please enter an issue title',
   idx_toast_create_ok: 'Issue created successfully!',
