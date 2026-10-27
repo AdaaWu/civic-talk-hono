@@ -185,6 +185,18 @@ describe('home issue preview', () => {
     expect(html).toContain('進入議題')
   })
 
+  it('SSR 預設依發布日期而非最新活動排序', async () => {
+    const html = await render(HomeView, {
+      initialIssues: [
+        { ...previewIssue, id: 2, title: 'Older publication', status: 'published', created_at: '2026-08-01', last_activity_at: '2026-10-01' },
+        { ...previewIssue, id: 3, title: 'Newer publication', status: 'published', created_at: '2026-09-01', last_activity_at: '2026-09-01' },
+      ],
+    })
+    expect(html).toContain('Older publication')
+    expect(html).toContain('Newer publication')
+    expect(html.indexOf('Newer publication')).toBeLessThan(html.indexOf('Older publication'))
+  })
+
   it('SSR renders the preview layout from query-derived initial state', async () => {
     const html = await render(HomeView, { initialIssues: [previewIssue], initialPreviewIssueId: 1 })
     expect(html).toContain('議題說明')

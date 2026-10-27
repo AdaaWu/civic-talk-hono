@@ -10,14 +10,16 @@ const props = defineProps<{
 }>()
 
 const { t, locale } = useI18n()
-const date = computed(() => formatDate(props.issue.created_at, locale.value))
+const publishedDate = computed(() => formatDate(props.issue.created_at, locale.value))
+const activityDate = computed(() => formatDate(props.issue.last_activity_at ?? props.issue.created_at, locale.value))
 </script>
 
 <template>
   <article class="card mx-auto flex w-full max-w-5xl flex-col">
     <div class="mb-3 flex flex-wrap items-center gap-2">
       <StatusBadge :status="issue.status" short />
-      <span class="text-sm text-muted">{{ date }}</span>
+      <span class="text-sm whitespace-nowrap text-muted">{{ t('idx_published_date', { date: publishedDate }) }}</span>
+      <span class="text-sm whitespace-nowrap text-muted">{{ t('idx_activity_date', { date: activityDate }) }}</span>
     </div>
 
     <h2 class="mt-0 mb-3 font-serif text-2xl font-bold text-ink">{{ issue.title }}</h2>
