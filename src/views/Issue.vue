@@ -245,7 +245,6 @@ let carouselDragEndFrame: number | null = null
 
 function clearCarouselDragEndListeners() {
   if (!carouselDragEndListening || typeof document === 'undefined') return
-  document.removeEventListener('mouseup', finishCarouselDrag)
   document.removeEventListener('touchend', finishCarouselDrag)
   carouselDragEndListening = false
 }
@@ -254,8 +253,7 @@ function finishCarouselDrag() {
   clearCarouselDragEndListeners()
   if (typeof window === 'undefined') return
 
-  // vue3-carousel 會攔截滑鼠拖曳後緊接著產生的 click；等該 click 結束再切換版面，
-  // 避免 carousel 過早卸載，讓攔截器殘留並吃掉 comments 的第一個按鈕 click。
+  // 等拖曳結束事件處理完再切換版面，避免 carousel 在事件中途卸載
   carouselDragEndFrame = window.requestAnimationFrame(() => {
     carouselDragEndFrame = null
     const shouldEnterComments = dragThresholdReached.value && viewerRole.value === 'citizen' && !activeStep.value && carouselIndex.value === lastBriefingSlideIndex
@@ -267,7 +265,6 @@ function finishCarouselDrag() {
 function listenForCarouselDragEnd() {
   if (carouselDragEndListening || typeof document === 'undefined') return
   carouselDragEndListening = true
-  document.addEventListener('mouseup', finishCarouselDrag, { passive: true })
   document.addEventListener('touchend', finishCarouselDrag, { passive: true })
 }
 
@@ -776,7 +773,7 @@ async function submitOpinion() {
               :wrap-around="false"
               :prevent-excessive-dragging="true"
               :touch-drag="true"
-              :mouse-drag="true"
+              :mouse-drag="false"
               :i18n="carouselI18n"
               @drag="handleCarouselDrag"
             >
