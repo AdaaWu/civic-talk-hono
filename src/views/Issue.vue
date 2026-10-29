@@ -1106,7 +1106,7 @@ async function submitOpinion() {
               <div class="comment-action-panel">
                 <h2 class="mt-0 mb-3 font-serif text-xl">{{ t('op_start_title') }}</h2>
                 <p class="mb-6 text-muted">{{ t('op_start_desc') }}</p>
-                <div class="flex flex-col gap-3 sm:mx-auto sm:max-w-sm sm:gap-4 sm:[&>button]:py-4 sm:[&>button]:text-lg">
+                <div class="flex flex-col gap-3 sm:mx-auto sm:max-w-sm sm:gap-4">
                   <button type="button" class="btn btn-primary" @click="setIssueCommentAction('commit')">
                     <span class="sm:hidden">{{ t('op_start_continue') }}</span>
                     <span class="hidden sm:inline">{{ t('op_start_commit') }}</span>
