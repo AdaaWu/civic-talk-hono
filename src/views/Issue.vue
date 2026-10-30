@@ -722,7 +722,7 @@ async function submitOpinion() {
     <AppHeader current="issue" :callback-url="loginCallbackUrl" />
 
     <main class="py-2" :class="{ 'issue-main-carousel': !activeStep }">
-      <div class="container" :class="{ 'issue-container-carousel': !activeStep }">
+      <div class="page-container" :class="{ 'issue-container-carousel': !activeStep }">
         <div v-if="loading && !issue" class="empty">
           <div class="empty-icon">⏳</div>
           {{ t('loading') }}
