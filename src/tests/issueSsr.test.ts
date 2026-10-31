@@ -326,4 +326,46 @@ describe('Issue SSR', () => {
     // 短素材照舊直接顯示
     expect(html).toContain('短素材內容')
   })
+
+  it.each(['comments', 'materials', 'volunteer'] as const)('keeps the issue title and RSS button visible on the %s step', async step => {
+    const app = createSSRApp(IssueView, {
+      issueId: 1,
+      initialStep: step,
+      initialDetail: {
+        issue: {
+          id: 1,
+          title: '測試議題',
+          description: '議題說明',
+          status: 'published',
+          polis_id: null,
+          created_at: '2026-08-17 00:00:00',
+          tags: [],
+          is_closed: 0,
+          closure_reason: null,
+          closure_changed_at: null,
+          abuse_flagged: 0,
+          author_name: null,
+          author_email: null,
+        },
+        materials: [],
+        briefing: null,
+        opinions: [],
+      },
+    })
+    provideI18n(app, 'zh-TW')
+
+    const html = await renderToString(app)
+    const heading = html.match(/<div class="issue-page-heading[^"]*"[^>]*>/)?.[0]
+    const createdLine = html.match(/<p class="m-0 text-sm text-muted"[^>]*>\s*建立於/)?.[0]
+
+    expect(heading).toBeDefined()
+    expect(heading).not.toContain('display:none')
+    expect(html).toContain('測試議題')
+    expect(html).toContain('訂閱本議題 RSS')
+    // 建立資訊只在說明輪播與意見分頁顯示
+    if (step === 'comments') expect(createdLine).not.toContain('display:none')
+    else expect(createdLine).toContain('display:none')
+    // 狀態標籤只在素材與志願者分頁顯示
+    expect(html.includes('說明頁已發布')).toBe(step !== 'comments')
+  })
 })
