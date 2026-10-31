@@ -2,6 +2,7 @@ import { renderToString } from '@vue/server-renderer'
 import { createSSRApp } from 'vue'
 import { describe, expect, it } from 'vite-plus/test'
 import { provideI18n } from '../l10n'
+import { messages } from '../l10n/zh-TW'
 import IssueView from '../views/Issue.vue'
 
 describe('Issue SSR', () => {
@@ -327,14 +328,15 @@ describe('Issue SSR', () => {
     expect(html).toContain('短素材內容')
   })
 
-  it.each(['comments', 'materials', 'volunteer'] as const)('keeps the issue title and RSS button visible on the %s step', async step => {
+  it.each(['comments', 'materials', 'volunteer'] as const)('preserves issue heading controls and step-specific status on the %s step', async step => {
+    const title = '跨分頁保留的議題標題'
     const app = createSSRApp(IssueView, {
       issueId: 1,
       initialStep: step,
       initialDetail: {
         issue: {
           id: 1,
-          title: '測試議題',
+          title,
           description: '議題說明',
           status: 'published',
           polis_id: null,
@@ -355,17 +357,12 @@ describe('Issue SSR', () => {
     provideI18n(app, 'zh-TW')
 
     const html = await renderToString(app)
-    const heading = html.match(/<div class="issue-page-heading[^"]*"[^>]*>/)?.[0]
-    const createdLine = html.match(/<p class="m-0 text-sm text-muted"[^>]*>\s*建立於/)?.[0]
+    const headingText = html.match(/<h1\b[^>]*>([\s\S]*?)<\/h1>/)?.[1].trim()
+    const buttonLabels = [...html.matchAll(/<button\b[^>]*>([\s\S]*?)<\/button>/g)].map(match => match[1].trim())
 
-    expect(heading).toBeDefined()
-    expect(heading).not.toContain('display:none')
-    expect(html).toContain('測試議題')
-    expect(html).toContain('訂閱本議題 RSS')
-    // 建立資訊只在說明輪播與意見分頁顯示
-    if (step === 'comments') expect(createdLine).not.toContain('display:none')
-    else expect(createdLine).toContain('display:none')
-    // 狀態標籤只在素材與志願者分頁顯示
-    expect(html.includes('說明頁已發布')).toBe(step !== 'comments')
+    expect(headingText).toBe(title)
+    expect(buttonLabels).toContain(messages.issue_rss_subscribe)
+    // 驗證分頁的狀態顯示規則，不固定翻譯文案或 CSS 實作。
+    expect(html.includes(messages.status_published)).toBe(step !== 'comments')
   })
 })

@@ -741,16 +741,16 @@ async function submitOpinion() {
             <div v-if="activeStep && activeStep !== 'comments'" class="hidden sm:flex">
               <StatusBadge :status="issue.status" />
             </div>
-            <h1 class="mt-3 mb-2 font-serif text-xl font-bold">
+            <h1 class="mt-3 mb-2 font-serif font-bold" :class="activeStep === 'comments' ? 'text-lg sm:text-xl' : 'text-xl'">
               {{ issue.abuse_flagged === 3 ? t('moderation_hidden_placeholder') : issue.title }}
             </h1>
             <!-- <p v-if="issue.abuse_flagged !== 3 && issue.description" class="mt-0 mb-3 whitespace-pre-line text-muted">{{ issue.description }}</p> -->
-            <p class="m-0 text-sm text-muted" v-show="!activeStep || activeStep === 'comments'">
+            <p class="m-0 text-sm text-muted" :class="{ 'hidden sm:block': activeStep === 'comments' }" v-show="!activeStep || activeStep === 'comments'">
               {{ t('issue_created') }} {{ formatDate(issue.created_at, locale) }} · {{ materials.length }} {{ t('issue_materials_unit') }} · {{ t('issue_author_label') }}：{{
                 issue.author_name || t('author_system')
               }}<template v-if="issue.author_email"> <AuthorEmailLink :email="issue.author_email" :name="issue.author_name" /></template>
             </p>
-            <button type="button" class="btn btn-secondary btn-sm mt-3 inline-flex" @click="copyRssUrl">{{ t('issue_rss_subscribe') }}</button>
+            <button type="button" class="btn btn-secondary btn-sm mt-3" :class="activeStep === 'comments' ? 'hidden sm:inline-flex' : 'inline-flex'" @click="copyRssUrl">{{ t('issue_rss_subscribe') }}</button>
           </div>
 
           <nav class="issue-briefing-tabs" :aria-label="t('issue_tabs_aria')">
